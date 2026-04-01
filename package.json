@@ -33,7 +33,7 @@
     "url": ""
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

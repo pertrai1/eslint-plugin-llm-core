@@ -1,4 +1,1 @@
-// Auto-export all rules here.
-// Example: export { default as myRule } from "./my-rule";
-
-export {};
+export { default as "no-exported-function-expressions" } from "./no-exported-function-expressions";

@@ -15,7 +15,7 @@ Custom ESLint plugin designed to help LLM agents self-correct and learn from mis
 
 ## Commands
 
-- `npm run build` — Compile TypeScript to dist/
+- `npm run build` — Compile TypeScript to dist/ (uses tsconfig.build.json)
 - `npm run test` — Run tests with vitest
 - `npm run test:coverage` — Run tests with coverage
 - `npm run lint` — Run ESLint

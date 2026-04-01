@@ -21,6 +21,7 @@ const recommendedRules: TSESLint.FlatConfig.Rules = {
   "llm-core/max-params": "error",
   "llm-core/max-function-length": "error",
   "llm-core/max-file-length": "error",
+  "llm-core/no-magic-numbers": "error",
 };
 
 const allRules: TSESLint.FlatConfig.Rules = Object.fromEntries(

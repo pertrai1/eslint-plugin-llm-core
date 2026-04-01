@@ -1,6 +1,18 @@
 # eslint-plugin-llm-core
 
-ESLint plugin to help LLM agents self-correct and learn from mistakes.
+ESLint rules that catch the patterns LLM agents get wrong — and teach them to self-correct through structured error messages.
+
+LLMs generate code that _works_ but drifts: arrow functions everywhere, magic numbers, deep nesting, string-interpolated logs, oversized files. These aren't style nitpicks — they compound into codebases that are harder to debug, review, and maintain.
+
+This plugin catches those patterns at lint time and provides error messages designed for LLM comprehension: **what's wrong**, **why it matters**, and **a concrete fix**. The result is AI-generated code that reads like it was written by a senior engineer.
+
+## Why this plugin?
+
+- **Targeted rules** — Every rule addresses a real pattern LLMs consistently get wrong, from `export const fn = () => {}` to `logger.error(\`Failed for ${userId}\`)`
+- **Teaching error messages** — Structured feedback that LLMs can parse and learn from across iterations
+- **Works for humans too** — These are solid code quality rules regardless of who wrote the code
+- **Zero config** — The `recommended` preset is ready out of the box
+- **Suggestions, not auto-fixes** — Transformations that could change semantics are offered as suggestions, keeping you in control
 
 ## Installation
 
@@ -8,29 +20,28 @@ ESLint plugin to help LLM agents self-correct and learn from mistakes.
 npm install eslint-plugin-llm-core --save-dev
 ```
 
-## Usage
-
-In your `eslint.config.mjs`:
+## Quick Start
 
 ```js
+// eslint.config.mjs
 import llmCore from "eslint-plugin-llm-core";
 
-export default [
-  // Use the recommended config
-  ...llmCore.configs.recommended,
-];
+export default [...llmCore.configs.recommended];
 ```
+
+That's it. All recommended rules are now active.
 
 ### Available Configs
 
-| Config        | Description                                          |
-| ------------- | ---------------------------------------------------- |
-| `recommended` | Safe defaults — rules most codebases should use      |
-| `all`         | Every rule enabled at `error` — for strict codebases |
+| Config        | Description                                     |
+| ------------- | ----------------------------------------------- |
+| `recommended` | Safe defaults — rules most codebases should use |
+| `all`         | Every rule at `error` — for strict codebases    |
 
 ### Manual Rule Configuration
 
 ```js
+// eslint.config.mjs
 import llmCore from "eslint-plugin-llm-core";
 
 export default [
@@ -40,6 +51,7 @@ export default [
     },
     rules: {
       "llm-core/no-exported-function-expressions": "error",
+      "llm-core/structured-logging": "error",
     },
   },
 ];
@@ -69,7 +81,7 @@ export default [
 
 <!-- end auto-generated rules list -->
 
-## Development
+## Contributing
 
 ```bash
 npm install
@@ -77,6 +89,8 @@ npm run build
 npm run test
 npm run lint
 ```
+
+See [CLAUDE.md](CLAUDE.md) for architecture details and how to add new rules.
 
 ## License
 

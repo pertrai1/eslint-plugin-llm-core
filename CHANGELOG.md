@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.3.0
+
+### Minor Changes
+
+- [`273b82d`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/273b82dc3b1057197364f7d98932566495bae231) Thanks [@pertrai1](https://github.com/pertrai1)! - Add npm provenance for supply chain attestation and documentation improvements
+
 ## 0.2.0
 
 ### Minor Changes

@@ -14,6 +14,39 @@ This plugin catches those patterns at lint time and provides error messages desi
 - **Zero config** — The `recommended` preset is ready out of the box
 - **Suggestions, not auto-fixes** — Transformations that could change semantics are offered as suggestions, keeping you in control
 
+## How It Works
+
+This plugin is designed around three principles that make it effective for LLM-assisted development:
+
+### Deterministic Feedback
+
+Every rule produces the **exact same error message for the same mistake**, every time. There is no randomness, no varying phrasing, no context-dependent rewording. This consistency means LLMs build reliable pattern associations between violations and fixes across iterations.
+
+### Instructional Error Messages
+
+Every error message follows a structured teaching format:
+
+1. **What's wrong** — the specific violation
+2. **Why it matters** — the rationale behind the rule
+3. **How to fix** — a concrete, copy-pasteable transformation using the actual code context (function names, parameter lists, etc.)
+
+```
+Exported function 'fetchData' must use a function declaration, not a function expression or arrow function.
+
+Why: Function declarations are hoisted, produce better stack traces, and signal clear intent.
+LLMs default to arrow functions — this rule enforces the preferred pattern.
+
+How to fix:
+  Replace: export const fetchData = async () => { ... }
+  With:    export async function fetchData() { ... }
+```
+
+This structure is parseable by LLMs — they extract the fix and apply it. After 2-3 iterations, the LLM learns the pattern and stops making the same mistake.
+
+### Strict Mode by Default
+
+Both the `recommended` and `all` configs set every rule to `error`, not `warn`. Warnings are easy to ignore — for both humans and LLMs. Errors force the issue to be resolved before the code is accepted. Combined with the `no-inline-disable` rule (which prevents `// eslint-disable` escape hatches), this creates a feedback loop where the LLM **must** fix violations rather than suppress them.
+
 ## Installation
 
 ```bash

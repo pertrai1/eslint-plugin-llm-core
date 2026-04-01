@@ -20,6 +20,7 @@ const recommendedRules: TSESLint.FlatConfig.Rules = {
   "llm-core/no-inline-disable": "error",
   "llm-core/max-params": "error",
   "llm-core/max-function-length": "error",
+  "llm-core/max-file-length": "error",
 };
 
 const allRules: TSESLint.FlatConfig.Rules = Object.fromEntries(

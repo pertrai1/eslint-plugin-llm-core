@@ -30,7 +30,7 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/pertrai1/eslint-plugin-llm-core.git"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

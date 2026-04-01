@@ -10,7 +10,7 @@ Custom ESLint plugin designed to help LLM agents self-correct and learn from mis
 - **Build**: tsc → dist/ (uses tsconfig.build.json)
 - **Test**: vitest + @typescript-eslint/rule-tester
 - **Lint**: ESLint (flat config) + Prettier
-- **CI**: GitHub Actions (Node 18/20/22)
+- **CI**: GitHub Actions (Node 20/22)
 - **Versioning**: Changesets
 
 ## Commands

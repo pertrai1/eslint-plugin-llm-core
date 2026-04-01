@@ -36,6 +36,18 @@ Custom ESLint plugin designed to help LLM agents self-correct and learn from mis
 - **`recommended`** — Manually curated safe defaults. New rules must be explicitly added to `recommendedRules` in `src/index.ts`.
 - **`all`** — Every rule at `error`. Auto-expands as rules are added to `src/rules/index.ts`.
 
+## Scope
+
+This plugin ships **framework-agnostic** rules that apply to any TypeScript/JavaScript codebase. Rules must work without project-specific configuration to be included.
+
+**Out of scope** (important patterns, but too project-specific):
+
+- **Layer boundaries** (domain/presentation/infrastructure) — varies by architecture. Use [`eslint-plugin-boundaries`](https://github.com/javierbrea/eslint-plugin-boundaries) or [`eslint-plugin-import/no-restricted-paths`](https://github.com/import-js/eslint-plugin-import).
+- **Factory-over-class enforcement** — depends on whether the project uses OOP or functional patterns.
+- **DTO/schema collocation** — directory structure varies per project.
+
+These are valid architectural constraints for individual projects, but they belong in project-specific ESLint configs, not in a general-purpose plugin.
+
 ## Conventions
 
 - All rules use `@typescript-eslint/utils` for typed ESLint utilities

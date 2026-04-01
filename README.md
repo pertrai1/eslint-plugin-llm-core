@@ -31,7 +31,11 @@ export default [
 
 <!-- begin auto-generated rules list -->
 
-No rules have been added yet.
+💡 Manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
+
+| Name                                                                               | Description                                                                                                  | 💡  |
+| :--------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- | :-- |
+| [no-exported-function-expressions](docs/rules/no-exported-function-expressions.md) | Enforce that exported functions use function declarations instead of function expressions or arrow functions | 💡  |
 
 <!-- end auto-generated rules list -->
 

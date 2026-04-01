@@ -1,4 +1,8 @@
-# no-exported-function-expressions
+# Enforce that exported functions use function declarations instead of function expressions or arrow functions (`llm-core/no-exported-function-expressions`)
+
+💡 This rule is manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
+
+<!-- end auto-generated rule header -->
 
 Enforce that exported functions use function declarations instead of function expressions or arrow functions.
 

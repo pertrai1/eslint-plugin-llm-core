@@ -127,4 +127,4 @@ See [CLAUDE.md](CLAUDE.md) for architecture details and how to add new rules.
 
 ## License
 
-ISC
+MIT

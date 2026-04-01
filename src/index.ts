@@ -17,6 +17,7 @@ const recommendedRules: TSESLint.FlatConfig.Rules = {
   "llm-core/filename-match-export": "error",
   "llm-core/structured-logging": "error",
   "llm-core/max-nesting-depth": "error",
+  "llm-core/no-inline-disable": "error",
 };
 
 const allRules: TSESLint.FlatConfig.Rules = Object.fromEntries(

@@ -57,13 +57,20 @@ Maximum allowed lines per file. Default: `250`.
 
 Whether to skip blank lines when counting. Default: `true`.
 
+### `skipTestFiles`
+
+Whether to skip test files (`.test.ts`, `.spec.ts`, etc.). Default: `true`.
+
+Test files are often longer than source files due to test setup and multiple test cases, so they are excluded by default.
+
 ```json
 {
   "llm-core/max-file-length": [
     "error",
     {
       "max": 200,
-      "skipBlankLines": true
+      "skipBlankLines": true,
+      "skipTestFiles": true
     }
   ]
 }

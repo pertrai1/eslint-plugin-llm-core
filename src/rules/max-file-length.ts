@@ -1,3 +1,4 @@
+import path from "path";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "maxFileLength";
@@ -6,6 +7,7 @@ type Options = [
   {
     max?: number;
     skipBlankLines?: boolean;
+    skipTestFiles?: boolean;
   },
 ];
 
@@ -45,19 +47,32 @@ export default createRule<Options, MessageIds>({
             description:
               "Whether to skip blank lines when counting (default: true)",
           },
+          skipTestFiles: {
+            type: "boolean",
+            description:
+              "Whether to skip test files (.test.ts, .spec.ts) (default: true)",
+          },
         },
         additionalProperties: false,
       },
     ],
   },
-  defaultOptions: [{ max: 250, skipBlankLines: true }],
+  defaultOptions: [{ max: 250, skipBlankLines: true, skipTestFiles: true }],
   create(context, [options]) {
     const max = options.max ?? 250;
     const skipBlankLines = options.skipBlankLines ?? true;
+    const skipTestFiles = options.skipTestFiles ?? true;
     const sourceCode = context.sourceCode;
 
     return {
       "Program:exit"(node) {
+        if (skipTestFiles) {
+          const filename = path.basename(context.filename);
+          if (/\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/.test(filename)) {
+            return;
+          }
+        }
+
         const text = sourceCode.getText(node);
         const allLines = text.split("\n");
         const lines = skipBlankLines

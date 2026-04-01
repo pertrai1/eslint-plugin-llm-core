@@ -34,6 +34,20 @@ ruleTester.run("max-file-length", rule, {
       code: generateLines(400),
       options: [{ max: 500 }],
     },
+
+    // Test files skipped by default
+    {
+      code: generateLines(500),
+      filename: "foo.test.ts",
+    },
+    {
+      code: generateLines(500),
+      filename: "foo.spec.ts",
+    },
+    {
+      code: generateLines(500),
+      filename: "foo.test.tsx",
+    },
   ],
 
   invalid: [
@@ -60,6 +74,14 @@ ruleTester.run("max-file-length", rule, {
     {
       code: "const a = 1;\n" + "\n".repeat(10) + "const b = 2;",
       options: [{ max: 5, skipBlankLines: false }],
+      errors: [{ messageId: "maxFileLength" as const }],
+    },
+
+    // Test file NOT skipped when skipTestFiles is false
+    {
+      code: generateLines(251),
+      filename: "foo.test.ts",
+      options: [{ skipTestFiles: false }],
       errors: [{ messageId: "maxFileLength" as const }],
     },
   ],

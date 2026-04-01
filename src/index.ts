@@ -22,6 +22,7 @@ const recommendedRules: TSESLint.FlatConfig.Rules = {
   "llm-core/max-function-length": "error",
   "llm-core/max-file-length": "error",
   "llm-core/no-magic-numbers": "error",
+  "llm-core/naming-conventions": "error",
 };
 
 const allRules: TSESLint.FlatConfig.Rules = Object.fromEntries(

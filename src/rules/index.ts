@@ -7,3 +7,4 @@ export { default as "max-params" } from "./max-params";
 export { default as "max-function-length" } from "./max-function-length";
 export { default as "max-file-length" } from "./max-file-length";
 export { default as "no-magic-numbers" } from "./no-magic-numbers";
+export { default as "naming-conventions" } from "./naming-conventions";

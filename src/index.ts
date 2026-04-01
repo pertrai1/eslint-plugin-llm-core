@@ -18,6 +18,7 @@ const recommendedRules: TSESLint.FlatConfig.Rules = {
   "llm-core/structured-logging": "error",
   "llm-core/max-nesting-depth": "error",
   "llm-core/no-inline-disable": "error",
+  "llm-core/max-params": "error",
 };
 
 const allRules: TSESLint.FlatConfig.Rules = Object.fromEntries(

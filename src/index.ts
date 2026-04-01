@@ -19,6 +19,7 @@ const recommendedRules: TSESLint.FlatConfig.Rules = {
   "llm-core/max-nesting-depth": "error",
   "llm-core/no-inline-disable": "error",
   "llm-core/max-params": "error",
+  "llm-core/max-function-length": "error",
 };
 
 const allRules: TSESLint.FlatConfig.Rules = Object.fromEntries(

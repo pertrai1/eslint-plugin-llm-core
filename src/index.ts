@@ -1,12 +1,13 @@
 import type { TSESLint } from "@typescript-eslint/utils";
 import * as rules from "./rules";
+import { version } from "../package.json";
 
 type RuleKey = keyof typeof rules;
 
 const plugin = {
   meta: {
     name: "eslint-plugin-llm-core",
-    version: "0.3.2",
+    version,
   },
   rules,
   configs: {} as Record<string, TSESLint.FlatConfig.ConfigArray>,
@@ -25,9 +26,12 @@ const recommendedRules: TSESLint.FlatConfig.Rules = {
   "llm-core/naming-conventions": "error",
   "llm-core/no-commented-out-code": "error",
   "llm-core/prefer-early-return": "error",
-  "llm-core/no-async-foreach": "error",
+  "llm-core/no-async-array-callbacks": "error",
   "llm-core/no-type-assertion-any": "error",
   "llm-core/no-any-in-generic": "error",
+  "llm-core/throw-error-objects": "error",
+  "llm-core/no-empty-catch": "error",
+  "llm-core/prefer-unknown-in-catch": "error",
 };
 
 const allRules: TSESLint.FlatConfig.Rules = Object.fromEntries(

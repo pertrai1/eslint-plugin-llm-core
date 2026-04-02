@@ -51,18 +51,37 @@ export default createRule<Options, MessageIds>({
   defaultOptions: [{ max: 3 }],
   create(context, [options]) {
     const max = options.max ?? 3;
-    let depth = 0;
     const reported = new Set<TSESTree.Node>();
 
+    // Each function boundary gets its own depth counter so nesting inside
+    // a helper function starts fresh at 0.
+    const depthStack: number[] = [0];
+
+    function currentDepth(): number {
+      return depthStack[depthStack.length - 1]!;
+    }
+
+    function setDepth(n: number): void {
+      depthStack[depthStack.length - 1] = n;
+    }
+
+    function enterFunction() {
+      depthStack.push(0);
+    }
+
+    function exitFunction() {
+      depthStack.pop();
+    }
+
     function enterNesting(node: TSESTree.Node) {
-      depth++;
-      if (depth > max && !reported.has(node)) {
+      setDepth(currentDepth() + 1);
+      if (currentDepth() > max && !reported.has(node)) {
         reported.add(node);
         context.report({
           node,
           messageId: "maxNestingDepth",
           data: {
-            depth: String(depth),
+            depth: String(currentDepth()),
             max: String(max),
           },
         });
@@ -70,7 +89,7 @@ export default createRule<Options, MessageIds>({
     }
 
     function exitNesting() {
-      depth--;
+      setDepth(currentDepth() - 1);
     }
 
     function enterElseIf(node: TSESTree.IfStatement) {
@@ -101,6 +120,12 @@ export default createRule<Options, MessageIds>({
     }
 
     return {
+      FunctionDeclaration: enterFunction,
+      "FunctionDeclaration:exit": exitFunction,
+      FunctionExpression: enterFunction,
+      "FunctionExpression:exit": exitFunction,
+      ArrowFunctionExpression: enterFunction,
+      "ArrowFunctionExpression:exit": exitFunction,
       IfStatement: enterElseIf,
       "IfStatement:exit": exitElseIf,
       ForStatement: enterNesting,

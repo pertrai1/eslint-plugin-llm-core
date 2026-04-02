@@ -56,6 +56,55 @@ ruleTester.run("max-nesting-depth", rule, {
         }
       }
     }`,
+
+    // Nesting inside a helper function nested inside control flow resets depth
+    `if (a) {
+      if (b) {
+        if (c) {
+          const helper = () => {
+            if (d) {
+              if (e) {
+                if (f) {
+                  doSomething();
+                }
+              }
+            }
+          };
+        }
+      }
+    }`,
+
+    // Arrow function callback resets depth — the outer depth is 2 (for + if),
+    // the arrow function starts at 0 so depth 3 inside is allowed
+    `for (const x of items) {
+      if (x.active) {
+        items.forEach((item) => {
+          if (item.a) {
+            if (item.b) {
+              if (item.c) {
+                process(item);
+              }
+            }
+          }
+        });
+      }
+    }`,
+
+    // Function expression inside switch resets depth
+    `switch (action) {
+      case 'run': {
+        const fn = function() {
+          if (a) {
+            if (b) {
+              if (c) {
+                doSomething();
+              }
+            }
+          }
+        };
+        break;
+      }
+    }`,
   ],
 
   invalid: [

@@ -24,7 +24,14 @@
     "eslint-plugin",
     "llm",
     "ai",
-    "linting"
+    "linting",
+    "typescript",
+    "code-quality",
+    "static-analysis",
+    "chatgpt",
+    "copilot",
+    "claude",
+    "ai-generated-code"
   ],
   "engines": {
     "node": ">=20"
@@ -37,6 +44,10 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pertrai1/eslint-plugin-llm-core.git"
+  },
+  "homepage": "https://github.com/pertrai1/eslint-plugin-llm-core#readme",
+  "bugs": {
+    "url": "https://github.com/pertrai1/eslint-plugin-llm-core/issues"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

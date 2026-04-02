@@ -10,3 +10,6 @@ export { default as "no-magic-numbers" } from "./no-magic-numbers";
 export { default as "naming-conventions" } from "./naming-conventions";
 export { default as "no-commented-out-code" } from "./no-commented-out-code";
 export { default as "prefer-early-return" } from "./prefer-early-return";
+export { default as "no-async-foreach" } from "./no-async-foreach";
+export { default as "no-type-assertion-any" } from "./no-type-assertion-any";
+export { default as "no-any-in-generic" } from "./no-any-in-generic";

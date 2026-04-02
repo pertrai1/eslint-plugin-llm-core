@@ -25,6 +25,9 @@ const recommendedRules: TSESLint.FlatConfig.Rules = {
   "llm-core/naming-conventions": "error",
   "llm-core/no-commented-out-code": "error",
   "llm-core/prefer-early-return": "error",
+  "llm-core/no-async-foreach": "error",
+  "llm-core/no-type-assertion-any": "error",
+  "llm-core/no-any-in-generic": "error",
 };
 
 const allRules: TSESLint.FlatConfig.Rules = Object.fromEntries(

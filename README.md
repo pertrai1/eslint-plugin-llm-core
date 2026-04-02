@@ -165,18 +165,18 @@ See [CLAUDE.md](CLAUDE.md) for architecture details and how to add new rules.
 
 ## Roadmap
 
-This plugin evolves as we learn more about how LLM agents behave in real codebases. The current ruleset is based on observed patterns — code that compiles and runs but drifts from production standards.
+This plugin evolves as I learn more about how LLM agents behave in real codebases. The current ruleset is based on observed patterns — code that compiles and runs but drifts from production standards.
 
-**What we're watching:**
+**What I'm watching:**
 
 - Which rules catch the most violations in practice
-- Whether structured messages reduce fix iterations (we believe they do, but want data)
+- Whether structured messages reduce fix iterations (I believe they do, but want data)
 - New patterns that emerge as LLM capabilities change
 - Edge cases where rules create more noise than value
 
 **How you can help:**
 
-If you're using this plugin with LLM agents, we want to hear what's working and what isn't. Open an issue with:
+If you're using this plugin with LLM agents, I'd love to hear what's working and what isn't. Open an issue with:
 
 - Rules that catch real problems in your codebase
 - Rules that generate false positives or friction

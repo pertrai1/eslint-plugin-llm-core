@@ -1,0 +1,81 @@
+name: Bug Report
+description: Report a rule that is misbehaving (false positive, false negative, crash)
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: rule
+    attributes:
+      label: Rule
+      description: Which rule is affected?
+      options:
+        - filename-match-export
+        - max-file-length
+        - max-function-length
+        - max-nesting-depth
+        - max-params
+        - naming-conventions
+        - no-any-in-generic
+        - no-async-foreach
+        - no-commented-out-code
+        - no-exported-function-expressions
+        - no-inline-disable
+        - no-magic-numbers
+        - no-type-assertion-any
+        - prefer-early-return
+        - structured-logging
+        - Other / Multiple
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Bug type
+      options:
+        - False positive (flags code that should be valid)
+        - False negative (misses code that should be flagged)
+        - Crash / error
+        - Incorrect error message
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code example
+      description: Minimal code that reproduces the issue.
+      render: ts
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happens instead?
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version
+      placeholder: "0.4.0"
+    validations:
+      required: true
+
+  - type: input
+    id: eslint-version
+    attributes:
+      label: ESLint version
+      placeholder: "9.0.0"
+    validations:
+      required: false

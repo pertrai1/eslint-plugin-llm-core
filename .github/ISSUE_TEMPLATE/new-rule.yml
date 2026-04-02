@@ -1,0 +1,60 @@
+name: New Rule Proposal
+description: Propose a new ESLint rule for the plugin
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a new rule! Please fill out the sections below so we can evaluate the proposal.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What pattern do LLMs (or developers) get wrong? Why is it a problem?
+      placeholder: "LLMs frequently do X, which causes Y..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: rule
+    attributes:
+      label: Rule
+      description: What should the rule enforce? One sentence.
+      placeholder: "Disallow X / Prefer Y over Z"
+    validations:
+      required: true
+
+  - type: textarea
+    id: bad-examples
+    attributes:
+      label: "Examples: Incorrect"
+      description: Code examples that should be flagged.
+      render: ts
+    validations:
+      required: true
+
+  - type: textarea
+    id: good-examples
+    attributes:
+      label: "Examples: Correct"
+      description: Code examples that should pass.
+      render: ts
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it matters
+      description: Why should this rule exist? How does it improve code quality?
+    validations:
+      required: true
+
+  - type: textarea
+    id: prior-art
+    attributes:
+      label: Prior art
+      description: Are there existing ESLint rules that partially cover this? How does this rule differ?
+    validations:
+      required: false

@@ -19,17 +19,25 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm install -g npm@latest
       - run: npm ci
       - run: npm run build
       - run: npm run test
       - name: Create Release PR or Publish
+        id: changesets
         uses: changesets/action@v1
         with:
-          publish: npm run release
           title: "chore: version packages"
           commit: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ""
-          NPM_CONFIG_PROVENANCE: true
+      - name: Publish to npm
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          NPM_VERSION=$(npm view eslint-plugin-llm-core version 2>/dev/null || echo "0.0.0")
+          if [ "$CURRENT_VERSION" != "$NPM_VERSION" ]; then
+            echo "Publishing $CURRENT_VERSION (npm has $NPM_VERSION)"
+            npx -y npm@latest publish --access public --provenance
+          else
+            echo "Version $CURRENT_VERSION already published, skipping"
+          fi

@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.3.1
+
+### Patch Changes
+
+- [`b3be7e1`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/b3be7e1394a1aa039e6d5f8304c4c56ded67a38a) Thanks [@pertrai1](https://github.com/pertrai1)! - fix esm export for flat config
+
 ## 0.3.0
 
 ### Minor Changes

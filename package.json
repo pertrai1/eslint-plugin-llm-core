@@ -67,7 +67,7 @@
     "@vitest/coverage-v8": "^4.1.2",
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.0.0",
-    "eslint-doc-generator": "^2.0.0",
+    "eslint-doc-generator": "^3.3.2",
     "eslint-plugin-eslint-plugin": "^6.0.0",
     "husky": "^9.0.0",
     "lint-staged": "^16.4.0",

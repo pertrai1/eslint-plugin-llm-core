@@ -22,3 +22,5 @@ jobs:
       - run: npm run build
       - run: npm run lint
       - run: npm run test -- --coverage
+      - name: Verify package contents
+        run: npm pack --dry-run 2>&1

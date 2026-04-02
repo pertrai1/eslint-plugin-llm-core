@@ -1,3 +1,4 @@
+import path from "path";
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
 import { createRule } from "../utils/create-rule";
 
@@ -9,6 +10,7 @@ type Options = [
     ignoreArrayIndexes?: boolean;
     ignoreDefaultValues?: boolean;
     ignoreEnums?: boolean;
+    skipTestFiles?: boolean;
   },
 ];
 
@@ -60,6 +62,11 @@ export default createRule<Options, MessageIds>({
             description:
               "Allow numbers used in enum initializers (default: true)",
           },
+          skipTestFiles: {
+            type: "boolean",
+            description:
+              "Whether to skip test files (.test.ts, .spec.ts) (default: true)",
+          },
         },
         additionalProperties: false,
       },
@@ -71,6 +78,14 @@ export default createRule<Options, MessageIds>({
     const ignoreArrayIndexes = options.ignoreArrayIndexes ?? true;
     const ignoreDefaultValues = options.ignoreDefaultValues ?? true;
     const ignoreEnums = options.ignoreEnums ?? true;
+    const skipTestFiles = options.skipTestFiles ?? true;
+
+    if (skipTestFiles) {
+      const filename = path.basename(context.filename);
+      if (/\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/.test(filename)) {
+        return {};
+      }
+    }
 
     function isConstAssignment(node: TSESTree.Node): boolean {
       // Only consider direct const assignment: const X = <number>

@@ -47,6 +47,20 @@ ruleTester.run("no-magic-numbers", rule, {
 
     // Numbers in const declaration expressions
     "const timeout = 5000 * 2;",
+
+    // Test files skipped by default
+    {
+      code: "if (retries > 5) {}",
+      filename: "foo.test.ts",
+    },
+    {
+      code: "expect(sum(2, 3)).toBe(5);",
+      filename: "foo.spec.ts",
+    },
+    {
+      code: "const expected = 42;",
+      filename: "foo.test.tsx",
+    },
   ],
 
   invalid: [
@@ -119,6 +133,14 @@ ruleTester.run("no-magic-numbers", rule, {
     // Number in template literal
     {
       code: "const msg = `Limit is ${100}`;",
+      errors: [{ messageId: "noMagicNumber" as const }],
+    },
+
+    // Test file NOT skipped when skipTestFiles is false
+    {
+      code: "if (retries > 5) {}",
+      filename: "foo.test.ts",
+      options: [{ skipTestFiles: false }],
       errors: [{ messageId: "noMagicNumber" as const }],
     },
   ],

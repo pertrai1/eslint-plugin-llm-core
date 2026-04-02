@@ -72,6 +72,12 @@ Allow numbers as default parameter values. Default: `true`.
 
 Allow numbers in enum initializers. Default: `true`.
 
+### `skipTestFiles`
+
+Whether to skip test files (`.test.ts`, `.spec.ts`, etc.). Default: `true`.
+
+Test files are full of numeric literals in assertions — `expect(sum(2, 3)).toBe(5)` — where extracting to constants hurts readability.
+
 ```json
 {
   "llm-core/no-magic-numbers": [
@@ -80,7 +86,8 @@ Allow numbers in enum initializers. Default: `true`.
       "ignore": [0, 1, -1, 2, 100],
       "ignoreArrayIndexes": true,
       "ignoreDefaultValues": true,
-      "ignoreEnums": true
+      "ignoreEnums": true,
+      "skipTestFiles": true
     }
   ]
 }

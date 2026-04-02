@@ -42,6 +42,20 @@ ruleTester.run("max-function-length", rule, {
     {
       code: `class Foo { bar() {\n${generateLines(48)}\n} }`,
     },
+
+    // Test files skipped by default
+    {
+      code: `function veryLong() {\n${generateLines(100)}\n}`,
+      filename: "foo.test.ts",
+    },
+    {
+      code: `function veryLong() {\n${generateLines(100)}\n}`,
+      filename: "foo.spec.ts",
+    },
+    {
+      code: `function veryLong() {\n${generateLines(100)}\n}`,
+      filename: "foo.test.tsx",
+    },
   ],
 
   invalid: [
@@ -98,6 +112,14 @@ ruleTester.run("max-function-length", rule, {
     // Async function too long
     {
       code: `async function fetch() {\n${generateLines(50)}\n}`,
+      errors: [{ messageId: "maxFunctionLength" as const }],
+    },
+
+    // Test file NOT skipped when skipTestFiles is false
+    {
+      code: `function veryLong() {\n${generateLines(50)}\n}`,
+      filename: "foo.test.ts",
+      options: [{ skipTestFiles: false }],
       errors: [{ messageId: "maxFunctionLength" as const }],
     },
   ],

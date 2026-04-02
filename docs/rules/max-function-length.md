@@ -51,13 +51,20 @@ Maximum allowed lines per function. Default: `50`.
 
 Whether to skip blank lines when counting. Default: `true`.
 
+### `skipTestFiles`
+
+Whether to skip test files (`.test.ts`, `.spec.ts`, etc.). Default: `true`.
+
+Test functions are intentionally verbose — setup, mocking, assertions — and benefit from being self-contained rather than decomposed.
+
 ```json
 {
   "llm-core/max-function-length": [
     "error",
     {
       "max": 40,
-      "skipBlankLines": true
+      "skipBlankLines": true,
+      "skipTestFiles": true
     }
   ]
 }

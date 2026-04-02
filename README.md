@@ -6,6 +6,8 @@ LLMs generate code that _works_ but drifts: arrow functions everywhere, magic nu
 
 This plugin catches those patterns at lint time and provides error messages designed for LLM comprehension: **what's wrong**, **why it matters**, and **a concrete fix**. The result is AI-generated code that reads like it was written by a senior engineer.
 
+![Demo](./docs/assets/demo.gif)
+
 ## Why this plugin?
 
 - **Targeted rules** — Every rule addresses a real pattern LLMs consistently get wrong, from `export const fn = () => {}` to `logger.error(\`Failed for ${userId}\`)`

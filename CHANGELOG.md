@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.4.1
+
+### Patch Changes
+
+- [`53bc467`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/53bc46737c0e259f95ed48d3ab4f2ee40717c3e2) Thanks [@pertrai1](https://github.com/pertrai1)! - Tighten eslint peer dependency to `^8.57.0 || ^9.0.0 || ^10.0.0` for explicit ESLint 10 support
+
 ## 0.4.0
 
 ### Minor Changes

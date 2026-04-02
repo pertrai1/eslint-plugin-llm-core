@@ -9,7 +9,7 @@ This plugin catches those patterns at lint time and provides error messages desi
 ## Why this plugin?
 
 - **Targeted rules** — Every rule addresses a real pattern LLMs consistently get wrong, from `export const fn = () => {}` to `logger.error(\`Failed for ${userId}\`)`
-- **Teaching error messages** — Structured feedback that LLMs can parse and learn from across iterations
+- **Teaching error messages** — Structured feedback that LLMs parse and apply correctly on the first attempt
 - **Works for humans too** — These are solid code quality rules regardless of who wrote the code
 - **Zero config** — The `recommended` preset is ready out of the box
 - **Suggestions, not auto-fixes** — Transformations that could change semantics are offered as suggestions, keeping you in control
@@ -20,7 +20,7 @@ This plugin is designed around three principles that make it effective for LLM-a
 
 ### Deterministic Feedback
 
-Every rule produces the **exact same error message for the same mistake**, every time. There is no randomness, no varying phrasing, no context-dependent rewording. This consistency means LLMs build reliable pattern associations between violations and fixes across iterations.
+Every rule produces the **exact same error message for the same mistake**, every time. There is no randomness, no varying phrasing, no context-dependent rewording. This consistency means LLMs receive unambiguous signals about what to fix and how.
 
 ### Instructional Error Messages
 
@@ -41,7 +41,7 @@ How to fix:
   With:    export async function fetchData() { ... }
 ```
 
-This structure is parseable by LLMs — they extract the fix and apply it. After 2-3 iterations, the LLM learns the pattern and stops making the same mistake.
+This structure gives LLMs everything they need in one pass — the violation, the reasoning, and a concrete transformation. In practice, this reduces the back-and-forth iterations needed to resolve violations compared to standard ESLint messages.
 
 ### Strict Mode by Default
 
@@ -162,6 +162,27 @@ npm run lint
 ```
 
 See [CLAUDE.md](CLAUDE.md) for architecture details and how to add new rules.
+
+## Roadmap
+
+This plugin evolves as we learn more about how LLM agents behave in real codebases. The current ruleset is based on observed patterns — code that compiles and runs but drifts from production standards.
+
+**What we're watching:**
+
+- Which rules catch the most violations in practice
+- Whether structured messages reduce fix iterations (we believe they do, but want data)
+- New patterns that emerge as LLM capabilities change
+- Edge cases where rules create more noise than value
+
+**How you can help:**
+
+If you're using this plugin with LLM agents, we want to hear what's working and what isn't. Open an issue with:
+
+- Rules that catch real problems in your codebase
+- Rules that generate false positives or friction
+- Patterns your LLM consistently gets wrong that aren't covered
+
+The goal is a tight, high-signal ruleset — not comprehensive coverage. Every rule should earn its place.
 
 ## License
 

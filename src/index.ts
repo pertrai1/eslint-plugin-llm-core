@@ -6,7 +6,7 @@ type RuleKey = keyof typeof rules;
 const plugin = {
   meta: {
     name: "eslint-plugin-llm-core",
-    version: "0.1.0",
+    version: "0.3.2",
   },
   rules,
   configs: {} as Record<string, TSESLint.FlatConfig.ConfigArray>,
@@ -37,12 +37,14 @@ const allRules: TSESLint.FlatConfig.Rules = Object.fromEntries(
 plugin.configs = {
   recommended: [
     {
+      files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.cjs"],
       plugins: { "llm-core": plugin },
       rules: recommendedRules,
     },
   ],
   all: [
     {
+      files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.cjs"],
       plugins: { "llm-core": plugin },
       rules: allRules,
     },

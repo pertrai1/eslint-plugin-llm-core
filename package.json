@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-llm-core",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "ESLint rules that catch the patterns LLM agents get wrong — and teach them to self-correct",
   "license": "MIT",
   "author": "Rob Simpson <rsimpson2@me.com>",
@@ -54,6 +54,7 @@
     "release": "npm run build && changeset publish"
   },
   "peerDependencies": {
+    "@typescript-eslint/utils": "^8.0.0",
     "eslint": ">=8"
   },
   "devDependencies": {

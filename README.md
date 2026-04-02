@@ -34,7 +34,7 @@ Every error message follows a structured teaching format:
 Exported function 'fetchData' must use a function declaration, not a function expression or arrow function.
 
 Why: Function declarations are hoisted, produce better stack traces, and signal clear intent.
-LLMs default to arrow functions — this rule enforces the preferred pattern.
+Arrow functions are best reserved for callbacks and inline expressions, not top-level exports.
 
 How to fix:
   Replace: export const fetchData = async () => { ... }
@@ -121,6 +121,36 @@ export default [
 | [throw-error-objects](docs/rules/throw-error-objects.md)                           | Disallow throwing non-Error values such as strings, template literals, plain objects, or arrays              | 🌐 ✅ |     |
 
 <!-- end auto-generated rules list -->
+
+## Complementary Rules
+
+These ESLint core rules address common LLM patterns and pair well with this plugin:
+
+| Rule                                                                                  | What it catches                                                            | ESLint version |
+| ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | -------------- |
+| [`no-nested-ternary`](https://eslint.org/docs/latest/rules/no-nested-ternary)         | LLMs nest ternaries for "conciseness" — enforce if/else instead            | All            |
+| [`preserve-caught-error`](https://eslint.org/docs/latest/rules/preserve-caught-error) | LLMs discard original errors when re-throwing — require `{ cause: error }` | 9.35+          |
+| [`no-useless-assignment`](https://eslint.org/docs/latest/rules/no-useless-assignment) | LLMs create redundant intermediate variables — catch dead stores           | 9.0+           |
+| [`complexity`](https://eslint.org/docs/latest/rules/complexity)                       | LLMs generate high cyclomatic complexity — enforce decomposition           | All            |
+
+Add these to your config alongside `llm-core`:
+
+```js
+// eslint.config.mjs
+import llmCore from "eslint-plugin-llm-core";
+
+export default [
+  ...llmCore.configs.recommended,
+  {
+    rules: {
+      "no-nested-ternary": "error",
+      "preserve-caught-error": "error",
+      "no-useless-assignment": "error",
+      complexity: ["error", 10],
+    },
+  },
+];
+```
 
 ## Contributing
 

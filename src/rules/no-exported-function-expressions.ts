@@ -26,7 +26,7 @@ export default createRule<[], MessageIds>({
         "Exported function '{{ name }}' must use a function declaration, not a function expression or arrow function.",
         "",
         "Why: Function declarations are hoisted, produce better stack traces, and signal clear intent.",
-        "LLMs default to arrow functions — this rule enforces the preferred pattern.",
+        "Arrow functions are best reserved for callbacks and inline expressions, not top-level exports.",
         "",
         "How to fix:",
         "  Replace: export const {{ name }} = {{ async }}({{ params }}) => { ... }",

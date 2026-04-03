@@ -72,6 +72,38 @@ ruleTester.run("no-async-array-callbacks", rule, {
       }));
     }`,
 
+    // Deferred: const + await Promise.all — safe
+    `async function run() {
+      const promises = items.map(async (item) => {
+        await processItem(item);
+      });
+      await Promise.all(promises);
+    }`,
+
+    // Deferred: const + return Promise.all — safe
+    `function run() {
+      const promises = items.map(async (item) => {
+        return await processItem(item);
+      });
+      return Promise.all(promises);
+    }`,
+
+    // Deferred: const + await Promise.allSettled — safe
+    `async function run() {
+      const promises = items.map(async (item) => {
+        await processItem(item);
+      });
+      await Promise.allSettled(promises);
+    }`,
+
+    // Deferred: const + await Promise.race — safe
+    `async function run() {
+      const promises = items.map(async (item) => {
+        await processItem(item);
+      });
+      await Promise.race(promises);
+    }`,
+
     // Sync map — fine
     `items.map((item) => item.value);`,
 
@@ -160,6 +192,17 @@ ruleTester.run("no-async-array-callbacks", rule, {
         Promise.any(items.map(async (item) => {
           return await processItem(item);
         }));
+      }`,
+      errors: [{ messageId: "noAsyncMapCallback" as const }],
+    },
+
+    // Deferred map stored in const but never consumed by Promise combinator
+    {
+      code: `async function run() {
+        const promises = items.map(async (item) => {
+          await processItem(item);
+        });
+        console.log(promises);
       }`,
       errors: [{ messageId: "noAsyncMapCallback" as const }],
     },

@@ -131,6 +131,56 @@ export default createRule<[], MessageIds>({
       return false;
     }
 
+    // Async map calls stored in const variables. These are deferred until
+    // scope exit so we can check if the variable is later passed to a
+    // Promise combinator (all, allSettled, race, any) and awaited/returned.
+    const deferredMapCalls: {
+      variableName: string;
+      callback: TSESTree.Node;
+      declarator: TSESTree.VariableDeclarator;
+    }[] = [];
+
+    function isDeferredSafelyConsumed(
+      declarator: TSESTree.VariableDeclarator,
+      variableName: string,
+    ): boolean {
+      const scope = context.sourceCode.getScope(declarator);
+      const variable = scope.variables.find((v) => v.name === variableName);
+      if (!variable) return false;
+
+      return variable.references.some((ref) => {
+        if (ref.isWriteOnly()) return false;
+        const refParent = ref.identifier.parent;
+        if (!refParent || !isPromiseCombinatorCall(refParent)) return false;
+        if (
+          !refParent.arguments.includes(ref.identifier as TSESTree.Expression)
+        ) {
+          return false;
+        }
+        const outerParent = refParent.parent;
+        if (!outerParent) return false;
+        if (outerParent.type === AST_NODE_TYPES.AwaitExpression) return true;
+        if (
+          outerParent.type === AST_NODE_TYPES.ReturnStatement &&
+          outerParent.argument === refParent
+        ) {
+          return true;
+        }
+        return false;
+      });
+    }
+
+    function reportDeferredMapCalls(): void {
+      for (const { variableName, callback, declarator } of deferredMapCalls) {
+        if (!isDeferredSafelyConsumed(declarator, variableName)) {
+          context.report({
+            node: callback,
+            messageId: "noAsyncMapCallback",
+          });
+        }
+      }
+    }
+
     return {
       CallExpression(node: TSESTree.CallExpression) {
         if (node.callee.type !== AST_NODE_TYPES.MemberExpression) return;
@@ -152,12 +202,30 @@ export default createRule<[], MessageIds>({
         }
 
         if (methodName === "map" && !isSafelyConsumedMapResult(node)) {
+          // Check if stored in a const — defer reporting until scope exit
+          const parent = node.parent;
+          if (
+            parent?.type === AST_NODE_TYPES.VariableDeclarator &&
+            parent.parent?.type === AST_NODE_TYPES.VariableDeclaration &&
+            parent.parent.kind === "const" &&
+            parent.id.type === AST_NODE_TYPES.Identifier
+          ) {
+            deferredMapCalls.push({
+              variableName: parent.id.name,
+              callback,
+              declarator: parent,
+            });
+            return;
+          }
+
           context.report({
             node: callback,
             messageId: "noAsyncMapCallback",
           });
         }
       },
+
+      "Program:exit": reportDeferredMapCalls,
     };
   },
 });

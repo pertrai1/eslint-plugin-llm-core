@@ -109,7 +109,11 @@ export default createRule<Options, MessageIds>({
         }
         if (
           current.type === AST_NODE_TYPES.BinaryExpression ||
-          current.type === AST_NODE_TYPES.UnaryExpression
+          current.type === AST_NODE_TYPES.UnaryExpression ||
+          current.type === AST_NODE_TYPES.TSAsExpression ||
+          current.type === AST_NODE_TYPES.TSSatisfiesExpression ||
+          current.type === AST_NODE_TYPES.TSNonNullExpression ||
+          current.type === AST_NODE_TYPES.TSTypeAssertion
         ) {
           expression = current;
           current = current.parent;

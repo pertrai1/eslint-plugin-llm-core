@@ -1,5 +1,17 @@
 # eslint-plugin-llm-core
 
+## 0.7.0
+
+### Minor Changes
+
+- Add `explicit-export-types` rule
+
+  Requires explicit parameter and return type annotations on all exported functions (declarations, arrow functions, function expressions, default exports). Non-exported functions are not flagged.
+
+  The rule is enabled in `recommended` for TypeScript files only (`.ts`/`.tsx`), since it accesses TypeScript-specific AST nodes that are not present in plain JavaScript.
+
+  This enforces type-first development at the module boundary: agents must define type contracts before implementing exported functions.
+
 ## 0.6.0
 
 ### Minor Changes

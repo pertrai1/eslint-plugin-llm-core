@@ -1,4 +1,6 @@
-# Enforce a maximum number of lines per file to encourage proper module separation (`llm-core/max-file-length`)
+# llm-core/max-file-length
+
+📝 Enforce a maximum number of lines per file to encourage proper module separation.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

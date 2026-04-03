@@ -1,4 +1,6 @@
-# Disallow magic numbers and enforce named constants for clarity (`llm-core/no-magic-numbers`)
+# llm-core/no-magic-numbers
+
+📝 Disallow magic numbers and enforce named constants for clarity.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

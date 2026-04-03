@@ -32,6 +32,7 @@ const recommendedRules: TSESLint.FlatConfig.Rules = {
   "llm-core/throw-error-objects": "error",
   "llm-core/no-empty-catch": "error",
   "llm-core/prefer-unknown-in-catch": "error",
+  "llm-core/require-type-annotation": "error",
 };
 
 const allRules: TSESLint.FlatConfig.Rules = Object.fromEntries(

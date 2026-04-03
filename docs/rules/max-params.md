@@ -1,4 +1,6 @@
-# Enforce a maximum number of function parameters to encourage object parameter patterns (`llm-core/max-params`)
+# llm-core/max-params
+
+📝 Enforce a maximum number of function parameters to encourage object parameter patterns.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

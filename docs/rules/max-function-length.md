@@ -1,4 +1,6 @@
-# Enforce a maximum number of lines per function to encourage decomposition (`llm-core/max-function-length`)
+# llm-core/max-function-length
+
+📝 Enforce a maximum number of lines per function to encourage decomposition.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

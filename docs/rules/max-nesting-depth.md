@@ -1,4 +1,6 @@
-# Enforce a maximum nesting depth for control flow statements to reduce cognitive complexity (`llm-core/max-nesting-depth`)
+# llm-core/max-nesting-depth
+
+📝 Enforce a maximum nesting depth for control flow statements to reduce cognitive complexity.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

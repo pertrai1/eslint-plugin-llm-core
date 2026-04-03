@@ -1,4 +1,6 @@
-# Enforce naming conventions: Base prefix for abstract classes, Error suffix for error classes (`llm-core/naming-conventions`)
+# llm-core/naming-conventions
+
+📝 Enforce naming conventions: Base prefix for abstract classes, Error suffix for error classes.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

@@ -1,4 +1,6 @@
-# Disallow throwing non-Error values such as strings, template literals, plain objects, or arrays (`llm-core/throw-error-objects`)
+# llm-core/throw-error-objects
+
+📝 Disallow throwing non-Error values such as strings, template literals, plain objects, or arrays.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

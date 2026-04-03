@@ -1,5 +1,22 @@
 # eslint-plugin-llm-core
 
+## Mandatory: Read This First
+
+**All code changes must follow this sequence — no skipping steps:**
+
+| Step | Phase    | Action                                   | Verify                                                                |
+| ---- | -------- | ---------------------------------------- | --------------------------------------------------------------------- |
+| 1    | TYPES    | Define types in `types.ts` or co-located | `tsc --noEmit` passes                                                 |
+| 2    | RED      | Write ONE failing test                   | Test fails                                                            |
+| 3    | GREEN    | Write minimum code to pass               | New test passes, all existing tests still pass, `tsc --noEmit` passes |
+| 4    | REFACTOR | Clean up if needed                       | All tests still pass                                                  |
+| 5    | GATES    | Run quality gates                        | `npm test && npm run lint && npm run build`                           |
+| 6    | COMMIT   | Atomic commit                            | One behavior per commit                                               |
+
+**No skipping steps. No exceptions.**
+
+See [TYPE_DRIVEN_DEVELOPMENT](.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md) and [TEST_DRIVEN_DEVELOPMENT](.agents/directives/TEST_DRIVEN_DEVELOPMENT.md) for detailed guidance.
+
 ## Project Overview
 
 Custom ESLint plugin designed to help LLM agents self-correct and learn from mistakes.
@@ -23,6 +40,8 @@ Custom ESLint plugin designed to help LLM agents self-correct and learn from mis
 - `npm run update:eslint-docs` — Regenerate rule docs
 
 ## Adding a New Rule
+
+Follow the [mandatory workflow above](#mandatory-read-this-first) for each step.
 
 1. Create rule file: `src/rules/my-rule.ts` using `createRule` from `src/utils/create-rule.ts`
 2. Export from `src/rules/index.ts`

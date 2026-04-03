@@ -48,6 +48,15 @@ ruleTester.run("no-magic-numbers", rule, {
     // Numbers in const declaration expressions
     "const timeout = 5000 * 2;",
 
+    // Chained binary expressions in const
+    "const MS_PER_HOUR = 1000 * 60 * 60;",
+
+    // Nested binary expressions in const
+    "const TOTAL = (1000 + 500) * 3;",
+
+    // Unary expression in const
+    "const OFFSET = -100;",
+
     // Test files skipped by default
     {
       code: "if (retries > 5) {}",
@@ -134,6 +143,24 @@ ruleTester.run("no-magic-numbers", rule, {
     {
       code: "const msg = `Limit is ${100}`;",
       errors: [{ messageId: "noMagicNumber" as const }],
+    },
+
+    // Number in binary expression inside function call (not const assignment)
+    {
+      code: "setTimeout(callback, 1000 * 60);",
+      errors: [
+        { messageId: "noMagicNumber" as const },
+        { messageId: "noMagicNumber" as const },
+      ],
+    },
+
+    // Number in let binary expression (not const)
+    {
+      code: "let timeout = 5000 * 3;",
+      errors: [
+        { messageId: "noMagicNumber" as const },
+        { messageId: "noMagicNumber" as const },
+      ],
     },
 
     // Test file NOT skipped when skipTestFiles is false

@@ -57,6 +57,15 @@ ruleTester.run("no-magic-numbers", rule, {
     // Unary expression in const
     "const OFFSET = -100;",
 
+    // TS as const assertion
+    "const TIMEOUT_MS = 3000 as const;",
+
+    // TS satisfies expression
+    "const CODE = 404 satisfies number;",
+
+    // TS as assertion with binary
+    "const DELAY = 1000 * 60 as number;",
+
     // Test files skipped by default
     {
       code: "if (retries > 5) {}",

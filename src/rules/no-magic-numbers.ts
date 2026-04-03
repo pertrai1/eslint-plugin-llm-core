@@ -71,6 +71,7 @@ export default createRule<Options, MessageIds>({
         additionalProperties: false,
       },
     ],
+    defaultOptions: [{}],
   },
   defaultOptions: [{}],
   create(context, [options]) {

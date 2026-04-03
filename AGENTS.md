@@ -22,7 +22,9 @@
 ```bash
 git commit -m "test: failing test for require-type-annotation return type check"
 git commit -m "feat: require-type-annotation flags missing return types on exported functions"
+git commit -m "test: failing test for require-type-annotation parameter type check"
 git commit -m "feat: require-type-annotation flags missing parameter types"
+git commit -m "test: failing test for require-type-annotation arrow and default export coverage"
 git commit -m "feat: require-type-annotation handles arrow functions and default exports"
 git commit -m "docs: add rule docs and register require-type-annotation in recommended"
 ```

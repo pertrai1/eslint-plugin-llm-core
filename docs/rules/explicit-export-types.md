@@ -1,4 +1,4 @@
-# llm-core/require-type-annotation
+# llm-core/explicit-export-types
 
 📝 Require explicit parameter and return type annotations on exported functions.
 

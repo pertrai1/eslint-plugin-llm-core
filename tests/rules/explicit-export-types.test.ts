@@ -1,5 +1,5 @@
 import { RuleTester } from "@typescript-eslint/rule-tester";
-import rule from "../../src/rules/require-type-annotation";
+import rule from "../../src/rules/explicit-export-types";
 import { describe, it, afterAll } from "vitest";
 
 RuleTester.afterAll = afterAll;
@@ -8,7 +8,7 @@ RuleTester.it = it;
 
 const ruleTester = new RuleTester();
 
-ruleTester.run("require-type-annotation", rule, {
+ruleTester.run("explicit-export-types", rule, {
   valid: [
     // Exported function with all param types + return type
     `export function greet(name: string): string { return "Hello " + name; }`,

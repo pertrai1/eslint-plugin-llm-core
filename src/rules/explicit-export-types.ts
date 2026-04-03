@@ -4,7 +4,7 @@ import { createRule } from "../utils/create-rule";
 type MessageIds = "missingParamType" | "missingReturnType";
 
 export default createRule<[], MessageIds>({
-  name: "require-type-annotation",
+  name: "explicit-export-types",
   meta: {
     type: "problem",
     docs: {

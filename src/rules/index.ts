@@ -16,4 +16,4 @@ export { default as "no-any-in-generic" } from "./no-any-in-generic";
 export { default as "throw-error-objects" } from "./throw-error-objects";
 export { default as "no-empty-catch" } from "./no-empty-catch";
 export { default as "prefer-unknown-in-catch" } from "./prefer-unknown-in-catch";
-export { default as "require-type-annotation" } from "./require-type-annotation";
+export { default as "explicit-export-types" } from "./explicit-export-types";

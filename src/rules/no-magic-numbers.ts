@@ -89,48 +89,34 @@ export default createRule<Options, MessageIds>({
     }
 
     function isConstAssignment(node: TSESTree.Node): boolean {
-      // Only consider direct const assignment: const X = <number>
-      // or const X = <number> * <number> (expressions involving the number)
-      // NOT: const x = items[<number>] or const x = fn(<number>)
+      // Walk up from the literal to find the outermost expression that
+      // contains it, then check if that expression is the init of a const
+      // declaration. Only binary and unary expressions are traversed —
+      // calls, member access, template literals, etc. stop the search.
+      let expression: TSESTree.Node = node;
       let current: TSESTree.Node | undefined = node.parent;
 
       while (current) {
         if (current.type === AST_NODE_TYPES.VariableDeclarator) {
-          // Check this is the init (right side) and the number is used directly
-          // not as an argument or computed property
-          const declarator = current;
           if (
-            declarator.parent?.type === AST_NODE_TYPES.VariableDeclaration &&
-            declarator.parent.kind === "const" &&
-            declarator.init === node
+            current.parent?.type === AST_NODE_TYPES.VariableDeclaration &&
+            current.parent.kind === "const" &&
+            current.init === expression
           ) {
             return true;
           }
-          // If we're in a const but nested deeper (e.g., items[5]), don't allow
           return false;
         }
-        // Binary expression: const X = 5000 * 2 — keep traversing
-        if (current.type === AST_NODE_TYPES.BinaryExpression) {
-          node = current;
+        if (
+          current.type === AST_NODE_TYPES.BinaryExpression ||
+          current.type === AST_NODE_TYPES.UnaryExpression
+        ) {
+          expression = current;
           current = current.parent;
           continue;
         }
-        // Stop at non-expression boundaries
-        if (
-          current.type === AST_NODE_TYPES.ExpressionStatement ||
-          current.type === AST_NODE_TYPES.ReturnStatement ||
-          current.type === AST_NODE_TYPES.IfStatement ||
-          current.type === AST_NODE_TYPES.FunctionDeclaration ||
-          current.type === AST_NODE_TYPES.ArrowFunctionExpression ||
-          current.type === AST_NODE_TYPES.FunctionExpression ||
-          current.type === AST_NODE_TYPES.CallExpression ||
-          current.type === AST_NODE_TYPES.MemberExpression ||
-          current.type === AST_NODE_TYPES.TemplateLiteral
-        ) {
-          return false;
-        }
-        node = current;
-        current = current.parent;
+        // Any other node type means the number is not a simple const init
+        return false;
       }
       return false;
     }

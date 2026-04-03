@@ -78,7 +78,7 @@ export default createRule<[], MessageIds>({
       );
     }
 
-    function isPromiseAllCall(
+    function isPromiseCombinatorCall(
       node: TSESTree.Node,
     ): node is TSESTree.CallExpression {
       if (node.type !== AST_NODE_TYPES.CallExpression) return false;
@@ -103,14 +103,14 @@ export default createRule<[], MessageIds>({
       );
     }
 
-    // Returns true when the .map(...) call is passed directly to Promise.all(...)
-    // or Promise.allSettled(...) and that outer promise is immediately awaited
-    // or returned.
+    // Returns true when the .map(...) call is passed directly to a Promise
+    // combinator (all, allSettled, race, any) and that outer promise is
+    // immediately awaited or returned.
     function isSafelyConsumedMapResult(
       mapCall: TSESTree.CallExpression,
     ): boolean {
       const parent = mapCall.parent;
-      if (!parent || !isPromiseAllCall(parent)) return false;
+      if (!parent || !isPromiseCombinatorCall(parent)) return false;
 
       const outer = parent;
       if (!outer.arguments.includes(mapCall as TSESTree.Expression)) {

@@ -65,6 +65,13 @@ ruleTester.run("no-async-array-callbacks", rule, {
       }));
     }`,
 
+    // async map returned from Promise.any — also safe
+    `function run() {
+      return Promise.any(items.map(async (item) => {
+        return await processItem(item);
+      }));
+    }`,
+
     // Sync map — fine
     `items.map((item) => item.value);`,
 
@@ -131,6 +138,26 @@ ruleTester.run("no-async-array-callbacks", rule, {
     {
       code: `function run() {
         Promise.all(items.map(async (item) => {
+          return await processItem(item);
+        }));
+      }`,
+      errors: [{ messageId: "noAsyncMapCallback" as const }],
+    },
+
+    // Promise.race without await/return still drops the outer promise
+    {
+      code: `function run() {
+        Promise.race(items.map(async (item) => {
+          return await processItem(item);
+        }));
+      }`,
+      errors: [{ messageId: "noAsyncMapCallback" as const }],
+    },
+
+    // Promise.any without await/return still drops the outer promise
+    {
+      code: `function run() {
+        Promise.any(items.map(async (item) => {
           return await processItem(item);
         }));
       }`,

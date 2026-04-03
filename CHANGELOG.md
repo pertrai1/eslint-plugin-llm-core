@@ -1,5 +1,19 @@
 # eslint-plugin-llm-core
 
+## 0.7.2
+
+### Patch Changes
+
+- [`c715ff6`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/c715ff6e528a4693deae0d536cff5fb6eaae3ccf) Thanks [@pertrai1](https://github.com/pertrai1)! - Bug fixes for `no-async-array-callbacks` and `no-magic-numbers`
+
+  **no-async-array-callbacks:**
+  - Recognize `Promise.race` and `Promise.any` as safe consumers of async map results
+  - Handle deferred `Promise.all` pattern where the map result is stored in a `const` variable and consumed later (`const p = items.map(async ...); await Promise.all(p)`)
+
+  **no-magic-numbers:**
+  - Refactor `isConstAssignment` traversal for clarity (separate tracking variable instead of parameter reassignment)
+  - Fix regression where TypeScript assertion wrappers (`as const`, `satisfies`, `!`, `<type>`) in const declarations were falsely flagged as magic numbers
+
 ## 0.7.1
 
 ### Patch Changes

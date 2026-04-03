@@ -129,10 +129,34 @@ ruleTester.run("require-type-annotation", rule, {
       errors: [{ messageId: "missingParamType" as const }],
     },
 
-    // Destructured param without type annotation
+    // Destructured object param without type annotation
     {
       code: `export function foo({ id }): void {}`,
       errors: [{ messageId: "missingParamType" as const }],
+    },
+
+    // Destructured array param without type annotation
+    {
+      code: `export function foo([first]): void {}`,
+      errors: [{ messageId: "missingParamType" as const }],
+    },
+
+    // Rest param without type annotation
+    {
+      code: `export function foo(...args): void {}`,
+      errors: [{ messageId: "missingParamType" as const }],
+    },
+
+    // Default param without type annotation
+    {
+      code: `export function foo(x = 0): string { return String(x); }`,
+      errors: [{ messageId: "missingParamType" as const }],
+    },
+
+    // Anonymous default export missing return type
+    {
+      code: `export default function() { return 1; }`,
+      errors: [{ messageId: "missingReturnType" as const }],
     },
   ],
 });

@@ -7,7 +7,7 @@ export default [
     ignores: ["dist/", "coverage/", "node_modules/"],
   },
   ...tseslint.configs.recommended,
-  eslintPlugin.configs["flat/recommended"],
+  eslintPlugin.configs.recommended,
   eslintConfigPrettier,
   {
     files: ["src/**/*.ts", "tests/**/*.ts", "vitest.config.ts"],

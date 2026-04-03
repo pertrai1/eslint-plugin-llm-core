@@ -55,6 +55,7 @@ export default createRule<Options, MessageIds>({
         additionalProperties: false,
       },
     ],
+    defaultOptions: [{ max: 2, maxConstructor: 5 }],
   },
   defaultOptions: [{ max: 2, maxConstructor: 5 }],
   create(context, [options]) {

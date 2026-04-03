@@ -56,6 +56,7 @@ export default createRule<Options, MessageIds>({
         additionalProperties: false,
       },
     ],
+    defaultOptions: [{ max: 250, skipBlankLines: true, skipTestFiles: true }],
   },
   defaultOptions: [{ max: 250, skipBlankLines: true, skipTestFiles: true }],
   create(context, [options]) {

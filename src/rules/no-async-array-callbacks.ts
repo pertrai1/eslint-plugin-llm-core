@@ -48,8 +48,8 @@ export default createRule<[], MessageIds>({
         "Do not pass an async function to .map() unless you immediately await or return Promise.all() on the result.",
         "",
         "Why: .map(async callback) returns an array of Promises, not resolved values.",
-        "If that array is not immediately awaited or returned through Promise.all",
-        "(or Promise.allSettled),",
+        "If that array is not immediately awaited or returned through Promise.all,",
+        "Promise.allSettled, Promise.race, or Promise.any,",
         "the Promises are silently ignored and no errors will surface.",
         "",
         "How to fix:",
@@ -78,7 +78,7 @@ export default createRule<[], MessageIds>({
       );
     }
 
-    function isPromiseAllCall(
+    function isPromiseCombinatorCall(
       node: TSESTree.Node,
     ): node is TSESTree.CallExpression {
       if (node.type !== AST_NODE_TYPES.CallExpression) return false;
@@ -94,19 +94,23 @@ export default createRule<[], MessageIds>({
 
       if (callee.property.type !== AST_NODE_TYPES.Identifier) return false;
 
+      const method = callee.property.name;
       return (
-        callee.property.name === "all" || callee.property.name === "allSettled"
+        method === "all" ||
+        method === "allSettled" ||
+        method === "race" ||
+        method === "any"
       );
     }
 
-    // Returns true when the .map(...) call is passed directly to Promise.all(...)
-    // or Promise.allSettled(...) and that outer promise is immediately awaited
-    // or returned.
+    // Returns true when the .map(...) call is passed directly to a Promise
+    // combinator (all, allSettled, race, any) and that outer promise is
+    // immediately awaited or returned.
     function isSafelyConsumedMapResult(
       mapCall: TSESTree.CallExpression,
     ): boolean {
       const parent = mapCall.parent;
-      if (!parent || !isPromiseAllCall(parent)) return false;
+      if (!parent || !isPromiseCombinatorCall(parent)) return false;
 
       const outer = parent;
       if (!outer.arguments.includes(mapCall as TSESTree.Expression)) {

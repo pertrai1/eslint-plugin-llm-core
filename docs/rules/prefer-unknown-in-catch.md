@@ -1,4 +1,6 @@
-# Disallow `any` type annotation on catch clause parameters; prefer `unknown` (`llm-core/prefer-unknown-in-catch`)
+# llm-core/prefer-unknown-in-catch
+
+📝 Disallow `any` type annotation on catch clause parameters; prefer `unknown`.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

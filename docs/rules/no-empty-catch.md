@@ -1,4 +1,6 @@
-# Disallow catch blocks with no meaningful error handling (empty or comment-only blocks) (`llm-core/no-empty-catch`)
+# llm-core/no-empty-catch
+
+📝 Disallow catch blocks with no meaningful error handling (empty or comment-only blocks).
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

@@ -1,4 +1,6 @@
-# Enforce that filenames match their single exported function, class, or component name (`llm-core/filename-match-export`)
+# llm-core/filename-match-export
+
+📝 Enforce that filenames match their single exported function, class, or component name.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

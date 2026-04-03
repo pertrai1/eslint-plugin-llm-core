@@ -1,4 +1,6 @@
-# Disallow async callbacks passed to array methods where Promises are silently discarded or misused (`llm-core/no-async-array-callbacks`)
+# llm-core/no-async-array-callbacks
+
+📝 Disallow async callbacks passed to array methods where Promises are silently discarded or misused.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

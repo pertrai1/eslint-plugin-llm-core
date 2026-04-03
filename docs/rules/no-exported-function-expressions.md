@@ -1,4 +1,6 @@
-# Enforce that exported functions use function declarations instead of function expressions or arrow functions (`llm-core/no-exported-function-expressions`)
+# llm-core/no-exported-function-expressions
+
+📝 Enforce that exported functions use function declarations instead of function expressions or arrow functions.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

@@ -34,6 +34,13 @@ const recommendedRules: TSESLint.FlatConfig.Rules = {
   "llm-core/prefer-unknown-in-catch": "error",
 };
 
+// Rules that access TypeScript-only AST nodes (returnType, typeAnnotation).
+// These must only run on TypeScript files — applying them to JS files would
+// produce false positives because the TS AST properties are never present.
+const typescriptOnlyRules: TSESLint.FlatConfig.Rules = {
+  "llm-core/explicit-export-types": "error",
+};
+
 const allRules: TSESLint.FlatConfig.Rules = Object.fromEntries(
   Object.keys(rules).map((rule) => [
     `llm-core/${rule as RuleKey}`,
@@ -47,6 +54,10 @@ plugin.configs = {
       files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.cjs"],
       plugins: { "llm-core": plugin },
       rules: recommendedRules,
+    },
+    {
+      files: ["**/*.ts", "**/*.tsx"],
+      rules: typescriptOnlyRules,
     },
   ],
   all: [

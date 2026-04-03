@@ -1,4 +1,6 @@
-# Disallow commented-out code to keep the codebase clean and reduce noise (`llm-core/no-commented-out-code`)
+# llm-core/no-commented-out-code
+
+📝 Disallow commented-out code to keep the codebase clean and reduce noise.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

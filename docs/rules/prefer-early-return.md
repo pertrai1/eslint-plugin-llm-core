@@ -1,4 +1,6 @@
-# Enforce guard clauses (early returns) instead of wrapping function bodies in a single if statement (`llm-core/prefer-early-return`)
+# llm-core/prefer-early-return
+
+📝 Enforce guard clauses (early returns) instead of wrapping function bodies in a single if statement.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

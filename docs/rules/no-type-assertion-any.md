@@ -1,4 +1,6 @@
-# Disallow type assertions to `any` that bypass TypeScript's type safety (`llm-core/no-type-assertion-any`)
+# llm-core/no-type-assertion-any
+
+📝 Disallow type assertions to `any` that bypass TypeScript's type safety.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

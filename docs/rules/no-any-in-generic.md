@@ -1,4 +1,6 @@
-# Disallow `any` as a generic type argument in type references, arrays, and other parameterized types (`llm-core/no-any-in-generic`)
+# llm-core/no-any-in-generic
+
+📝 Disallow `any` as a generic type argument in type references, arrays, and other parameterized types.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

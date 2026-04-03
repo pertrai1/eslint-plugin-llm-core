@@ -1,4 +1,6 @@
-# Enforce structured logging with static messages and dynamic values as separate metadata (`llm-core/structured-logging`)
+# llm-core/structured-logging
+
+📝 Enforce structured logging with static messages and dynamic values as separate metadata.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

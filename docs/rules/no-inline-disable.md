@@ -1,4 +1,6 @@
-# Disallow eslint-disable comments that suppress lint errors instead of fixing them (`llm-core/no-inline-disable`)
+# llm-core/no-inline-disable
+
+📝 Disallow eslint-disable comments that suppress lint errors instead of fixing them.
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 

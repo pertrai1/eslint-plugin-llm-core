@@ -71,17 +71,30 @@ export default createRule<[], MessageIds>({
           }
           break;
         case AST_NODE_TYPES.AssignmentPattern:
-          // Default value pattern: `x = 0` or `x: number = 0`
-          // The type annotation lives on the left-hand identifier, not the pattern
-          if (
-            param.left.type === AST_NODE_TYPES.Identifier &&
-            !param.left.typeAnnotation
+          // Default value pattern: `x = 0`, `{ id } = obj`, `[x] = arr`
+          // The type annotation lives on the left-hand node, not the AssignmentPattern itself
+          if (param.left.type === AST_NODE_TYPES.Identifier) {
+            if (!param.left.typeAnnotation) {
+              context.report({
+                node: param.left,
+                messageId: "missingParamType",
+                data: { param: param.left.name, fn: fnName },
+              });
+            }
+          } else if (
+            param.left.type === AST_NODE_TYPES.ObjectPattern ||
+            param.left.type === AST_NODE_TYPES.ArrayPattern
           ) {
-            context.report({
-              node: param.left,
-              messageId: "missingParamType",
-              data: { param: param.left.name, fn: fnName },
-            });
+            if (!param.left.typeAnnotation) {
+              context.report({
+                node: param.left,
+                messageId: "missingParamType",
+                data: {
+                  param: context.sourceCode.getText(param.left),
+                  fn: fnName,
+                },
+              });
+            }
           }
           break;
         case AST_NODE_TYPES.RestElement:

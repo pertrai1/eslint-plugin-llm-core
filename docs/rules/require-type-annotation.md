@@ -84,6 +84,16 @@ Covered export forms:
 - Typed rest params — `export function foo(...args: string[]): void {}` — already annotated
 - Default params with explicit types — `export function foo(x: number = 0): string { ... }` — fine
 
+### Known Limitations
+
+Two indirect export patterns are not checked because they require scope traversal to resolve:
+
+1. **Specifier exports** — `function foo(x) {} export { foo };` — the function is defined separately and exported via a specifier. The rule only checks inline `export function` declarations.
+
+2. **Identifier default exports** — `const fn = (x) => x; export default fn;` — the default export is a reference, not an inline function. The rule only checks `export default function` and `export default () =>` forms.
+
+Both are false negatives. They can be addressed in a follow-up by adding scope-aware analysis.
+
 ## Why This Matters for LLMs
 
 Without explicit type annotations on exported functions, an agent:

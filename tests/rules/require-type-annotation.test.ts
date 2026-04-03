@@ -158,5 +158,17 @@ ruleTester.run("require-type-annotation", rule, {
       code: `export default function() { return 1; }`,
       errors: [{ messageId: "missingReturnType" as const }],
     },
+
+    // Default value with destructured object left side — no type annotation
+    {
+      code: `export function foo({ id } = {}): void {}`,
+      errors: [{ messageId: "missingParamType" as const }],
+    },
+
+    // Default value with destructured array left side — no type annotation
+    {
+      code: `export function foo([first] = []): void {}`,
+      errors: [{ messageId: "missingParamType" as const }],
+    },
   ],
 });

@@ -13,7 +13,21 @@
 | 5    | GATES    | Run quality gates                        | `npm test && npm run lint && npm run build`                           |
 | 6    | COMMIT   | Atomic commit                            | One behavior per commit                                               |
 
+**Steps 2–6 repeat for each behavior. Do not batch multiple behaviors into one cycle.**
+
 **No skipping steps. No exceptions.**
+
+**Commit examples (one per RED→GREEN→REFACTOR cycle):**
+
+```bash
+git commit -m "test: failing test for require-type-annotation return type check"
+git commit -m "feat: require-type-annotation flags missing return types on exported functions"
+git commit -m "feat: require-type-annotation flags missing parameter types"
+git commit -m "feat: require-type-annotation handles arrow functions and default exports"
+git commit -m "docs: add rule docs and register require-type-annotation in recommended"
+```
+
+If there is no `test:` commit before a `feat:` commit, the RED phase was skipped or batched.
 
 See [TYPE_DRIVEN_DEVELOPMENT](.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md) and [TEST_DRIVEN_DEVELOPMENT](.agents/directives/TEST_DRIVEN_DEVELOPMENT.md) for detailed guidance.
 

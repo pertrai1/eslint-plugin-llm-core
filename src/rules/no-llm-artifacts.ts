@@ -109,7 +109,7 @@ export default createRule<[], MessageIds>({
         if (node.body) checkFunctionBody(node.body);
       },
       FunctionExpression(node: TSESTree.FunctionExpression) {
-        if (node.body) checkFunctionBody(node.body);
+        checkFunctionBody(node.body);
       },
       ArrowFunctionExpression(node: TSESTree.ArrowFunctionExpression) {
         if (node.body.type === AST_NODE_TYPES.BlockStatement) {

@@ -147,5 +147,17 @@ ruleTester.run("no-llm-artifacts", rule, {
 }`,
       errors: [{ messageId: "notImplementedStub" as const }],
     },
+    // FunctionExpression stub
+    {
+      code: `const handler = function() {
+  throw new Error("Not implemented");
+}`,
+      errors: [{ messageId: "notImplementedStub" as const }],
+    },
+    // Long placeholder comment (triggers truncation)
+    {
+      code: "// ... existing code that was here before the refactor and should be restored ...",
+      errors: [{ messageId: "noLlmArtifact" as const }],
+    },
   ],
 });

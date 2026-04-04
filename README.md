@@ -57,6 +57,10 @@ npm install eslint-plugin-llm-core --save-dev
 
 ## Quick Start
 
+### Option 1: Recommended (All-in-one)
+
+All recommended rules are active and ready out of the box.
+
 ```js
 // eslint.config.mjs
 import llmCore from "eslint-plugin-llm-core";
@@ -64,7 +68,20 @@ import llmCore from "eslint-plugin-llm-core";
 export default [...llmCore.configs.recommended];
 ```
 
-That's it. All recommended rules are now active.
+### Option 2: Mix & Match
+
+Select only the specific categories that fit your project.
+
+```js
+// eslint.config.mjs
+import llmCore from "eslint-plugin-llm-core";
+
+export default [
+  ...llmCore.configs.complexity,
+  ...llmCore.configs.typescript,
+  ...llmCore.configs.hygiene,
+];
+```
 
 ### Available Configs
 

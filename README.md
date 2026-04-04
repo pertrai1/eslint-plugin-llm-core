@@ -1,6 +1,6 @@
 # eslint-plugin-llm-core
 
-ESLint rules that catch the patterns LLM agents get wrong — and teach them to self-correct through structured error messages.
+ESLint rules that catch the patterns LLM agents get wrong — and teach them to self-correct through structured error messages. [DeepWiki](https://deepwiki.com/pertrai1/eslint-plugin-llm-core)
 
 LLMs generate code that _works_ but drifts: arrow functions everywhere, magic numbers, deep nesting, string-interpolated logs, oversized files. These aren't style nitpicks — they compound into codebases that are harder to debug, review, and maintain.
 

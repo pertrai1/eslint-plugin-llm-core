@@ -125,6 +125,16 @@ export default [
 
 <!-- end auto-generated rules list -->
 
+## Research & Evidence
+
+The rules in this plugin are grounded in empirical data from academic research on LLM coding errors. I actively monitor research to identify patterns that LLMs consistently get wrong.
+
+Key papers that inform the ruleset:
+
+- [Engineering Pitfalls in AI Coding Tools: An Empirical Study of Bugs in Claude Code, Codex, and Gemini CLI](https://arxiv.org/abs/2603.20847) (Analyzed 3,864 bugs)
+- [A Deep Dive Into Large Language Model Code Generation Mistakes: What and Why?](https://arxiv.org/abs/2411.01414) (Analyzed 216 bugs)
+- [Towards Understanding the Characteristics of Code Generation Errors Made by Large Language Models](https://arxiv.org/abs/2406.08731) (Analyzed 557 bugs)
+
 ## Complementary Rules
 
 These ESLint core rules address common LLM patterns and pair well with this plugin:

@@ -1,5 +1,14 @@
 # eslint-plugin-llm-core
 
+## 0.8.0
+
+### Minor Changes
+
+- [#69](https://github.com/pertrai1/eslint-plugin-llm-core/pull/69) [`f235b3e`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/f235b3e50564421f0b6faa04df53e9939e825b7f) Thanks [@pertrai1](https://github.com/pertrai1)! - Add `no-llm-artifacts` rule to detect LLM placeholder comments and stub function bodies
+  - Detects placeholder comments: `// ... existing code ...`, `// TODO: implement`, `// abbreviated for brevity`, `// continue from here`, `// see above`, and more
+  - Detects stub functions whose only body is `throw new Error("Not implemented")`
+  - Added to `recommended` config
+
 ## 0.7.2
 
 ### Patch Changes

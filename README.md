@@ -68,10 +68,15 @@ That's it. All recommended rules are now active.
 
 ### Available Configs
 
-| Config        | Description                                     |
-| ------------- | ----------------------------------------------- |
-| `recommended` | Safe defaults — rules most codebases should use |
-| `all`         | Every rule at `error` — for strict codebases    |
+| Config           | Description                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| `recommended`    | Safe defaults — rules most codebases should use                                            |
+| `all`            | Every rule at `error` — for strict codebases                                               |
+| `complexity`     | Enforce structural limits to prevent oversized files and functions                         |
+| `typescript`     | Rules focused on type safety and clarity to avoid common 'any' traps                       |
+| `best-practices` | Core logic and reliability rules that catch common bugs and anti-patterns                  |
+| `style`          | Focuses on consistent naming and structure for predictability                              |
+| `hygiene`        | Rules addressing development 'litter' and shortcuts like LLM artifacts and inline disables |
 
 ### Manual Rule Configuration
 

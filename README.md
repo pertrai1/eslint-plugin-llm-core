@@ -169,6 +169,32 @@ export default [
 ];
 ```
 
+## Agent Skills
+
+Beyond ESLint rules, this plugin ships **agent skills** — markdown instruction files that LLM agents can load when performing specific tasks. Skills complement the lint rules by catching patterns that require judgment rather than pattern matching.
+
+### Available Skills
+
+| Skill                                    | Description                                                                                                                    |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| [test-reviewer](skills/test-reviewer.md) | Detects tests that duplicate production logic, use shallow assertions, skip edge cases, or assert on mocks instead of behavior |
+
+### Usage
+
+Copy the skill file into your agent's skill directory:
+
+```bash
+# Claude Code
+cp node_modules/eslint-plugin-llm-core/skills/test-reviewer.md .claude/skills/
+
+# Cursor
+cp node_modules/eslint-plugin-llm-core/skills/test-reviewer.md .cursor/skills/
+
+# Or wherever your agent tool looks for skills
+```
+
+The skill is a standalone markdown file with no dependencies. Adapt it to your project's testing conventions as needed.
+
 ## Contributing
 
 ```bash

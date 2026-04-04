@@ -83,6 +83,14 @@ This plugin ships **framework-agnostic** rules that apply to any TypeScript/Java
 
 These are valid architectural constraints for individual projects, but they belong in project-specific ESLint configs, not in a general-purpose plugin.
 
+## Skills (Mandatory)
+
+**You MUST load and follow the relevant skill before performing any task it covers. These are not optional guidelines.**
+
+| Skill         | When                                 | File                                                 |
+| ------------- | ------------------------------------ | ---------------------------------------------------- |
+| Test Reviewer | Before writing or reviewing any test | [`skills/test-reviewer.md`](skills/test-reviewer.md) |
+
 ## Conventions
 
 - All rules use `@typescript-eslint/utils` for typed ESLint utilities

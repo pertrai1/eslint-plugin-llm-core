@@ -128,13 +128,16 @@ export default [
 
 ## Research & Evidence
 
-The rules in this plugin are grounded in empirical data from academic research on LLM coding errors. I actively monitor research to identify patterns that LLMs consistently get wrong.
+The rules in this plugin are based on research data from academic research on LLM coding errors. I review research to identify patterns that LLMs consistently get wrong.
 
-Key papers that inform the ruleset:
+Key papers that have built out the rulesets:
 
-- [Engineering Pitfalls in AI Coding Tools: An Empirical Study of Bugs in Claude Code, Codex, and Gemini CLI](https://arxiv.org/abs/2603.20847) (Analyzed 3,864 bugs)
-- [A Deep Dive Into Large Language Model Code Generation Mistakes: What and Why?](https://arxiv.org/abs/2411.01414) (Analyzed 216 bugs)
-- [Towards Understanding the Characteristics of Code Generation Errors Made by Large Language Models](https://arxiv.org/abs/2406.08731) (Analyzed 557 bugs)
+- [Bugs in Large Language Models Generated Code: An Empirical Study](https://arxiv.org/abs/2403.08937) (333 bugs, 10 distinctive patterns) — foundational taxonomy
+- [Engineering Pitfalls in AI Coding Tools: An Empirical Study of Bugs in Claude Code, Codex, and Gemini CLI](https://arxiv.org/abs/2603.20847) (3,864 bugs from real-world tool usage)
+- [A Deep Dive Into Large Language Model Code Generation Mistakes: What and Why?](https://arxiv.org/abs/2411.01414) (216 non-syntactic mistakes)
+- [Towards Understanding the Characteristics of Code Generation Errors Made by Large Language Models](https://arxiv.org/abs/2406.08731) (557 bugs across 6 LLMs)
+- [Asleep at the Keyboard? Assessing the Security of GitHub Copilot's Code Contributions](https://arxiv.org/abs/2108.09293) (security vulnerabilities in Copilot-generated code)
+- [We Have a Package for You! A Comprehensive Analysis of Package Hallucinations by Code Generating LLMs](https://arxiv.org/abs/2406.10279) (hallucinated package dependencies)
 
 ## Complementary Rules
 

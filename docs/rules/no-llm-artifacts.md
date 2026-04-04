@@ -62,15 +62,17 @@ function validate(input: string) {
 
 ### Placeholder Comments
 
-| Pattern                | Example                                                 |
-| ---------------------- | ------------------------------------------------------- |
-| Ellipsis placeholders  | `// ... existing code ...`, `// ...rest of the code...` |
-| "Remains the same"     | `// rest of the function remains the same`              |
-| Lazy TODO              | `// TODO: implement`, `// TODO implement`               |
-| "Code here" markers    | `// add implementation here`, `// your code here`       |
-| "As needed" deferrals  | `// add error handling as needed`                       |
-| Brevity markers        | `// abbreviated for brevity`, `// omitted for clarity`  |
-| Reference to elsewhere | `// similar to above`, `// same as before`              |
+| Pattern                | Example                                                    |
+| ---------------------- | ---------------------------------------------------------- |
+| Ellipsis placeholders  | `// ... existing code ...`, `// ...rest of the code...`    |
+| "Remains the same"     | `// rest of the function remains the same`                 |
+| Lazy TODO              | `// TODO: implement`, `// TODO implement`                  |
+| "Code here" markers    | `// add implementation here`, `// your code here`          |
+| "As needed" deferrals  | `// add error handling as needed`                          |
+| Brevity markers        | `// abbreviated for brevity`, `// omitted for clarity`     |
+| Reference to elsewhere | `// similar to above`, `// same as before`                 |
+| "Continue here"        | `// continue from here`, `// continue implementation here` |
+| "See above/below"      | `// see implementation above`, `// see above for details`  |
 
 ### Stub Function Bodies
 

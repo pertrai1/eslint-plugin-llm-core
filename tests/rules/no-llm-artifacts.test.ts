@@ -31,6 +31,12 @@ ruleTester.run("no-llm-artifacts", rule, {
       if (x < 0) throw new Error("Not implemented for negative numbers");
       return x * 2;
     }`,
+
+    // Legitimate uses of "see" and "continue" in prose
+    "// See the README for configuration options",
+    "// Continue processing after the timeout",
+    "// Users should see the dashboard after login",
+    "// See the comment above for why this is necessary",
   ],
 
   invalid: [
@@ -157,6 +163,28 @@ ruleTester.run("no-llm-artifacts", rule, {
     // Long placeholder comment (triggers truncation)
     {
       code: "// ... existing code that was here before the refactor and should be restored ...",
+      errors: [{ messageId: "noLlmArtifact" as const }],
+    },
+    // "continue from here" patterns
+    {
+      code: "// continue from here",
+      errors: [{ messageId: "noLlmArtifact" as const }],
+    },
+    {
+      code: "// continue implementation here",
+      errors: [{ messageId: "noLlmArtifact" as const }],
+    },
+    // "see above/below" patterns
+    {
+      code: "// see implementation above",
+      errors: [{ messageId: "noLlmArtifact" as const }],
+    },
+    {
+      code: "// see above for details",
+      errors: [{ messageId: "noLlmArtifact" as const }],
+    },
+    {
+      code: "// see example above",
       errors: [{ messageId: "noLlmArtifact" as const }],
     },
   ],

@@ -23,6 +23,10 @@ const PLACEHOLDER_PATTERNS = [
   /\b(?:abbreviated|omitted|truncated|removed)\s+for\s+(?:brevity|clarity|readability|simplicity)\b/i,
   // "similar to above", "same as before/above"
   /\b(?:similar\s+to\s+above|same\s+(?:as\s+(?:before|above)|pattern\s+as\s+above))\b/i,
+  // "continue from here", "continue implementation here"
+  /\bcontinue\s+(?:\w+\s+)*here\b/i,
+  // "see implementation above", "see above for details" — short, context-free references only
+  /\bsee\s+(?:(?:implementation|example|code|details)\s+)?(?:above|below)(?:\s+for\s+\w+)?\s*$/i,
 ];
 
 function isPlaceholderComment(text: string): boolean {

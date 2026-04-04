@@ -116,6 +116,7 @@ export default [
 | [no-empty-catch](docs/rules/no-empty-catch.md)                                     | Disallow catch blocks with no meaningful error handling (empty or comment-only blocks)                       | 🌐 ✅ |     |
 | [no-exported-function-expressions](docs/rules/no-exported-function-expressions.md) | Enforce that exported functions use function declarations instead of function expressions or arrow functions | 🌐 ✅ | 💡  |
 | [no-inline-disable](docs/rules/no-inline-disable.md)                               | Disallow eslint-disable comments that suppress lint errors instead of fixing them                            | 🌐 ✅ |     |
+| [no-llm-artifacts](docs/rules/no-llm-artifacts.md)                                 | Disallow common LLM placeholder comments and incomplete code markers that indicate skipped implementation    | 🌐 ✅ |     |
 | [no-magic-numbers](docs/rules/no-magic-numbers.md)                                 | Disallow magic numbers and enforce named constants for clarity                                               | 🌐 ✅ |     |
 | [no-type-assertion-any](docs/rules/no-type-assertion-any.md)                       | Disallow type assertions to `any` that bypass TypeScript's type safety                                       | 🌐 ✅ |     |
 | [prefer-early-return](docs/rules/prefer-early-return.md)                           | Enforce guard clauses (early returns) instead of wrapping function bodies in a single if statement           | 🌐 ✅ |     |

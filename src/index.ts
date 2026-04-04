@@ -31,6 +31,7 @@ const recommendedRules: TSESLint.FlatConfig.Rules = {
   "llm-core/no-any-in-generic": "error",
   "llm-core/throw-error-objects": "error",
   "llm-core/no-empty-catch": "error",
+  "llm-core/no-llm-artifacts": "error",
   "llm-core/prefer-unknown-in-catch": "error",
 };
 

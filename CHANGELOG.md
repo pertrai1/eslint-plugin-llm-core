@@ -1,5 +1,19 @@
 # eslint-plugin-llm-core
 
+## 0.11.0
+
+### Minor Changes
+
+- [#79](https://github.com/pertrai1/eslint-plugin-llm-core/pull/79) [`0999854`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/0999854f7c40eee577b1fd8427ebc9a9611f4b41) Thanks [@copilot-swe-agent](https://github.com/apps/copilot-swe-agent)! - Add `no-redundant-logic` rule
+
+  Flags four patterns of redundant boolean logic that LLMs commonly generate:
+  1. **Redundant boolean comparison** — `x === true` → `x`, `x !== true` → `!x`, etc.
+  2. **Unnecessary else after return/throw** — removes `else` blocks when the `if` always exits
+  3. **Ternary returning boolean literals** — `cond ? true : false` → `cond`
+  4. **If/else returning or assigning boolean literals** — `if (c) { return true; } else { return false; }` → `return c;`
+
+  All four patterns provide suggestions (not auto-fixes) and are included in `recommended` via `styleRules`.
+
 ## 0.10.0
 
 ### Minor Changes

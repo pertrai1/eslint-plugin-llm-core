@@ -1,12 +1,9 @@
 ## What does this PR do?
 
-<!-- Brief description of the change. Link to related issue(s) if applicable. -->
-
-Closes #
+<!-- Brief description of the change. Add `Closes #<number>` here if this PR resolves a GitHub issue. -->
 
 ## Checklist
 
-- [ ] Linked to a GitHub issue (`Closes #<number>` above)
 - [ ] `npm run build` passes
 - [ ] `npm run test` passes (new tests added if applicable)
 - [ ] `npm run lint` passes

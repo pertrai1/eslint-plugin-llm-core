@@ -13,3 +13,22 @@ Closes #
 - [ ] Docs added/updated (if adding a new rule: `docs/rules/<rule-name>.md`)
 - [ ] Rule exported in `src/rules/index.ts` (if adding a new rule)
 - [ ] Rule added to `recommendedRules` in `src/index.ts` (if applicable)
+
+## Agent Disclosure (complete if this PR was authored by an AI agent)
+
+<!-- List every instruction file the agent loaded during this PR. This creates an audit trail for progressive disclosure — which scoped instructions were active, and which were not. -->
+
+**Agent:** <!-- e.g., GitHub Copilot, Claude Code -->
+
+**Instruction files loaded:**
+
+- [ ] `.github/copilot-instructions.md`
+- [ ] `.github/instructions/rule-implementation.md`
+- [ ] `.github/instructions/rule-tests.md`
+- [ ] `.github/instructions/rule-docs.md`
+- [ ] `.github/instructions/plugin-config.md`
+- [ ] `AGENTS.md`
+
+**Instruction files NOT loaded (explain if unexpected):**
+
+<!-- If a scoped instruction file was expected but not loaded, note it here. This helps identify gaps in applyTo glob coverage. -->

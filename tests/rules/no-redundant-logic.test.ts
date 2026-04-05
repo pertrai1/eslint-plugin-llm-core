@@ -156,13 +156,33 @@ ruleTester.run("no-redundant-logic", rule, {
     // Pattern 2: if block ends with return, else block has single return
     {
       code: `function f(x) { if (x) { return 1; } else { return 2; } }`,
-      errors: [{ messageId: "unnecessaryElse" as const }],
+      errors: [
+        {
+          messageId: "unnecessaryElse" as const,
+          suggestions: [
+            {
+              messageId: "unnecessaryElseSuggest" as const,
+              output: `function f(x) { if (x) { return 1; }\n                return 2; }`,
+            },
+          ],
+        },
+      ],
     },
 
     // Pattern 2: if block ends with throw, else block has single return
     {
       code: `function f(x) { if (!x) { throw new Error(); } else { return 2; } }`,
-      errors: [{ messageId: "unnecessaryElse" as const }],
+      errors: [
+        {
+          messageId: "unnecessaryElse" as const,
+          suggestions: [
+            {
+              messageId: "unnecessaryElseSuggest" as const,
+              output: `function f(x) { if (!x) { throw new Error(); }\n                return 2; }`,
+            },
+          ],
+        },
+      ],
     },
 
     // Pattern 2: multiline — if/else with early return
@@ -176,13 +196,40 @@ ruleTester.run("no-redundant-logic", rule, {
         "  }",
         "}",
       ].join("\n"),
-      errors: [{ messageId: "unnecessaryElse" as const }],
+      errors: [
+        {
+          messageId: "unnecessaryElse" as const,
+          suggestions: [
+            {
+              messageId: "unnecessaryElseSuggest" as const,
+              output: [
+                "function getLabel(status) {",
+                "  if (status === 'active') {",
+                "    return 'Active';",
+                "  }",
+                "  return 'Inactive';",
+                "}",
+              ].join("\n"),
+            },
+          ],
+        },
+      ],
     },
 
     // Pattern 2: else block with single throw
     {
       code: `function validate(x) { if (x > 0) { return x; } else { throw new Error('invalid'); } }`,
-      errors: [{ messageId: "unnecessaryElse" as const }],
+      errors: [
+        {
+          messageId: "unnecessaryElse" as const,
+          suggestions: [
+            {
+              messageId: "unnecessaryElseSuggest" as const,
+              output: `function validate(x) { if (x > 0) { return x; }\n                       throw new Error('invalid'); }`,
+            },
+          ],
+        },
+      ],
     },
   ],
 });

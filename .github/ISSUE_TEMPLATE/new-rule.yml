@@ -5,7 +5,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for proposing a new rule! Please fill out the sections below so we can evaluate the proposal.
+        Thanks for proposing a new rule. Rule proposals are evaluated against the acceptance criteria in `AGENTS.md`.
+
+        A good proposal is:
+        - common enough to justify a dedicated rule
+        - framework-agnostic
+        - narrow and deterministic to detect
+        - explicit about false-positive boundaries
+        - clear about prior art and config placement
 
   - type: textarea
     id: problem
@@ -52,9 +59,40 @@ body:
       required: true
 
   - type: textarea
+    id: scope-boundaries
+    attributes:
+      label: Scope boundaries
+      description: What exact patterns should this rule detect, and what should remain out of scope to avoid false positives?
+      placeholder: "Flag X and Y. Do not flag Z because intent cannot be inferred reliably."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: config-placement
+    attributes:
+      label: Proposed config placement
+      description: Where should this rule land if accepted?
+      options:
+        - recommended
+        - all only
+        - neither yet / needs more validation
+    validations:
+      required: true
+
+  - type: textarea
+    id: framework-agnostic
+    attributes:
+      label: Framework-agnostic proof
+      description: Why does this rule apply broadly across TypeScript/JavaScript projects without project-specific assumptions?
+      placeholder: "This checks a language-level pattern and does not depend on React, Nx, file layout, or architectural conventions."
+    validations:
+      required: true
+
+  - type: textarea
     id: prior-art
     attributes:
       label: Prior art
       description: Are there existing ESLint rules that partially cover this? How does this rule differ?
+      placeholder: "Existing rule X covers part of this. This proposal differs by... (If none, state: 'No existing ESLint rule covers this pattern.')"
     validations:
-      required: false
+      required: true

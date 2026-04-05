@@ -83,6 +83,21 @@ This plugin ships **framework-agnostic** rules that apply to any TypeScript/Java
 
 These are valid architectural constraints for individual projects, but they belong in project-specific ESLint configs, not in a general-purpose plugin.
 
+## Rule Acceptance Criteria
+
+This section is the canonical source for deciding whether a proposed rule belongs in `eslint-plugin-llm-core`.
+
+A new rule proposal must satisfy all of the following:
+
+1. **Common enough to matter** — The pattern appears often enough in LLM-written or real production code to justify a dedicated rule.
+2. **Framework-agnostic** — The rule works across TypeScript/JavaScript codebases without assuming a specific framework, architecture, or directory layout.
+3. **Deterministic and narrow** — The detection logic can be expressed as a precise AST check with clear pass/fail behavior.
+4. **Low false-positive risk** — The proposal defines explicit scope boundaries and avoids flagging patterns whose intent cannot be inferred reliably.
+5. **Not already covered well enough** — Existing ESLint, TypeScript, or ecosystem rules do not already solve the problem adequately, or this rule adds clear value through LLM-oriented teaching messages.
+6. **Config placement is explicit** — The proposal states whether the rule belongs in `recommended`, `all`, or should remain out of bundled configs until proven.
+
+Use these criteria in issue triage, implementation review, and config-placement decisions.
+
 ## Skills (Mandatory)
 
 **You MUST load and follow the relevant skill before performing any task it covers. These are not optional guidelines.**

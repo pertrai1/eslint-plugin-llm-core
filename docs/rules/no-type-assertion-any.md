@@ -2,7 +2,7 @@
 
 📝 Disallow type assertions to `any` that bypass TypeScript's type safety.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`, ⌨️ `typescript`.
 
 <!-- end auto-generated rule header -->
 

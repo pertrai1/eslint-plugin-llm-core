@@ -2,7 +2,7 @@
 
 📝 Enforce that filenames match their single exported function, class, or component name.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`, 🎨 `style`.
 
 <!-- end auto-generated rule header -->
 

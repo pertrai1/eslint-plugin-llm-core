@@ -14,6 +14,7 @@ export { default as "no-exported-function-expressions" } from "./no-exported-fun
 export { default as "no-inline-disable" } from "./no-inline-disable";
 export { default as "no-llm-artifacts" } from "./no-llm-artifacts";
 export { default as "no-magic-numbers" } from "./no-magic-numbers";
+export { default as "no-redundant-logic" } from "./no-redundant-logic";
 export { default as "no-type-assertion-any" } from "./no-type-assertion-any";
 export { default as "prefer-early-return" } from "./prefer-early-return";
 export { default as "prefer-unknown-in-catch" } from "./prefer-unknown-in-catch";

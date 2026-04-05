@@ -2,7 +2,7 @@
 
 📝 Enforce guard clauses (early returns) instead of wrapping function bodies in a single if statement.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`, 🎨 `style`.
 
 <!-- end auto-generated rule header -->
 

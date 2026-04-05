@@ -47,6 +47,16 @@ ruleTester.run("no-redundant-logic", rule, {
     // Pattern 3: ternary with only one boolean literal — not flagged
     `const x = cond ? true : "no";`,
     `const y = cond ? false : 0;`,
+
+    // Pattern 4: if/else with additional logic — not flagged by Pattern 4
+    // (else also has multiple stmts, so not flagged by Pattern 2 either)
+    `if (cond) { doWork(); return true; } else { doMore(); return false; }`,
+
+    // Pattern 4: if without else — not flagged
+    `if (cond) { return true; }`,
+
+    // Pattern 4: branches with different assignment targets — not flagged
+    `if (cond) { x = true; } else { y = false; }`,
   ],
 
   invalid: [
@@ -287,6 +297,42 @@ ruleTester.run("no-redundant-logic", rule, {
           ],
         },
       ],
+    },
+
+    // Pattern 4: if/else returning boolean literals
+    {
+      code: [
+        "if (items.length > 0) {",
+        "  return true;",
+        "} else {",
+        "  return false;",
+        "}",
+      ].join("\n"),
+      errors: [{ messageId: "ifElseBooleanLiteral" as const }],
+    },
+
+    // Pattern 4: if/else assigning boolean literals
+    {
+      code: [
+        "if (age >= 18) {",
+        "  isValid = true;",
+        "} else {",
+        "  isValid = false;",
+        "}",
+      ].join("\n"),
+      errors: [{ messageId: "ifElseBooleanLiteral" as const }],
+    },
+
+    // Pattern 4: inverse — if false else true
+    {
+      code: [
+        "if (hasErrors) {",
+        "  isOk = false;",
+        "} else {",
+        "  isOk = true;",
+        "}",
+      ].join("\n"),
+      errors: [{ messageId: "ifElseBooleanLiteral" as const }],
     },
   ],
 });

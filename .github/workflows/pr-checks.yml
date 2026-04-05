@@ -1,0 +1,130 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  tdd-commit-presence:
+    name: TDD Commit Presence
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check feat commits have corresponding test commits
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          COMMITS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits --jq '.[].commit.message' | head -c 10000)
+
+          FEAT_COUNT=$(echo "$COMMITS" | grep -c '^feat:' || true)
+          TEST_COUNT=$(echo "$COMMITS" | grep -c '^test:' || true)
+
+          echo "feat: commits = $FEAT_COUNT"
+          echo "test: commits = $TEST_COUNT"
+
+          if [ "$FEAT_COUNT" -gt 0 ] && [ "$TEST_COUNT" -eq 0 ]; then
+            echo ""
+            echo "::error::TDD violation: Found $FEAT_COUNT feat: commit(s) but zero test: commits."
+            echo ""
+            echo "The mandatory workflow requires:"
+            echo "  1. Write ONE failing test → commit with 'test: ...'"
+            echo "  2. Write minimum code to pass → commit with 'feat: ...'"
+            echo "  3. Repeat for each behavior"
+            echo ""
+            echo "Every feat: commit must have a preceding test: commit."
+            echo "See CLAUDE.md or .github/copilot-instructions.md for the full workflow."
+            exit 1
+          fi
+
+          echo "✓ TDD commit presence looks good ($TEST_COUNT test: / $FEAT_COUNT feat:)"
+
+  pr-template:
+    name: PR Template
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate issue link
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.body // ""')
+
+          # Check for "Closes #<number>" or "Fixes #<number>" or "Resolves #<number>"
+          if ! echo "$BODY" | grep -qiP '(closes|fixes|resolves)\s+#\d+'; then
+            echo "::error::PR is not linked to a GitHub issue. Add 'Closes #<number>' to the PR description."
+            exit 1
+          fi
+
+          echo "✓ PR linked to issue"
+
+      - name: Validate checklist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.body // ""')
+
+          # Check checklist section exists
+          if ! echo "$BODY" | grep -q "## Checklist"; then
+            echo "::error::PR body is missing the '## Checklist' section from the PR template."
+            exit 1
+          fi
+
+          # Extract only the Checklist section (between ## Checklist and the next ##)
+          CHECKLIST=$(echo "$BODY" | sed -n '/^## Checklist/,/^## /p' | head -n -1)
+          UNCHECKED=$(echo "$CHECKLIST" | grep '\- \[ \]' | grep -cv 'N/A' || true)
+          if [ "$UNCHECKED" -gt 0 ]; then
+            echo "::error::PR checklist has $UNCHECKED unchecked item(s). Verify each gate passes and check the boxes. Mark inapplicable items as '- [ ] ... — N/A'."
+            exit 1
+          fi
+
+          echo "✓ PR checklist complete"
+
+      - name: Validate agent disclosure (bot PRs)
+        if: github.event.pull_request.user.type == 'Bot'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.body // ""')
+
+          if ! echo "$BODY" | grep -q "Agent Disclosure"; then
+            echo "::error::Bot-authored PR must include the 'Agent Disclosure' section from the PR template."
+            exit 1
+          fi
+
+          # Check that Agent field is not empty placeholder
+          if ! echo "$BODY" | grep -qP '\*\*Agent:\*\*\s*\S'; then
+            echo "::error::Agent Disclosure: 'Agent' field is empty. Specify which agent authored this PR."
+            exit 1
+          fi
+
+          # Check that at least one instruction file checkbox is checked
+          LOADED=$(echo "$BODY" | grep -c '\- \[x\]' || true)
+          if [ "$LOADED" -eq 0 ]; then
+            echo "::error::Agent Disclosure: No instruction files marked as loaded. Check every file the agent received."
+            exit 1
+          fi
+
+          echo "✓ Agent Disclosure complete"
+
+  lockfile-version:
+    name: Lockfile Version Guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Check package-lock.json version unchanged
+        run: |
+          if git diff --quiet origin/main...HEAD -- package-lock.json; then
+            echo "✓ package-lock.json not modified"
+            exit 0
+          fi
+
+          VERSION_CHANGED=$(git diff origin/main...HEAD -- package-lock.json | grep -cE '^\+\s*"version"\s*:' || true)
+          if [ "$VERSION_CHANGED" -gt 0 ]; then
+            echo "::error::package-lock.json has version field changes. Versions are managed by Changesets CI — do not bump versions in feature PRs."
+            echo ""
+            echo "If this is from a stale fork, run: git checkout main -- package-lock.json"
+            exit 1
+          fi
+
+          echo "✓ package-lock.json version unchanged"

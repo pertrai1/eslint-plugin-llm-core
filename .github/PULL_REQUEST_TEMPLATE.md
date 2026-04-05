@@ -6,6 +6,7 @@ Closes #
 
 ## Checklist
 
+- [ ] Linked to a GitHub issue (`Closes #<number>` above)
 - [ ] `npm run build` passes
 - [ ] `npm run test` passes (new tests added if applicable)
 - [ ] `npm run lint` passes

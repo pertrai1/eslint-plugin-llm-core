@@ -7,7 +7,9 @@ type MessageIds =
   | "unnecessaryElse"
   | "unnecessaryElseSuggest"
   | "ternaryBooleanLiteral"
-  | "ternaryBooleanLiteralSuggest";
+  | "ternaryBooleanLiteralSuggest"
+  | "ifElseBooleanLiteral"
+  | "ifElseBooleanLiteralSuggest";
 
 function isBooleanLiteral(
   node: TSESTree.Node,
@@ -111,6 +113,29 @@ export default createRule<[], MessageIds>({
       ].join("\n"),
       ternaryBooleanLiteralSuggest:
         "Replace ternary with direct boolean expression",
+      ifElseBooleanLiteral: [
+        "If/else block exclusively returns or assigns boolean literals — simplify.",
+        "",
+        "Why: When both branches of an if/else only return or assign `true`/`false`,",
+        "the entire construct can be replaced with the condition expression directly.",
+        "",
+        "How to fix:",
+        "  Before: if (items.length > 0) {",
+        "            return true;",
+        "          } else {",
+        "            return false;",
+        "          }",
+        "  After:  return items.length > 0;",
+        "",
+        "  Before: if (age >= 18) {",
+        "            isValid = true;",
+        "          } else {",
+        "            isValid = false;",
+        "          }",
+        "  After:  isValid = age >= 18;",
+      ].join("\n"),
+      ifElseBooleanLiteralSuggest:
+        "Replace if/else with direct boolean expression",
     },
     schema: [],
   },
@@ -169,6 +194,8 @@ export default createRule<[], MessageIds>({
       if (node.alternate.type === AST_NODE_TYPES.IfStatement) return;
       if (!consequentEndsWithReturnOrThrow(node.consequent)) return;
       if (!alternateIsSimple(node.alternate)) return;
+      // Don't fire if Pattern 4 will give a more specific message
+      if (isIfElseBooleanLiteralCase(node)) return;
 
       const alternate = node.alternate;
 
@@ -245,9 +272,135 @@ export default createRule<[], MessageIds>({
       });
     }
 
+    // Helpers for Pattern 4
+    function getSingleStmt(
+      branch: TSESTree.Statement,
+    ): TSESTree.Statement | null {
+      if (
+        branch.type === AST_NODE_TYPES.BlockStatement &&
+        branch.body.length === 1
+      ) {
+        return branch.body[0];
+      }
+      if (branch.type !== AST_NODE_TYPES.BlockStatement) return branch;
+      return null;
+    }
+
+    function getBoolReturn(branch: TSESTree.Statement): boolean | null {
+      const stmt = getSingleStmt(branch);
+      if (
+        !stmt ||
+        stmt.type !== AST_NODE_TYPES.ReturnStatement ||
+        !stmt.argument ||
+        !isBooleanLiteral(stmt.argument)
+      ) {
+        return null;
+      }
+      return (stmt.argument as TSESTree.Literal & { value: boolean }).value;
+    }
+
+    function getBoolAssignment(
+      branch: TSESTree.Statement,
+    ): { target: string; value: boolean } | null {
+      const stmt = getSingleStmt(branch);
+      if (!stmt || stmt.type !== AST_NODE_TYPES.ExpressionStatement)
+        return null;
+      const expr = stmt.expression;
+      if (
+        expr.type !== AST_NODE_TYPES.AssignmentExpression ||
+        expr.operator !== "=" ||
+        !isBooleanLiteral(expr.right)
+      ) {
+        return null;
+      }
+      return {
+        target: sourceCode.getText(expr.left),
+        value: (expr.right as TSESTree.Literal & { value: boolean }).value,
+      };
+    }
+
+    function isIfElseBooleanLiteralCase(node: TSESTree.IfStatement): boolean {
+      if (!node.alternate || node.alternate.type === AST_NODE_TYPES.IfStatement)
+        return false;
+      const ifReturn = getBoolReturn(node.consequent);
+      const elseReturn = getBoolReturn(node.alternate);
+      if (ifReturn !== null && elseReturn !== null) return true;
+      const ifAssign = getBoolAssignment(node.consequent);
+      const elseAssign = getBoolAssignment(node.alternate);
+      return (
+        ifAssign !== null &&
+        elseAssign !== null &&
+        ifAssign.target === elseAssign.target
+      );
+    }
+
+    function buildCondExpr(
+      condText: string,
+      testNode: TSESTree.Expression,
+      negate: boolean,
+    ): string {
+      if (!negate) return condText;
+      const needsParens =
+        testNode.type !== AST_NODE_TYPES.Identifier &&
+        testNode.type !== AST_NODE_TYPES.MemberExpression &&
+        testNode.type !== AST_NODE_TYPES.CallExpression;
+      return needsParens ? `!(${condText})` : `!${condText}`;
+    }
+
+    // Pattern 4: if/else returning or assigning boolean literals
+    function checkIfElseBooleanLiteral(node: TSESTree.IfStatement): void {
+      if (!node.alternate) return;
+      if (node.alternate.type === AST_NODE_TYPES.IfStatement) return;
+
+      const condText = sourceCode.getText(node.test);
+
+      // Case A: both branches return boolean literals
+      const ifReturn = getBoolReturn(node.consequent);
+      const elseReturn = getBoolReturn(node.alternate);
+      if (ifReturn !== null && elseReturn !== null) {
+        const condExpr = buildCondExpr(condText, node.test, !ifReturn);
+        context.report({
+          node,
+          messageId: "ifElseBooleanLiteral",
+          suggest: [
+            {
+              messageId: "ifElseBooleanLiteralSuggest",
+              fix: (fixer) => fixer.replaceText(node, `return ${condExpr};`),
+            },
+          ],
+        });
+        return;
+      }
+
+      // Case B: both branches assign boolean literals to the same target
+      const ifAssign = getBoolAssignment(node.consequent);
+      const elseAssign = getBoolAssignment(node.alternate);
+      if (
+        ifAssign !== null &&
+        elseAssign !== null &&
+        ifAssign.target === elseAssign.target
+      ) {
+        const condExpr = buildCondExpr(condText, node.test, !ifAssign.value);
+        context.report({
+          node,
+          messageId: "ifElseBooleanLiteral",
+          suggest: [
+            {
+              messageId: "ifElseBooleanLiteralSuggest",
+              fix: (fixer) =>
+                fixer.replaceText(node, `${ifAssign.target} = ${condExpr};`),
+            },
+          ],
+        });
+      }
+    }
+
     return {
       BinaryExpression: checkBooleanComparison,
-      IfStatement: checkUnnecessaryElse,
+      IfStatement(node) {
+        checkUnnecessaryElse(node);
+        checkIfElseBooleanLiteral(node);
+      },
       ConditionalExpression: checkTernaryBooleanLiteral,
     };
   },

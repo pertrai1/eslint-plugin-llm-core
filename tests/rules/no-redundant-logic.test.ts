@@ -308,7 +308,17 @@ ruleTester.run("no-redundant-logic", rule, {
         "  return false;",
         "}",
       ].join("\n"),
-      errors: [{ messageId: "ifElseBooleanLiteral" as const }],
+      errors: [
+        {
+          messageId: "ifElseBooleanLiteral" as const,
+          suggestions: [
+            {
+              messageId: "ifElseBooleanLiteralSuggest" as const,
+              output: `return items.length > 0;`,
+            },
+          ],
+        },
+      ],
     },
 
     // Pattern 4: if/else assigning boolean literals
@@ -320,10 +330,20 @@ ruleTester.run("no-redundant-logic", rule, {
         "  isValid = false;",
         "}",
       ].join("\n"),
-      errors: [{ messageId: "ifElseBooleanLiteral" as const }],
+      errors: [
+        {
+          messageId: "ifElseBooleanLiteral" as const,
+          suggestions: [
+            {
+              messageId: "ifElseBooleanLiteralSuggest" as const,
+              output: `isValid = age >= 18;`,
+            },
+          ],
+        },
+      ],
     },
 
-    // Pattern 4: inverse — if false else true
+    // Pattern 4: inverse — if false else true (negate condition)
     {
       code: [
         "if (hasErrors) {",
@@ -332,7 +352,17 @@ ruleTester.run("no-redundant-logic", rule, {
         "  isOk = true;",
         "}",
       ].join("\n"),
-      errors: [{ messageId: "ifElseBooleanLiteral" as const }],
+      errors: [
+        {
+          messageId: "ifElseBooleanLiteral" as const,
+          suggestions: [
+            {
+              messageId: "ifElseBooleanLiteralSuggest" as const,
+              output: `isOk = !hasErrors;`,
+            },
+          ],
+        },
+      ],
     },
   ],
 });

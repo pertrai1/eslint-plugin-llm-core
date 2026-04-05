@@ -29,6 +29,8 @@ Closes #
 - [ ] `.github/instructions/rule-docs.md`
 - [ ] `.github/instructions/plugin-config.md`
 - [ ] `AGENTS.md`
+- [ ] `.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md`
+- [ ] `.agents/directives/TEST_DRIVEN_DEVELOPMENT.md`
 
 **Instruction files NOT loaded (explain if unexpected):**
 

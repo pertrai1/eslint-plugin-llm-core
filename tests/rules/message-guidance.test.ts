@@ -15,12 +15,16 @@ function expectSingleWhyLine(message: string): void {
 
 function expectTemplateShape(message: string): void {
   expect(message).toContain("How to fix:");
-  expect(message).toSatisfy(
-    (value: string) =>
-      value.includes("Before:") ||
-      value.includes("After:") ||
-      value.includes("Choose "),
-  );
+  const hasBefore = message.includes("Before:");
+  const hasAfter = message.includes("After:");
+  const hasChoose = message.includes("Choose ");
+
+  if (hasBefore || hasAfter) {
+    expect(hasBefore).toBe(true);
+    expect(hasAfter).toBe(true);
+  }
+
+  expect(hasBefore || hasAfter || hasChoose).toBe(true);
 }
 
 describe("rule message guidance", () => {
@@ -130,6 +134,9 @@ describe("rule message guidance", () => {
     );
     expect(maxFunctionLengthMessage).toContain(
       "After:  function processOrder(order) {",
+    );
+    expect(maxFunctionLengthMessage).toContain(
+      "return saveOrder(order, total, sanitizedEmail);",
     );
     expect(maxFunctionLengthMessage).not.toContain(
       "And extract the validation and normalization details into helpers.",

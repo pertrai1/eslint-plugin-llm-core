@@ -28,6 +28,12 @@ ruleTester.run("consistent-catch-param-name", rule, {
       options: [{ name: "e" }],
     },
 
+    // Single-char custom name — boundary for minLength: 1
+    {
+      code: `try { doWork(); } catch (x) { console.error(x); }`,
+      options: [{ name: "x" }],
+    },
+
     // Destructuring pattern — skipped because it's not an Identifier
     `try { doWork(); } catch ({ message }) { console.error(message); }`,
 
@@ -37,6 +43,15 @@ ruleTester.run("consistent-catch-param-name", rule, {
     // Multiple try/catch blocks with consistent naming
     `try { doWork(); } catch (error) { console.error(error); }
      try { doMore(); } catch (error) { console.error(error); }`,
+
+    // catch inside finally — inner catch uses expected name
+    `try {} catch (error) {} finally { try {} catch (error) {} }`,
+
+    // Underscore-prefixed param matching custom name
+    {
+      code: `try { doWork(); } catch (_e) { /* unused */ }`,
+      options: [{ name: "_e" }],
+    },
   ],
 
   invalid: [
@@ -47,6 +62,13 @@ ruleTester.run("consistent-catch-param-name", rule, {
         {
           messageId: "consistentCatchParamName" as const,
           data: { actual: "e", expected: "error" },
+          suggestions: [
+            {
+              messageId: "renameCatchParam" as const,
+              data: { actual: "e", expected: "error" },
+              output: `try { doWork(); } catch (error) { console.error(error); }`,
+            },
+          ],
         },
       ],
     },
@@ -58,6 +80,13 @@ ruleTester.run("consistent-catch-param-name", rule, {
         {
           messageId: "consistentCatchParamName" as const,
           data: { actual: "err", expected: "error" },
+          suggestions: [
+            {
+              messageId: "renameCatchParam" as const,
+              data: { actual: "err", expected: "error" },
+              output: `try { doWork(); } catch (error) { console.error(error); }`,
+            },
+          ],
         },
       ],
     },
@@ -69,6 +98,13 @@ ruleTester.run("consistent-catch-param-name", rule, {
         {
           messageId: "consistentCatchParamName" as const,
           data: { actual: "ex", expected: "error" },
+          suggestions: [
+            {
+              messageId: "renameCatchParam" as const,
+              data: { actual: "ex", expected: "error" },
+              output: `try { doWork(); } catch (error) { console.error(error); }`,
+            },
+          ],
         },
       ],
     },
@@ -81,6 +117,13 @@ ruleTester.run("consistent-catch-param-name", rule, {
         {
           messageId: "consistentCatchParamName" as const,
           data: { actual: "error", expected: "err" },
+          suggestions: [
+            {
+              messageId: "renameCatchParam" as const,
+              data: { actual: "error", expected: "err" },
+              output: `try { doWork(); } catch (err) { console.error(err); }`,
+            },
+          ],
         },
       ],
     },
@@ -93,10 +136,26 @@ ruleTester.run("consistent-catch-param-name", rule, {
         {
           messageId: "consistentCatchParamName" as const,
           data: { actual: "e", expected: "error" },
+          suggestions: [
+            {
+              messageId: "renameCatchParam" as const,
+              data: { actual: "e", expected: "error" },
+              output: `try { doWork(); } catch (error) { console.error(error); }
+             try { doMore(); } catch (err) { console.error(err); }`,
+            },
+          ],
         },
         {
           messageId: "consistentCatchParamName" as const,
           data: { actual: "err", expected: "error" },
+          suggestions: [
+            {
+              messageId: "renameCatchParam" as const,
+              data: { actual: "err", expected: "error" },
+              output: `try { doWork(); } catch (e) { console.error(e); }
+             try { doMore(); } catch (error) { console.error(error); }`,
+            },
+          ],
         },
       ],
     },
@@ -110,6 +169,69 @@ ruleTester.run("consistent-catch-param-name", rule, {
         {
           messageId: "consistentCatchParamName" as const,
           data: { actual: "e", expected: "error" },
+          suggestions: [
+            {
+              messageId: "renameCatchParam" as const,
+              data: { actual: "e", expected: "error" },
+              output: `try {
+        try { doWork(); } catch (error) { console.error(error); }
+      } catch (error) { console.error(error); }`,
+            },
+          ],
+        },
+      ],
+    },
+
+    // catch inside finally — inner catch flagged
+    {
+      code: `try {} catch (error) {} finally { try {} catch (e) {} }`,
+      errors: [
+        {
+          messageId: "consistentCatchParamName" as const,
+          data: { actual: "e", expected: "error" },
+          suggestions: [
+            {
+              messageId: "renameCatchParam" as const,
+              data: { actual: "e", expected: "error" },
+              output: `try {} catch (error) {} finally { try {} catch (error) {} }`,
+            },
+          ],
+        },
+      ],
+    },
+
+    // Underscore-prefixed param — flagged with default name
+    {
+      code: `try { doWork(); } catch (_e) { /* unused */ }`,
+      errors: [
+        {
+          messageId: "consistentCatchParamName" as const,
+          data: { actual: "_e", expected: "error" },
+          suggestions: [
+            {
+              messageId: "renameCatchParam" as const,
+              data: { actual: "_e", expected: "error" },
+              output: `try { doWork(); } catch (error) { /* unused */ }`,
+            },
+          ],
+        },
+      ],
+    },
+
+    // TypeScript type annotation — param name still flagged, type preserved
+    {
+      code: `try { doWork(); } catch (e: unknown) { console.error(e); }`,
+      errors: [
+        {
+          messageId: "consistentCatchParamName" as const,
+          data: { actual: "e", expected: "error" },
+          suggestions: [
+            {
+              messageId: "renameCatchParam" as const,
+              data: { actual: "e", expected: "error" },
+              output: `try { doWork(); } catch (error: unknown) { console.error(error); }`,
+            },
+          ],
         },
       ],
     },

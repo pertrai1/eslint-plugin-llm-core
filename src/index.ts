@@ -38,11 +38,11 @@ const bestPracticesRules: TSESLint.FlatConfig.Rules = {
 };
 
 const styleRules: TSESLint.FlatConfig.Rules = {
-  "llm-core/naming-conventions": "error",
+  "llm-core/consistent-catch-param-name": "error",
   "llm-core/filename-match-export": "error",
+  "llm-core/naming-conventions": "error",
   "llm-core/no-exported-function-expressions": "error",
   "llm-core/prefer-early-return": "error",
-  "llm-core/consistent-catch-param-name": "error",
 };
 
 const hygieneRules: TSESLint.FlatConfig.Rules = {

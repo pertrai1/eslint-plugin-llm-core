@@ -1,7 +1,7 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
 import { createRule } from "../utils/create-rule";
 
-type MessageIds = "consistentCatchParamName";
+type MessageIds = "consistentCatchParamName" | "renameCatchParam";
 
 type Options = [
   {
@@ -17,6 +17,7 @@ export default createRule<Options, MessageIds>({
       description:
         "Enforce consistent naming for catch clause parameters across the codebase",
     },
+    hasSuggestions: true,
     messages: {
       consistentCatchParamName: [
         "Catch parameter is named '{{ actual }}' but should be '{{ expected }}'.",
@@ -29,6 +30,7 @@ export default createRule<Options, MessageIds>({
         "  Before: catch ({{ actual }}) { ... }",
         "  After:  catch ({{ expected }}) { ... }",
       ].join("\n"),
+      renameCatchParam: "Rename '{{ actual }}' to '{{ expected }}'",
     },
     schema: [
       {
@@ -65,13 +67,41 @@ export default createRule<Options, MessageIds>({
         }
 
         if (param.name !== expectedName) {
+          const actualName = param.name;
           context.report({
             node: param,
             messageId: "consistentCatchParamName",
             data: {
-              actual: param.name,
+              actual: actualName,
               expected: expectedName,
             },
+            suggest: [
+              {
+                messageId: "renameCatchParam",
+                data: { actual: actualName, expected: expectedName },
+                fix(fixer) {
+                  const scope = context.sourceCode.getScope(node);
+                  const variable = scope.variables.find(
+                    (v) => v.name === actualName,
+                  );
+                  // Replace only the name portion of the param to preserve any
+                  // TypeScript type annotation (e.g. catch (e: unknown))
+                  const paramNameFix = fixer.replaceTextRange(
+                    [param.range[0], param.range[0] + actualName.length],
+                    expectedName,
+                  );
+                  if (!variable) {
+                    return paramNameFix;
+                  }
+                  return [
+                    paramNameFix,
+                    ...variable.references.map((ref) =>
+                      fixer.replaceText(ref.identifier, expectedName),
+                    ),
+                  ];
+                },
+              },
+            ],
           });
         }
       },

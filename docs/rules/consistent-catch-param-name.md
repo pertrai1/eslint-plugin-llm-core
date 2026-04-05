@@ -6,17 +6,11 @@
 
 <!-- end auto-generated rule header -->
 
-Enforce consistent naming for catch clause parameters across the codebase.
-
 ## Rule Details
 
 LLMs frequently mix naming conventions (`e`, `err`, `error`, `ex`) in the same codebase. Consistent naming makes error handling patterns more recognizable, reduces cognitive load when reviewing AI-generated code, and makes search/refactoring easier.
 
 By default the expected name is `"error"`. You can configure any valid identifier via the `name` option.
-
-Destructuring patterns in catch clauses (e.g. `catch ({ message })` or `catch ([a])`) are not checked by this rule.
-
-Optional catch bindings without a parameter (`catch {}`) are also not checked.
 
 ## Options
 
@@ -29,6 +23,17 @@ Optional catch bindings without a parameter (`catch {}`) are also not checked.
 | Option | Type   | Default   | Description                                       |
 | ------ | ------ | --------- | ------------------------------------------------- |
 | `name` | string | `"error"` | The required name for all catch clause parameters |
+
+## What Counts
+
+| Pattern                                         | Checked? |
+| ----------------------------------------------- | -------- |
+| `catch (e) {}`                                  | ✅ Yes   |
+| `catch (err) {}`                                | ✅ Yes   |
+| `catch (e: unknown) {}`                         | ✅ Yes   |
+| `catch {}` (optional binding)                   | ❌ No    |
+| `catch ({ message }) {}` (object destructuring) | ❌ No    |
+| `catch ([a]) {}` (array destructuring)          | ❌ No    |
 
 ## Examples
 
@@ -80,20 +85,30 @@ try {
   console.error(err);
 }
 
-// Optional catch binding — no parameter to check
+// Optional catch binding — not checked
 try {
   doWork();
 } catch {
   // intentionally suppressed
 }
 
-// Destructuring — not checked by this rule
+// Destructuring — not checked
 try {
   doWork();
 } catch ({ message }) {
   console.error(message);
 }
 ```
+
+## Error Messages
+
+When the rule fires, the message teaches:
+
+1. **What's wrong** — the catch parameter is named `'{{ actual }}'` but should be `'{{ expected }}'`
+2. **Why** — LLMs mix naming conventions, making patterns harder to recognize and refactor
+3. **How to fix** — rename the parameter from `{{ actual }}` to `{{ expected }}`
+
+A suggestion fix is provided to rename the parameter and all its references within the catch block in a single editor action.
 
 ## When Not to Use It
 

@@ -174,8 +174,10 @@ How to fix:
 The error messages follow a structured teaching format:
 
 1. **What's wrong** — The specific violation
-2. **Why it matters** — The rationale (type-first, solution space reduction)
-3. **How to fix** — Concrete, copy-pasteable steps
+2. **Why it matters** — One short line naming the consequence
+3. **How to fix** — A local before/after rewrite or a tightly bounded set of explicit outcomes
+
+See [Lint Message Template](./guides/lint-message-template.md) for the concrete format.
 
 The agent:
 
@@ -273,4 +275,4 @@ The plugin becomes a **teaching enforcement layer** — not just catching mistak
 3. Implement `require-interface-implementation` (P1)
 4. Consider `no-implementation-before-type` as an experimental rule (P2)
 
-Each rule follows the same teaching format: what's wrong, why it matters, how to fix it.
+Each rule follows the same teaching format: what's wrong, a short why, and a concrete how-to-fix rewrite.

@@ -20,11 +20,11 @@ npm run update:eslint-docs
 
 ## PR Template (CI-Enforced)
 
-The PR template at `.github/PULL_REQUEST_TEMPLATE.md` has three required sections. **CI will block merge if these are incomplete.**
+The PR template at `.github/PULL_REQUEST_TEMPLATE.md` has required sections for the checklist and, when applicable, agent disclosure. **CI will block merge if those are incomplete.**
 
-### 1. Issue Link
+### 1. Related Issue (Optional)
 
-Every PR must be linked to a GitHub issue. Include `Closes #<number>`, `Fixes #<number>`, or `Resolves #<number>` in the PR description. CI will reject PRs without an issue link.
+If a PR resolves a tracked GitHub issue, include `Closes #<number>`, `Fixes #<number>`, or `Resolves #<number>` in the PR description. If no issue exists, no issue reference is required.
 
 ### 2. Checklist
 

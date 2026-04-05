@@ -38,6 +38,15 @@ ruleTester.run("no-redundant-logic", rule, {
 
     // Pattern 2: else has more than one statement — not flagged
     `function f() { if (cond) { return 1; } else { doWork(); return 2; } }`,
+
+    // Pattern 3: ternary with non-boolean values — not flagged
+    `const x = cond ? "yes" : "no";`,
+    `const y = a ? 1 : 0;`,
+    `const z = check ? value : null;`,
+
+    // Pattern 3: ternary with only one boolean literal — not flagged
+    `const x = cond ? true : "no";`,
+    `const y = cond ? false : 0;`,
   ],
 
   invalid: [
@@ -230,6 +239,24 @@ ruleTester.run("no-redundant-logic", rule, {
           ],
         },
       ],
+    },
+
+    // Pattern 3: condition ? true : false
+    {
+      code: `const isEligible = age >= 18 ? true : false;`,
+      errors: [{ messageId: "ternaryBooleanLiteral" as const }],
+    },
+
+    // Pattern 3: condition ? false : true
+    {
+      code: `const isBlocked = isAdmin ? false : true;`,
+      errors: [{ messageId: "ternaryBooleanLiteral" as const }],
+    },
+
+    // Pattern 3: in a function return
+    {
+      code: `const hasAccess = user.role === "admin" ? true : false;`,
+      errors: [{ messageId: "ternaryBooleanLiteral" as const }],
     },
   ],
 });

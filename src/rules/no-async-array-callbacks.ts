@@ -33,7 +33,9 @@ export default createRule<[], MessageIds>({
         "  Choose the rewrite that preserves the original method semantics:",
         "  forEach: for (const item of items) { await processItem(item); }",
         "  reduce: let acc = initial; for (const item of items) { acc = await step(acc, item); }",
-        "  filter/some/every/flatMap: await the async work first, then run the synchronous array method on resolved values.",
+        "  Before: const matches = await Promise.all(items.map(async (item) => isMatch(item)));",
+        "  After:  const filtered = items.filter((_, index) => matches[index]);",
+        "  Use the same pattern for some/every/flatMap: await first, then apply the synchronous array method to resolved values.",
       ].join("\n"),
 
       noAsyncMapCallback: [

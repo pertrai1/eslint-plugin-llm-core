@@ -40,7 +40,6 @@ export default createRule<Options, MessageIds>({
         "            const total = calculateOrderTotal(order);",
         "            return saveOrder(order, total, sanitizedEmail);",
         "          }",
-        "  And extract the validation and normalization details into helpers.",
       ].join("\n"),
     },
     schema: [

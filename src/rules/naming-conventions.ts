@@ -24,8 +24,7 @@ export default createRule<[], MessageIds>({
       missingErrorSuffix: [
         "Error class '{{ className }}' must use the 'Error' suffix (e.g., '{{ className }}Error').",
         "",
-        "Why: The 'Error' suffix makes it immediately clear that a class represents an error condition.",
-        "Without it, catch blocks and error handling become harder to understand.",
+        "Why: The suffix makes error types recognizable in catch blocks, logs, and API boundaries.",
         "",
         "How to fix:",
         "  Before: class {{ className }} extends {{ superName }} { ... }",

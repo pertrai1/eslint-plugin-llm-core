@@ -18,3 +18,4 @@ export { default as "no-empty-catch" } from "./no-empty-catch";
 export { default as "no-llm-artifacts" } from "./no-llm-artifacts";
 export { default as "prefer-unknown-in-catch" } from "./prefer-unknown-in-catch";
 export { default as "explicit-export-types" } from "./explicit-export-types";
+export { default as "consistent-catch-param-name" } from "./consistent-catch-param-name";

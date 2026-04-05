@@ -42,6 +42,7 @@ const styleRules: TSESLint.FlatConfig.Rules = {
   "llm-core/filename-match-export": "error",
   "llm-core/no-exported-function-expressions": "error",
   "llm-core/prefer-early-return": "error",
+  "llm-core/consistent-catch-param-name": "error",
 };
 
 const hygieneRules: TSESLint.FlatConfig.Rules = {

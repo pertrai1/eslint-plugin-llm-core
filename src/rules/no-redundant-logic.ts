@@ -1,19 +1,23 @@
+import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds =
   | "redundantBooleanComparison"
-  | "redundantBooleanComparisonSuggest"
-  | "unnecessaryElse"
-  | "unnecessaryElseSuggest"
-  | "ternaryBooleanLiteral"
-  | "ternaryBooleanLiteralSuggest"
-  | "ifElseBooleanLiteral"
-  | "ifElseBooleanLiteralSuggest";
+  | "redundantBooleanComparisonSuggest";
+
+function isBooleanLiteral(
+  node: TSESTree.Node,
+): node is TSESTree.Literal & { value: boolean } {
+  return (
+    node.type === AST_NODE_TYPES.Literal && typeof node.value === "boolean"
+  );
+}
 
 export default createRule<[], MessageIds>({
   name: "no-redundant-logic",
   meta: {
     type: "suggestion",
+    hasSuggestions: true,
     docs: {
       description:
         "Disallow redundant boolean logic and unnecessary control flow patterns",
@@ -37,69 +41,59 @@ export default createRule<[], MessageIds>({
         "  After:  if (!hasPermission) { }",
       ].join("\n"),
       redundantBooleanComparisonSuggest: "Remove redundant boolean comparison",
-      unnecessaryElse: [
-        "Unnecessary `else` — the preceding `if` block always exits.",
-        "",
-        "Why: When an `if` block ends with `return` or `throw`, the `else` branch",
-        "is unreachable via fall-through. Keeping the `else` adds nesting without",
-        "benefit and obscures the control flow.",
-        "",
-        "How to fix:",
-        "  Before: if (status === 'active') {",
-        "            return 'Active';",
-        "          } else {",
-        "            return 'Inactive';",
-        "          }",
-        "  After:  if (status === 'active') {",
-        "            return 'Active';",
-        "          }",
-        "          return 'Inactive';",
-      ].join("\n"),
-      unnecessaryElseSuggest: "Remove unnecessary else block",
-      ternaryBooleanLiteral: [
-        "Ternary expression returning boolean literals — simplify to the condition itself.",
-        "",
-        "Why: `condition ? true : false` is identical to `condition` (or `!condition`).",
-        "The ternary adds visual noise without changing the value.",
-        "",
-        "How to fix:",
-        "  Before: const isEligible = age >= 18 ? true : false;",
-        "  After:  const isEligible = age >= 18;",
-        "",
-        "  Before: const isBlocked = isAdmin ? false : true;",
-        "  After:  const isBlocked = !isAdmin;",
-      ].join("\n"),
-      ternaryBooleanLiteralSuggest:
-        "Replace ternary with direct boolean expression",
-      ifElseBooleanLiteral: [
-        "If/else block exclusively returns or assigns boolean literals — simplify.",
-        "",
-        "Why: When both branches of an if/else only return or assign `true`/`false`,",
-        "the entire construct can be replaced with the condition expression directly.",
-        "",
-        "How to fix:",
-        "  Before: if (items.length > 0) {",
-        "            return true;",
-        "          } else {",
-        "            return false;",
-        "          }",
-        "  After:  return items.length > 0;",
-        "",
-        "  Before: if (age >= 18) {",
-        "            isValid = true;",
-        "          } else {",
-        "            isValid = false;",
-        "          }",
-        "  After:  isValid = age >= 18;",
-      ].join("\n"),
-      ifElseBooleanLiteralSuggest:
-        "Replace if/else with direct boolean expression",
     },
     schema: [],
   },
   defaultOptions: [],
-  create() {
-    // Stub — patterns are implemented incrementally
-    return {};
+  create(context) {
+    const sourceCode = context.sourceCode;
+
+    // Pattern 1: redundant boolean comparison (x === true, x !== false, etc.)
+    function checkBooleanComparison(node: TSESTree.BinaryExpression): void {
+      if (node.operator !== "===" && node.operator !== "!==") return;
+
+      const leftIsBool = isBooleanLiteral(node.left);
+      const rightIsBool = isBooleanLiteral(node.right);
+
+      if (!leftIsBool && !rightIsBool) return;
+
+      const boolSide = leftIsBool
+        ? (node.left as TSESTree.Literal & { value: boolean })
+        : (node.right as TSESTree.Literal & { value: boolean });
+      const otherSide = leftIsBool ? node.right : node.left;
+
+      const boolVal = boolSide.value;
+      const op = node.operator;
+      // Negate when: === false  OR  !== true
+      const negative = (op === "===" && !boolVal) || (op === "!==" && boolVal);
+
+      context.report({
+        node,
+        messageId: "redundantBooleanComparison",
+        suggest: [
+          {
+            messageId: "redundantBooleanComparisonSuggest",
+            fix(fixer) {
+              const text = sourceCode.getText(otherSide);
+              if (negative) {
+                const needsParens =
+                  otherSide.type !== AST_NODE_TYPES.Identifier &&
+                  otherSide.type !== AST_NODE_TYPES.MemberExpression &&
+                  otherSide.type !== AST_NODE_TYPES.CallExpression;
+                return fixer.replaceText(
+                  node,
+                  needsParens ? `!(${text})` : `!${text}`,
+                );
+              }
+              return fixer.replaceText(node, text);
+            },
+          },
+        ],
+      });
+    }
+
+    return {
+      BinaryExpression: checkBooleanComparison,
+    };
   },
 });

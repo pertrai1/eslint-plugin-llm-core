@@ -32,43 +32,113 @@ ruleTester.run("no-redundant-logic", rule, {
     // Pattern 1: x === true
     {
       code: `if (isActive === true) {}`,
-      errors: [{ messageId: "redundantBooleanComparison" as const }],
+      errors: [
+        {
+          messageId: "redundantBooleanComparison" as const,
+          suggestions: [
+            {
+              messageId: "redundantBooleanComparisonSuggest" as const,
+              output: `if (isActive) {}`,
+            },
+          ],
+        },
+      ],
     },
 
     // Pattern 1: x !== true
     {
       code: `if (isValid !== true) {}`,
-      errors: [{ messageId: "redundantBooleanComparison" as const }],
+      errors: [
+        {
+          messageId: "redundantBooleanComparison" as const,
+          suggestions: [
+            {
+              messageId: "redundantBooleanComparisonSuggest" as const,
+              output: `if (!isValid) {}`,
+            },
+          ],
+        },
+      ],
     },
 
     // Pattern 1: x === false
     {
       code: `if (hasPermission === false) {}`,
-      errors: [{ messageId: "redundantBooleanComparison" as const }],
+      errors: [
+        {
+          messageId: "redundantBooleanComparison" as const,
+          suggestions: [
+            {
+              messageId: "redundantBooleanComparisonSuggest" as const,
+              output: `if (!hasPermission) {}`,
+            },
+          ],
+        },
+      ],
     },
 
     // Pattern 1: x !== false
     {
       code: `while (running !== false) {}`,
-      errors: [{ messageId: "redundantBooleanComparison" as const }],
+      errors: [
+        {
+          messageId: "redundantBooleanComparison" as const,
+          suggestions: [
+            {
+              messageId: "redundantBooleanComparisonSuggest" as const,
+              output: `while (running) {}`,
+            },
+          ],
+        },
+      ],
     },
 
     // Pattern 1: boolean literal on the left side
     {
       code: `if (true === isActive) {}`,
-      errors: [{ messageId: "redundantBooleanComparison" as const }],
+      errors: [
+        {
+          messageId: "redundantBooleanComparison" as const,
+          suggestions: [
+            {
+              messageId: "redundantBooleanComparisonSuggest" as const,
+              output: `if (isActive) {}`,
+            },
+          ],
+        },
+      ],
     },
 
     // Pattern 1: false !== x
     {
       code: `if (false !== isEnabled) {}`,
-      errors: [{ messageId: "redundantBooleanComparison" as const }],
+      errors: [
+        {
+          messageId: "redundantBooleanComparison" as const,
+          suggestions: [
+            {
+              messageId: "redundantBooleanComparisonSuggest" as const,
+              output: `if (isEnabled) {}`,
+            },
+          ],
+        },
+      ],
     },
 
-    // Pattern 1: complex expression on one side
+    // Pattern 1: complex expression needs parens when negating
     {
       code: `if ((a && b) === false) {}`,
-      errors: [{ messageId: "redundantBooleanComparison" as const }],
+      errors: [
+        {
+          messageId: "redundantBooleanComparison" as const,
+          suggestions: [
+            {
+              messageId: "redundantBooleanComparisonSuggest" as const,
+              output: `if (!(a && b)) {}`,
+            },
+          ],
+        },
+      ],
     },
   ],
 });

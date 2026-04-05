@@ -68,10 +68,10 @@ jobs:
             exit 1
           fi
 
-          # Check for unchecked items
-          UNCHECKED=$(echo "$BODY" | grep -c '\- \[ \]' || true)
+          # Check for unchecked items (skip lines containing "N/A")
+          UNCHECKED=$(echo "$BODY" | grep '\- \[ \]' | grep -cv 'N/A' || true)
           if [ "$UNCHECKED" -gt 0 ]; then
-            echo "::error::PR checklist has $UNCHECKED unchecked item(s). Verify each gate passes and check the boxes."
+            echo "::error::PR checklist has $UNCHECKED unchecked item(s). Verify each gate passes and check the boxes. Mark non-applicable items with [x] and '(N/A)'."
             exit 1
           fi
 

@@ -2,7 +2,7 @@
 
 📝 Disallow catch blocks with no meaningful error handling (empty or comment-only blocks).
 
-💼 This rule is enabled in the following configs: 🌐 `all`, `best-practices`, `bestPractices`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, 🏆 `best-practices`, ✅ `recommended`.
 
 <!-- end auto-generated rule header -->
 

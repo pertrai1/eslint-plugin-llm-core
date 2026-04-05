@@ -2,7 +2,7 @@
 
 📝 Enforce structured logging with static messages and dynamic values as separate metadata.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, `best-practices`, `bestPractices`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, 🏆 `best-practices`, ✅ `recommended`.
 
 <!-- end auto-generated rule header -->
 

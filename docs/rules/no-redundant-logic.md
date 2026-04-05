@@ -81,6 +81,26 @@ function getLabel(status: string): string {
 
 ---
 
+# llm-core/no-redundant-logic
+
+📝 Disallow redundant boolean logic and unnecessary control flow patterns.
+
+💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`, 🎨 `style`.
+
+💡 This rule is manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
+
+<!-- end auto-generated rule header -->
+
+# llm-core/no-redundant-logic
+
+📝 Disallow redundant boolean logic and unnecessary control flow patterns.
+
+💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
+
+💡 This rule is manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
+
+<!-- end auto-generated rule header -->
+
 ### Pattern 3 — Ternary returning boolean literals
 
 A ternary of the form `condition ? true : false` or `condition ? false : true` is identical to the condition (or its negation).

@@ -120,32 +120,38 @@ export default [
 
 💼 Configurations enabled in.\
 🌐 Set in the `all` configuration.\
+🏆 Set in the `best-practices` configuration.\
+🧮 Set in the `complexity` configuration.\
+🧹 Set in the `hygiene` configuration.\
 ✅ Set in the `recommended` configuration.\
+🎨 Set in the `style` configuration.\
+⌨️ Set in the `typescript` configuration.\
 💡 Manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
 
-| Name                                                                               | Description                                                                                                  | 💼    | 💡  |
-| :--------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- | :---- | :-- |
-| [consistent-catch-param-name](docs/rules/consistent-catch-param-name.md)           | Enforce consistent naming for catch clause parameters across the codebase                                    | 🌐 ✅ | 💡  |
-| [explicit-export-types](docs/rules/explicit-export-types.md)                       | Require explicit parameter and return type annotations on exported functions                                 | 🌐 ✅ |     |
-| [filename-match-export](docs/rules/filename-match-export.md)                       | Enforce that filenames match their single exported function, class, or component name                        | 🌐 ✅ |     |
-| [max-file-length](docs/rules/max-file-length.md)                                   | Enforce a maximum number of lines per file to encourage proper module separation                             | 🌐 ✅ |     |
-| [max-function-length](docs/rules/max-function-length.md)                           | Enforce a maximum number of lines per function to encourage decomposition                                    | 🌐 ✅ |     |
-| [max-nesting-depth](docs/rules/max-nesting-depth.md)                               | Enforce a maximum nesting depth for control flow statements to reduce cognitive complexity                   | 🌐 ✅ |     |
-| [max-params](docs/rules/max-params.md)                                             | Enforce a maximum number of function parameters to encourage object parameter patterns                       | 🌐 ✅ |     |
-| [naming-conventions](docs/rules/naming-conventions.md)                             | Enforce naming conventions: Base prefix for abstract classes, Error suffix for error classes                 | 🌐 ✅ |     |
-| [no-any-in-generic](docs/rules/no-any-in-generic.md)                               | Disallow `any` as a generic type argument in type references, arrays, and other parameterized types          | 🌐 ✅ |     |
-| [no-async-array-callbacks](docs/rules/no-async-array-callbacks.md)                 | Disallow async callbacks passed to array methods where Promises are silently discarded or misused            | 🌐 ✅ |     |
-| [no-commented-out-code](docs/rules/no-commented-out-code.md)                       | Disallow commented-out code to keep the codebase clean and reduce noise                                      | 🌐 ✅ |     |
-| [no-empty-catch](docs/rules/no-empty-catch.md)                                     | Disallow catch blocks with no meaningful error handling (empty or comment-only blocks)                       | 🌐 ✅ |     |
-| [no-exported-function-expressions](docs/rules/no-exported-function-expressions.md) | Enforce that exported functions use function declarations instead of function expressions or arrow functions | 🌐 ✅ | 💡  |
-| [no-inline-disable](docs/rules/no-inline-disable.md)                               | Disallow eslint-disable comments that suppress lint errors instead of fixing them                            | 🌐 ✅ |     |
-| [no-llm-artifacts](docs/rules/no-llm-artifacts.md)                                 | Disallow common LLM placeholder comments and incomplete code markers that indicate skipped implementation    | 🌐 ✅ |     |
-| [no-magic-numbers](docs/rules/no-magic-numbers.md)                                 | Disallow magic numbers and enforce named constants for clarity                                               | 🌐 ✅ |     |
-| [no-type-assertion-any](docs/rules/no-type-assertion-any.md)                       | Disallow type assertions to `any` that bypass TypeScript's type safety                                       | 🌐 ✅ |     |
-| [prefer-early-return](docs/rules/prefer-early-return.md)                           | Enforce guard clauses (early returns) instead of wrapping function bodies in a single if statement           | 🌐 ✅ |     |
-| [prefer-unknown-in-catch](docs/rules/prefer-unknown-in-catch.md)                   | Disallow `any` type annotation on catch clause parameters; prefer `unknown`                                  | 🌐 ✅ |     |
-| [structured-logging](docs/rules/structured-logging.md)                             | Enforce structured logging with static messages and dynamic values as separate metadata                      | 🌐 ✅ |     |
-| [throw-error-objects](docs/rules/throw-error-objects.md)                           | Disallow throwing non-Error values such as strings, template literals, plain objects, or arrays              | 🌐 ✅ |     |
+| Name                                                                               | Description                                                                                                  | 💼       | 💡  |
+| :--------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- | :------- | :-- |
+| [consistent-catch-param-name](docs/rules/consistent-catch-param-name.md)           | Enforce consistent naming for catch clause parameters across the codebase                                    | 🌐 ✅ 🎨 | 💡  |
+| [explicit-export-types](docs/rules/explicit-export-types.md)                       | Require explicit parameter and return type annotations on exported functions                                 | 🌐 ✅ ⌨️ |     |
+| [filename-match-export](docs/rules/filename-match-export.md)                       | Enforce that filenames match their single exported function, class, or component name                        | 🌐 ✅ 🎨 |     |
+| [max-file-length](docs/rules/max-file-length.md)                                   | Enforce a maximum number of lines per file to encourage proper module separation                             | 🌐 🧮 ✅ |     |
+| [max-function-length](docs/rules/max-function-length.md)                           | Enforce a maximum number of lines per function to encourage decomposition                                    | 🌐 🧮 ✅ |     |
+| [max-nesting-depth](docs/rules/max-nesting-depth.md)                               | Enforce a maximum nesting depth for control flow statements to reduce cognitive complexity                   | 🌐 🧮 ✅ |     |
+| [max-params](docs/rules/max-params.md)                                             | Enforce a maximum number of function parameters to encourage object parameter patterns                       | 🌐 🧮 ✅ |     |
+| [naming-conventions](docs/rules/naming-conventions.md)                             | Enforce naming conventions: Base prefix for abstract classes, Error suffix for error classes                 | 🌐 ✅ 🎨 |     |
+| [no-any-in-generic](docs/rules/no-any-in-generic.md)                               | Disallow `any` as a generic type argument in type references, arrays, and other parameterized types          | 🌐 ✅ ⌨️ |     |
+| [no-async-array-callbacks](docs/rules/no-async-array-callbacks.md)                 | Disallow async callbacks passed to array methods where Promises are silently discarded or misused            | 🌐 🏆 ✅ |     |
+| [no-commented-out-code](docs/rules/no-commented-out-code.md)                       | Disallow commented-out code to keep the codebase clean and reduce noise                                      | 🌐 🧹 ✅ |     |
+| [no-empty-catch](docs/rules/no-empty-catch.md)                                     | Disallow catch blocks with no meaningful error handling (empty or comment-only blocks)                       | 🌐 🏆 ✅ |     |
+| [no-exported-function-expressions](docs/rules/no-exported-function-expressions.md) | Enforce that exported functions use function declarations instead of function expressions or arrow functions | 🌐 ✅ 🎨 | 💡  |
+| [no-inline-disable](docs/rules/no-inline-disable.md)                               | Disallow eslint-disable comments that suppress lint errors instead of fixing them                            | 🌐 🧹 ✅ |     |
+| [no-llm-artifacts](docs/rules/no-llm-artifacts.md)                                 | Disallow common LLM placeholder comments and incomplete code markers that indicate skipped implementation    | 🌐 🧹 ✅ |     |
+| [no-magic-numbers](docs/rules/no-magic-numbers.md)                                 | Disallow magic numbers and enforce named constants for clarity                                               | 🌐 🏆 ✅ |     |
+| [no-redundant-logic](docs/rules/no-redundant-logic.md)                             | Disallow redundant boolean logic and unnecessary control flow patterns                                       | 🌐 ✅ 🎨 | 💡  |
+| [no-type-assertion-any](docs/rules/no-type-assertion-any.md)                       | Disallow type assertions to `any` that bypass TypeScript's type safety                                       | 🌐 ✅ ⌨️ |     |
+| [prefer-early-return](docs/rules/prefer-early-return.md)                           | Enforce guard clauses (early returns) instead of wrapping function bodies in a single if statement           | 🌐 ✅ 🎨 |     |
+| [prefer-unknown-in-catch](docs/rules/prefer-unknown-in-catch.md)                   | Disallow `any` type annotation on catch clause parameters; prefer `unknown`                                  | 🌐 ✅ ⌨️ |     |
+| [structured-logging](docs/rules/structured-logging.md)                             | Enforce structured logging with static messages and dynamic values as separate metadata                      | 🌐 🏆 ✅ |     |
+| [throw-error-objects](docs/rules/throw-error-objects.md)                           | Disallow throwing non-Error values such as strings, template literals, plain objects, or arrays              | 🌐 🏆 ✅ |     |
 
 <!-- end auto-generated rules list -->
 

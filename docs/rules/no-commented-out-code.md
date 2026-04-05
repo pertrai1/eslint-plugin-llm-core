@@ -2,7 +2,7 @@
 
 📝 Disallow commented-out code to keep the codebase clean and reduce noise.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, `hygiene`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, 🧹 `hygiene`, ✅ `recommended`.
 
 <!-- end auto-generated rule header -->
 

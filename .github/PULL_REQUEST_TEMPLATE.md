@@ -31,6 +31,9 @@ Closes #
 - [ ] `AGENTS.md`
 - [ ] `.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md`
 - [ ] `.agents/directives/TEST_DRIVEN_DEVELOPMENT.md`
+- [ ] `.agents/directives/SESSION_DECISIONS.md`
+
+<!-- If SESSION_DECISIONS.md was loaded and a non-obvious decision was made, a docs/decisions/ file should appear in this PR's diff. -->
 
 **Instruction files NOT loaded (explain if unexpected):**
 

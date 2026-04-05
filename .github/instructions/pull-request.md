@@ -24,7 +24,7 @@ The PR template at `.github/PULL_REQUEST_TEMPLATE.md` has three required section
 
 ### 1. Issue Link
 
-Every PR must be linked to a GitHub issue. Include `Closes #<number>` in the PR description. CI will reject PRs without an issue link.
+Every PR must be linked to a GitHub issue. Include `Closes #<number>`, `Fixes #<number>`, or `Resolves #<number>` in the PR description. CI will reject PRs without an issue link.
 
 ### 2. Checklist
 
@@ -50,4 +50,4 @@ If you are an AI agent, you MUST complete this section:
 
 ### 4. Commit History
 
-CI validates that `feat:` commits have preceding `test:` commits. If your PR has implementation code, it must also have test commits. See the commit cadence in `copilot-instructions.md`.
+CI enforces that PRs with `feat:` commits must include at least one `test:` commit. Follow the commit cadence in `copilot-instructions.md` (test-first ordering is expected by convention).

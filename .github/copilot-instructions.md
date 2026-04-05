@@ -8,7 +8,7 @@ You MUST commit after every step. Do NOT batch work into a single commit.
 
 For EACH behavior you implement:
 
-```
+```text
 1. Write ONE failing test     → run `npm test` → confirm it FAILS
    ⛔ STOP — commit: "test: failing test for <rule> <behavior>"
 
@@ -22,7 +22,7 @@ For EACH behavior you implement:
 
 ### Example (3 behaviors = 6 commits minimum)
 
-```
+```text
 test: failing test for no-foo default detection
 feat: no-foo detects default case
 test: failing test for no-foo custom option

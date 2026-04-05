@@ -6,11 +6,11 @@ on:
     types: [opened, edited, synchronize, reopened]
 
 jobs:
-  tdd-commit-order:
-    name: TDD Commit Order
+  tdd-commit-presence:
+    name: TDD Commit Presence
     runs-on: ubuntu-latest
     steps:
-      - name: Check test commits precede feat commits
+      - name: Check feat commits have corresponding test commits
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -36,7 +36,7 @@ jobs:
             exit 1
           fi
 
-          echo "✓ TDD commit order looks good ($TEST_COUNT test: / $FEAT_COUNT feat:)"
+          echo "✓ TDD commit presence looks good ($TEST_COUNT test: / $FEAT_COUNT feat:)"
 
   pr-template:
     name: PR Template
@@ -68,10 +68,11 @@ jobs:
             exit 1
           fi
 
-          # Check for unchecked items (skip lines containing "N/A")
-          UNCHECKED=$(echo "$BODY" | grep '\- \[ \]' | grep -cv 'N/A' || true)
+          # Extract only the Checklist section (between ## Checklist and the next ##)
+          CHECKLIST=$(echo "$BODY" | sed -n '/^## Checklist/,/^## /p' | head -n -1)
+          UNCHECKED=$(echo "$CHECKLIST" | grep '\- \[ \]' | grep -cv 'N/A' || true)
           if [ "$UNCHECKED" -gt 0 ]; then
-            echo "::error::PR checklist has $UNCHECKED unchecked item(s). Verify each gate passes and check the boxes. Mark non-applicable items with [x] and '(N/A)'."
+            echo "::error::PR checklist has $UNCHECKED unchecked item(s). Verify each gate passes and check the boxes. Mark inapplicable items as '- [ ] ... — N/A'."
             exit 1
           fi
 
@@ -113,12 +114,12 @@ jobs:
           fetch-depth: 0
       - name: Check package-lock.json version unchanged
         run: |
-          if ! git diff origin/main...HEAD -- package-lock.json > /dev/null 2>&1; then
+          if git diff --quiet origin/main...HEAD -- package-lock.json; then
             echo "✓ package-lock.json not modified"
             exit 0
           fi
 
-          VERSION_CHANGED=$(git diff origin/main...HEAD -- package-lock.json | grep -c '^\+.*"version"' || true)
+          VERSION_CHANGED=$(git diff origin/main...HEAD -- package-lock.json | grep -cE '^\+\s*"version"\s*:' || true)
           if [ "$VERSION_CHANGED" -gt 0 ]; then
             echo "::error::package-lock.json has version field changes. Versions are managed by Changesets CI — do not bump versions in feature PRs."
             echo ""

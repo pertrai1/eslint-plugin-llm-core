@@ -5,7 +5,9 @@ type MessageIds =
   | "redundantBooleanComparison"
   | "redundantBooleanComparisonSuggest"
   | "unnecessaryElse"
-  | "unnecessaryElseSuggest";
+  | "unnecessaryElseSuggest"
+  | "ternaryBooleanLiteral"
+  | "ternaryBooleanLiteralSuggest";
 
 function isBooleanLiteral(
   node: TSESTree.Node,
@@ -94,6 +96,21 @@ export default createRule<[], MessageIds>({
         "          return 'Inactive';",
       ].join("\n"),
       unnecessaryElseSuggest: "Remove unnecessary else block",
+      ternaryBooleanLiteral: [
+        "Ternary expression returning boolean literals — simplify to the condition itself.",
+        "",
+        "Why: `condition ? true : false` is identical to `condition` (or `!condition`).",
+        "The ternary adds visual noise without changing the value.",
+        "",
+        "How to fix:",
+        "  Before: const isEligible = age >= 18 ? true : false;",
+        "  After:  const isEligible = age >= 18;",
+        "",
+        "  Before: const isBlocked = isAdmin ? false : true;",
+        "  After:  const isBlocked = !isAdmin;",
+      ].join("\n"),
+      ternaryBooleanLiteralSuggest:
+        "Replace ternary with direct boolean expression",
     },
     schema: [],
   },
@@ -183,9 +200,55 @@ export default createRule<[], MessageIds>({
       });
     }
 
+    // Pattern 3: ternary returning boolean literals (cond ? true : false)
+    function checkTernaryBooleanLiteral(
+      node: TSESTree.ConditionalExpression,
+    ): void {
+      if (!isBooleanLiteral(node.consequent)) return;
+      if (!isBooleanLiteral(node.alternate)) return;
+
+      const consequentVal = (
+        node.consequent as TSESTree.Literal & { value: boolean }
+      ).value;
+      const alternateVal = (
+        node.alternate as TSESTree.Literal & { value: boolean }
+      ).value;
+      // Only flag when the two sides are different booleans
+      if (consequentVal === alternateVal) return;
+
+      // consequentVal true: cond ? true : false → cond
+      // consequentVal false: cond ? false : true → !cond
+      const negate = !consequentVal;
+
+      context.report({
+        node,
+        messageId: "ternaryBooleanLiteral",
+        suggest: [
+          {
+            messageId: "ternaryBooleanLiteralSuggest",
+            fix(fixer) {
+              const condText = sourceCode.getText(node.test);
+              if (negate) {
+                const needsParens =
+                  node.test.type !== AST_NODE_TYPES.Identifier &&
+                  node.test.type !== AST_NODE_TYPES.MemberExpression &&
+                  node.test.type !== AST_NODE_TYPES.CallExpression;
+                return fixer.replaceText(
+                  node,
+                  needsParens ? `!(${condText})` : `!${condText}`,
+                );
+              }
+              return fixer.replaceText(node, condText);
+            },
+          },
+        ],
+      });
+    }
+
     return {
       BinaryExpression: checkBooleanComparison,
       IfStatement: checkUnnecessaryElse,
+      ConditionalExpression: checkTernaryBooleanLiteral,
     };
   },
 });

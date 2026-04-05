@@ -244,19 +244,49 @@ ruleTester.run("no-redundant-logic", rule, {
     // Pattern 3: condition ? true : false
     {
       code: `const isEligible = age >= 18 ? true : false;`,
-      errors: [{ messageId: "ternaryBooleanLiteral" as const }],
+      errors: [
+        {
+          messageId: "ternaryBooleanLiteral" as const,
+          suggestions: [
+            {
+              messageId: "ternaryBooleanLiteralSuggest" as const,
+              output: `const isEligible = age >= 18;`,
+            },
+          ],
+        },
+      ],
     },
 
     // Pattern 3: condition ? false : true
     {
       code: `const isBlocked = isAdmin ? false : true;`,
-      errors: [{ messageId: "ternaryBooleanLiteral" as const }],
+      errors: [
+        {
+          messageId: "ternaryBooleanLiteral" as const,
+          suggestions: [
+            {
+              messageId: "ternaryBooleanLiteralSuggest" as const,
+              output: `const isBlocked = !isAdmin;`,
+            },
+          ],
+        },
+      ],
     },
 
-    // Pattern 3: in a function return
+    // Pattern 3: complex condition — no negation needed
     {
       code: `const hasAccess = user.role === "admin" ? true : false;`,
-      errors: [{ messageId: "ternaryBooleanLiteral" as const }],
+      errors: [
+        {
+          messageId: "ternaryBooleanLiteral" as const,
+          suggestions: [
+            {
+              messageId: "ternaryBooleanLiteralSuggest" as const,
+              output: `const hasAccess = user.role === "admin";`,
+            },
+          ],
+        },
+      ],
     },
   ],
 });

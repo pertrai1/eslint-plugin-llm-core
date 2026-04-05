@@ -93,6 +93,6 @@ body:
     attributes:
       label: Prior art
       description: Are there existing ESLint rules that partially cover this? How does this rule differ?
-      placeholder: "Existing rule X covers part of this. This proposal differs by..."
+      placeholder: "Existing rule X covers part of this. This proposal differs by... (If none, state: 'No existing ESLint rule covers this pattern.')"
     validations:
       required: true

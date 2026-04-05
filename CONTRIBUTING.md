@@ -26,7 +26,7 @@ npm run test
 
 ## Adding a New Rule
 
-1. **Propose it first** — Open an issue using the "New Rule Proposal" template. Include the problem, bad/good examples, and why it matters for LLM-generated code.
+1. **Propose it first** — Open an issue using the "New Rule Proposal" template. The proposal must satisfy the rule acceptance criteria in `AGENTS.md`: common enough to matter, framework-agnostic, narrow and deterministic, low false-positive risk, not already covered well enough by prior art, and explicit about config placement (`recommended` vs `all`).
 
 2. **Create the rule file** — `src/rules/my-rule.ts` using `createRule` from `src/utils/create-rule.ts`. Look at existing rules for the pattern.
 
@@ -55,6 +55,19 @@ This structure is what makes the plugin effective for LLM self-correction.
 ### Scope
 
 Rules must be **framework-agnostic** — they should work in any TypeScript/JavaScript codebase without project-specific configuration. If a rule only makes sense for a specific architecture or framework, it's out of scope.
+
+### Rule Acceptance Criteria
+
+`AGENTS.md` is the canonical source for rule acceptance criteria.
+
+Before implementing a new rule, confirm the proposal:
+
+- Targets a common enough pattern to justify a dedicated rule
+- Is framework-agnostic
+- Has narrow, deterministic AST detection
+- Has explicit false-positive boundaries
+- Is not already covered well enough by ESLint, TypeScript, or another plugin
+- States whether it belongs in `recommended`, `all`, or neither
 
 ### Suggestions vs. Auto-fixes
 

@@ -24,6 +24,7 @@ export default createRule<[], MessageIds>({
         "  After:  catch (error) { logger.error('context', error); }",
         "  After:  catch (error) { throw new Error('failed to X', { cause: error }); }",
         "  After:  catch { return null; }",
+        "  A comment alone does not satisfy this rule.",
       ].join("\n"),
     },
     schema: [],

@@ -19,7 +19,7 @@ export default createRule<[], MessageIds>({
         "",
         "How to fix:",
         "  Before: export function processOrder(order) { ... }",
-        "  After:  export function processOrder(order: Order): ProcessedOrder { ... }",
+        "  After:  export function processOrder(order: Order) { ... }",
       ].join("\n"),
       missingReturnType: [
         "Exported function '{{ fn }}' is missing an explicit return type annotation.",

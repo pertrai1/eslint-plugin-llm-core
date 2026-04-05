@@ -30,9 +30,10 @@ export default createRule<[], MessageIds>({
         "Why: `{{ method }}` expects a synchronous callback, so `async` changes the meaning of the code.",
         "",
         "How to fix:",
-        "  Before: items.{{ method }}(async (item) => { await processItem(item); });",
-        "  After:  for (const item of items) { await processItem(item); }",
-        "  If you need parallel work, use: await Promise.all(items.map(async (item) => processItem(item)));",
+        "  Choose the rewrite that preserves the original method semantics:",
+        "  forEach: for (const item of items) { await processItem(item); }",
+        "  reduce: let acc = initial; for (const item of items) { acc = await step(acc, item); }",
+        "  filter/some/every/flatMap: await the async work first, then run the synchronous array method on resolved values.",
       ].join("\n"),
 
       noAsyncMapCallback: [

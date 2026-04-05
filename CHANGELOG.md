@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.10.0
+
+### Minor Changes
+
+- [#73](https://github.com/pertrai1/eslint-plugin-llm-core/pull/73) [`b1bf4d6`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/b1bf4d63bf4f8cbdaff1104fc61f21adb9d2a2e1) Thanks [@copilot-swe-agent](https://github.com/apps/copilot-swe-agent)! - Add `consistent-catch-param-name` rule to enforce consistent naming for catch clause parameters (default: `"error"`). LLMs frequently mix naming conventions (`e`, `err`, `error`, `ex`) in the same codebase.
+
 ## 0.9.0
 
 ### Minor Changes

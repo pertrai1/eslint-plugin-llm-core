@@ -1,5 +1,14 @@
 # eslint-plugin-llm-core
 
+## 0.9.0
+
+### Minor Changes
+
+- [`8dbca9f`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/8dbca9f61a14f8a32f497fab1c6f05ab060c3e23) Thanks [@pertrai1](https://github.com/pertrai1)! - Add granular rule configurations for mix-and-match usage
+  - New configs: `best-practices`, `error-prevention`, `maintainability`, `type-safety` (plus identifier-safe aliases like `bestPractices`)
+  - Extract file glob constants and compose `recommendedRules` from category objects
+  - Users can now pick individual rule categories instead of using `recommended` as a monolith
+
 ## 0.8.0
 
 ### Minor Changes

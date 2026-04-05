@@ -42,6 +42,20 @@ jobs:
     name: PR Template
     runs-on: ubuntu-latest
     steps:
+      - name: Validate issue link
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.body // ""')
+
+          # Check for "Closes #<number>" or "Fixes #<number>" or "Resolves #<number>"
+          if ! echo "$BODY" | grep -qiP '(closes|fixes|resolves)\s+#\d+'; then
+            echo "::error::PR is not linked to a GitHub issue. Add 'Closes #<number>' to the PR description."
+            exit 1
+          fi
+
+          echo "✓ PR linked to issue"
+
       - name: Validate checklist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

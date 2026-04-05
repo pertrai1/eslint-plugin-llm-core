@@ -22,7 +22,11 @@ npm run update:eslint-docs
 
 The PR template at `.github/PULL_REQUEST_TEMPLATE.md` has three required sections. **CI will block merge if these are incomplete.**
 
-### 1. Checklist
+### 1. Issue Link
+
+Every PR must be linked to a GitHub issue. Include `Closes #<number>` in the PR description. CI will reject PRs without an issue link.
+
+### 2. Checklist
 
 Every box must be checked. If a checklist item doesn't apply, check it and note "(N/A)" next to it.
 
@@ -36,7 +40,7 @@ Every box must be checked. If a checklist item doesn't apply, check it and note 
 - [x] Rule added to `recommendedRules` in `src/index.ts` (if applicable)
 ```
 
-### 2. Agent Disclosure
+### 3. Agent Disclosure
 
 If you are an AI agent, you MUST complete this section:
 
@@ -44,6 +48,6 @@ If you are an AI agent, you MUST complete this section:
 - **Instruction files loaded:** — Check every file you actually received and processed
 - **Instruction files NOT loaded:** — Explain any gaps
 
-### 3. Commit History
+### 4. Commit History
 
 CI validates that `feat:` commits have preceding `test:` commits. If your PR has implementation code, it must also have test commits. See the commit cadence in `copilot-instructions.md`.

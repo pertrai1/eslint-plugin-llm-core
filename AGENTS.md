@@ -31,7 +31,7 @@ git commit -m "docs: add rule docs and register require-type-annotation in recom
 
 If there is no `test:` commit before a `feat:` commit, the RED phase was skipped or batched.
 
-See [TYPE_DRIVEN_DEVELOPMENT](.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md) and [TEST_DRIVEN_DEVELOPMENT](.agents/directives/TEST_DRIVEN_DEVELOPMENT.md) for detailed guidance.
+See [TYPE_DRIVEN_DEVELOPMENT](.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md), [TEST_DRIVEN_DEVELOPMENT](.agents/directives/TEST_DRIVEN_DEVELOPMENT.md), and [SESSION_DECISIONS](.agents/directives/SESSION_DECISIONS.md) for detailed guidance.
 
 ## Project Overview
 
@@ -105,6 +105,16 @@ Use these criteria in issue triage, implementation review, and config-placement 
 | Skill         | When                                 | File                                                 |
 | ------------- | ------------------------------------ | ---------------------------------------------------- |
 | Test Reviewer | Before writing or reviewing any test | [`skills/test-reviewer.md`](skills/test-reviewer.md) |
+
+## Directives (Mandatory)
+
+**You MUST read and follow every directive listed below. These govern how you work, not what you build.**
+
+| Directive               | What it governs                                  | File                                                                                             |
+| ----------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| Type-First Development  | Types must be defined before implementation      | [`.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md`](.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md) |
+| Test-Driven Development | RED/GREEN/REFACTOR cycle for all code changes    | [`.agents/directives/TEST_DRIVEN_DEVELOPMENT.md`](.agents/directives/TEST_DRIVEN_DEVELOPMENT.md) |
+| Session Decisions       | Capture non-obvious decisions at task completion | [`.agents/directives/SESSION_DECISIONS.md`](.agents/directives/SESSION_DECISIONS.md)             |
 
 ## Conventions
 

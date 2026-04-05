@@ -13,6 +13,16 @@ function expectSingleWhyLine(message: string): void {
   expect(whyLines).toHaveLength(1);
 }
 
+function expectTemplateShape(message: string): void {
+  expect(message).toContain("How to fix:");
+  expect(message).toSatisfy(
+    (value: string) =>
+      value.includes("Before:") ||
+      value.includes("After:") ||
+      value.includes("Choose "),
+  );
+}
+
 describe("rule message guidance", () => {
   it("keeps exported-type guidance concrete and naming guidance accurate", () => {
     const missingParamType =
@@ -25,6 +35,7 @@ describe("rule message guidance", () => {
       namingConventions.meta.messages?.missingErrorSuffix ?? "";
 
     expectSingleWhyLine(missingParamType);
+    expectTemplateShape(missingParamType);
     expect(missingParamType).toContain(
       "Before: export function processOrder(order) { ... }",
     );
@@ -34,6 +45,7 @@ describe("rule message guidance", () => {
     expect(missingParamType).not.toContain("ProcessedOrder");
 
     expectSingleWhyLine(missingReturnType);
+    expectTemplateShape(missingReturnType);
     expect(missingReturnType).toContain(
       "Before: export function processOrder(order: Order) { ... }",
     );
@@ -42,10 +54,12 @@ describe("rule message guidance", () => {
     );
 
     expectSingleWhyLine(missingBasePrefix);
+    expectTemplateShape(missingBasePrefix);
     expect(missingBasePrefix).toContain(
       "Why: The prefix makes abstract base classes recognizable during navigation and review.",
     );
     expectSingleWhyLine(missingErrorSuffix);
+    expectTemplateShape(missingErrorSuffix);
     expect(missingErrorSuffix).toContain(
       "Why: The suffix makes error types recognizable in catch blocks, logs, and API boundaries.",
     );
@@ -63,6 +77,7 @@ describe("rule message guidance", () => {
       maxFunctionLength.meta.messages?.maxFunctionLength ?? "";
 
     expectSingleWhyLine(noAsyncArrayCallback);
+    expectTemplateShape(noAsyncArrayCallback);
     expect(noAsyncArrayCallback).toContain(
       "Choose the rewrite that preserves the original method semantics:",
     );
@@ -73,10 +88,14 @@ describe("rule message guidance", () => {
       "reduce: let acc = initial; for (const item of items) { acc = await step(acc, item); }",
     );
     expect(noAsyncArrayCallback).toContain(
-      "filter/some/every/flatMap: await the async work first, then run the synchronous array method on resolved values.",
+      "Before: const matches = await Promise.all(items.map(async (item) => isMatch(item)));",
+    );
+    expect(noAsyncArrayCallback).toContain(
+      "After:  const filtered = items.filter((_, index) => matches[index]);",
     );
 
     expectSingleWhyLine(noAsyncMapCallback);
+    expectTemplateShape(noAsyncMapCallback);
     expect(noAsyncMapCallback).toContain(
       "Before: const results = items.map(async (item) => processItem(item));",
     );
@@ -85,6 +104,7 @@ describe("rule message guidance", () => {
     );
 
     expectSingleWhyLine(noEmptyCatchMessage);
+    expectTemplateShape(noEmptyCatchMessage);
     expect(noEmptyCatchMessage).toContain("Choose one explicit outcome:");
     expect(noEmptyCatchMessage).toContain("Before: catch (error) {");
     expect(noEmptyCatchMessage).toContain(
@@ -92,6 +112,7 @@ describe("rule message guidance", () => {
     );
 
     expectSingleWhyLine(maxFileLengthMessage);
+    expectTemplateShape(maxFileLengthMessage);
     expect(maxFileLengthMessage).toContain(
       "Before: order-service.ts contains types, validation, formatting, and persistence.",
     );
@@ -100,6 +121,7 @@ describe("rule message guidance", () => {
     );
 
     expectSingleWhyLine(maxFunctionLengthMessage);
+    expectTemplateShape(maxFunctionLengthMessage);
     expect(maxFunctionLengthMessage).toContain(
       "Before: function processOrder(order) {",
     );
@@ -109,8 +131,8 @@ describe("rule message guidance", () => {
     expect(maxFunctionLengthMessage).toContain(
       "After:  function processOrder(order) {",
     );
-    expect(maxFunctionLengthMessage).toContain(
-      "return saveOrder(order, total, sanitizedEmail);",
+    expect(maxFunctionLengthMessage).not.toContain(
+      "And extract the validation and normalization details into helpers.",
     );
   });
 });

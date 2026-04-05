@@ -42,6 +42,7 @@ const styleRules: TSESLint.FlatConfig.Rules = {
   "llm-core/filename-match-export": "error",
   "llm-core/naming-conventions": "error",
   "llm-core/no-exported-function-expressions": "error",
+  "llm-core/no-redundant-logic": "error",
   "llm-core/prefer-early-return": "error",
 };
 

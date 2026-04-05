@@ -2,7 +2,7 @@
 
 📝 Disallow `any` type annotation on catch clause parameters; prefer `unknown`.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`, ⌨️ `typescript`.
 
 <!-- end auto-generated rule header -->
 

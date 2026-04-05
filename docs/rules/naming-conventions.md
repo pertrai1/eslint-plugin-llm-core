@@ -2,7 +2,7 @@
 
 📝 Enforce naming conventions: Base prefix for abstract classes, Error suffix for error classes.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`, 🎨 `style`.
 
 <!-- end auto-generated rule header -->
 

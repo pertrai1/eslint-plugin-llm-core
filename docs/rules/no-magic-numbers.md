@@ -2,7 +2,7 @@
 
 📝 Disallow magic numbers and enforce named constants for clarity.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, `best-practices`, `bestPractices`, ✅ `recommended`.
 
 <!-- end auto-generated rule header -->
 

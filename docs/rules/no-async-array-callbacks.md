@@ -2,7 +2,7 @@
 
 📝 Disallow async callbacks passed to array methods where Promises are silently discarded or misused.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, `best-practices`, `bestPractices`, ✅ `recommended`.
 
 <!-- end auto-generated rule header -->
 

@@ -2,7 +2,7 @@
 
 📝 Disallow eslint-disable comments that suppress lint errors instead of fixing them.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, `hygiene`, ✅ `recommended`.
 
 <!-- end auto-generated rule header -->
 

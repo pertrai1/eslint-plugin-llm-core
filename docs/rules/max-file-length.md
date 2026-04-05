@@ -2,7 +2,7 @@
 
 📝 Enforce a maximum number of lines per file to encourage proper module separation.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, `complexity`, ✅ `recommended`.
 
 <!-- end auto-generated rule header -->
 

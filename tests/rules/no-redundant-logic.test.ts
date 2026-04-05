@@ -57,6 +57,18 @@ ruleTester.run("no-redundant-logic", rule, {
 
     // Pattern 4: branches with different assignment targets — not flagged
     `if (cond) { x = true; } else { y = false; }`,
+
+    // Pattern 3: same boolean on both sides — not flagged (not redundant, just pointless)
+    `const x = cond ? true : true;`,
+    `const y = cond ? false : false;`,
+
+    // Pattern 4: same return value — Pattern 4 skips, but Pattern 2 still fires (tested in invalid)
+
+    // Pattern 4: same assignment value on both sides — not flagged
+    `if (cond) { x = false; } else { x = false; }`,
+
+    // Pattern 2: outer if does not end with return — outer else not flagged
+    `function f() { if (a) { doWork(); } else { doOther(); } }`,
   ],
 
   invalid: [
@@ -359,6 +371,48 @@ ruleTester.run("no-redundant-logic", rule, {
             {
               messageId: "ifElseBooleanLiteralSuggest" as const,
               output: `isOk = !hasErrors;`,
+            },
+          ],
+        },
+      ],
+    },
+
+    // Pattern 2 fires when Pattern 4 skips: same boolean value both sides
+    {
+      code: `if (cond) { return true; } else { return true; }`,
+      errors: [
+        {
+          messageId: "unnecessaryElse" as const,
+          suggestions: [
+            {
+              messageId: "unnecessaryElseSuggest" as const,
+              output: `if (cond) { return true; }\nreturn true;`,
+            },
+          ],
+        },
+      ],
+    },
+
+    // Pattern 4 suppresses Pattern 2: boolean return if/else fires Pattern 4 only
+    {
+      code: [
+        "function check(x) {",
+        "  if (x > 0) {",
+        "    return true;",
+        "  } else {",
+        "    return false;",
+        "  }",
+        "}",
+      ].join("\n"),
+      errors: [
+        {
+          messageId: "ifElseBooleanLiteral" as const,
+          suggestions: [
+            {
+              messageId: "ifElseBooleanLiteralSuggest" as const,
+              output: ["function check(x) {", "  return x > 0;", "}"].join(
+                "\n",
+              ),
             },
           ],
         },

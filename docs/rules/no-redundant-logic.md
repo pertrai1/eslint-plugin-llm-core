@@ -2,7 +2,7 @@
 
 📝 Disallow redundant boolean logic and unnecessary control flow patterns.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`, 🎨 `style`.
 
 💡 Some problems reported by this rule are manually fixable by editor [suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
 
@@ -17,6 +17,8 @@ Flags four patterns where LLMs produce verbose-but-correct boolean logic that ca
 Explicit `=== true`, `!== true`, `=== false`, or `!== false` comparisons on an expression that already evaluates to a boolean.
 
 Only strict equality (`===`/`!==`) is flagged. Loose equality (`==`/`!=`) has different truthy/falsy semantics and is intentionally excluded.
+
+> **Known limitation:** This rule does not use type information. If the compared expression is a union type (e.g., `string | boolean`), the `=== true` comparison may be intentional type narrowing, not a redundant check. Disable the rule on that line if this applies.
 
 #### Incorrect
 

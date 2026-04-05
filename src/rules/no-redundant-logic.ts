@@ -19,6 +19,19 @@ function isBooleanLiteral(
   );
 }
 
+function needsNegationParens(node: TSESTree.Node): boolean {
+  return (
+    node.type !== AST_NODE_TYPES.Identifier &&
+    node.type !== AST_NODE_TYPES.MemberExpression &&
+    node.type !== AST_NODE_TYPES.CallExpression &&
+    node.type !== AST_NODE_TYPES.UnaryExpression
+  );
+}
+
+function negateExpression(text: string, node: TSESTree.Node): string {
+  return needsNegationParens(node) ? `!(${text})` : `!${text}`;
+}
+
 function isReturnOrThrow(node: TSESTree.Statement): boolean {
   return (
     node.type === AST_NODE_TYPES.ReturnStatement ||
@@ -171,13 +184,9 @@ export default createRule<[], MessageIds>({
             fix(fixer) {
               const text = sourceCode.getText(otherSide);
               if (negative) {
-                const needsParens =
-                  otherSide.type !== AST_NODE_TYPES.Identifier &&
-                  otherSide.type !== AST_NODE_TYPES.MemberExpression &&
-                  otherSide.type !== AST_NODE_TYPES.CallExpression;
                 return fixer.replaceText(
                   node,
-                  needsParens ? `!(${text})` : `!${text}`,
+                  negateExpression(text, otherSide),
                 );
               }
               return fixer.replaceText(node, text);
@@ -206,7 +215,12 @@ export default createRule<[], MessageIds>({
           {
             messageId: "unnecessaryElseSuggest",
             fix(fixer) {
-              const ifIndent = " ".repeat(node.loc.start.column);
+              const line = sourceCode.lines[node.loc.start.line - 1];
+              const leadingWhitespace = line.match(/^\s*/)?.[0] ?? "";
+              const ifIndent =
+                leadingWhitespace.length >= node.loc.start.column
+                  ? leadingWhitespace
+                  : " ".repeat(node.loc.start.column);
               const consequentEnd = node.consequent.range[1];
               const alternateEnd = alternate.range[1];
 
@@ -256,13 +270,9 @@ export default createRule<[], MessageIds>({
             fix(fixer) {
               const condText = sourceCode.getText(node.test);
               if (negate) {
-                const needsParens =
-                  node.test.type !== AST_NODE_TYPES.Identifier &&
-                  node.test.type !== AST_NODE_TYPES.MemberExpression &&
-                  node.test.type !== AST_NODE_TYPES.CallExpression;
                 return fixer.replaceText(
                   node,
-                  needsParens ? `!(${condText})` : `!${condText}`,
+                  negateExpression(condText, node.test),
                 );
               }
               return fixer.replaceText(node, condText);
@@ -324,13 +334,15 @@ export default createRule<[], MessageIds>({
         return false;
       const ifReturn = getBoolReturn(node.consequent);
       const elseReturn = getBoolReturn(node.alternate);
-      if (ifReturn !== null && elseReturn !== null) return true;
+      if (ifReturn !== null && elseReturn !== null && ifReturn !== elseReturn)
+        return true;
       const ifAssign = getBoolAssignment(node.consequent);
       const elseAssign = getBoolAssignment(node.alternate);
       return (
         ifAssign !== null &&
         elseAssign !== null &&
-        ifAssign.target === elseAssign.target
+        ifAssign.target === elseAssign.target &&
+        ifAssign.value !== elseAssign.value
       );
     }
 
@@ -340,11 +352,7 @@ export default createRule<[], MessageIds>({
       negate: boolean,
     ): string {
       if (!negate) return condText;
-      const needsParens =
-        testNode.type !== AST_NODE_TYPES.Identifier &&
-        testNode.type !== AST_NODE_TYPES.MemberExpression &&
-        testNode.type !== AST_NODE_TYPES.CallExpression;
-      return needsParens ? `!(${condText})` : `!${condText}`;
+      return negateExpression(condText, testNode);
     }
 
     // Pattern 4: if/else returning or assigning boolean literals
@@ -354,10 +362,10 @@ export default createRule<[], MessageIds>({
 
       const condText = sourceCode.getText(node.test);
 
-      // Case A: both branches return boolean literals
+      // Case A: both branches return different boolean literals
       const ifReturn = getBoolReturn(node.consequent);
       const elseReturn = getBoolReturn(node.alternate);
-      if (ifReturn !== null && elseReturn !== null) {
+      if (ifReturn !== null && elseReturn !== null && ifReturn !== elseReturn) {
         const condExpr = buildCondExpr(condText, node.test, !ifReturn);
         context.report({
           node,
@@ -378,7 +386,8 @@ export default createRule<[], MessageIds>({
       if (
         ifAssign !== null &&
         elseAssign !== null &&
-        ifAssign.target === elseAssign.target
+        ifAssign.target === elseAssign.target &&
+        ifAssign.value !== elseAssign.value
       ) {
         const condExpr = buildCondExpr(condText, node.test, !ifAssign.value);
         context.report({

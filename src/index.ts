@@ -112,6 +112,13 @@ plugin.configs = {
       rules: bestPracticesRules,
     },
   ],
+  bestPractices: [
+    {
+      files: scriptFiles,
+      plugins: { "llm-core": plugin },
+      rules: bestPracticesRules,
+    },
+  ],
   style: [
     {
       files: scriptFiles,

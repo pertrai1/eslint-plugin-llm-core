@@ -2,7 +2,7 @@
 
 📝 Enforce a maximum nesting depth for control flow statements to reduce cognitive complexity.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, `complexity`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, 🧮 `complexity`, ✅ `recommended`.
 
 <!-- end auto-generated rule header -->
 

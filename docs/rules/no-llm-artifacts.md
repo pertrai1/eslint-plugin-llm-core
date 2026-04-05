@@ -2,7 +2,7 @@
 
 📝 Disallow common LLM placeholder comments and incomplete code markers that indicate skipped implementation.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, `hygiene`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, 🧹 `hygiene`, ✅ `recommended`.
 
 <!-- end auto-generated rule header -->
 

@@ -2,7 +2,7 @@
 
 📝 Enforce a maximum number of function parameters to encourage object parameter patterns.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, `complexity`, ✅ `recommended`.
+💼 This rule is enabled in the following configs: 🌐 `all`, 🧮 `complexity`, ✅ `recommended`.
 
 <!-- end auto-generated rule header -->
 

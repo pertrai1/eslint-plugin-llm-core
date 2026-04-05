@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import explicitExportTypes from "../../src/rules/explicit-export-types";
+import maxFileLength from "../../src/rules/max-file-length";
+import maxFunctionLength from "../../src/rules/max-function-length";
 import namingConventions from "../../src/rules/naming-conventions";
+import noAsyncArrayCallbacks from "../../src/rules/no-async-array-callbacks";
+import noEmptyCatch from "../../src/rules/no-empty-catch";
 
 describe("rule message guidance", () => {
   it("keeps exported-type guidance concrete and naming guidance accurate", () => {
@@ -26,6 +30,36 @@ describe("rule message guidance", () => {
         "  Before: abstract class {{ className }} { ... }",
         "  After:  abstract class Base{{ className }} { ... }",
       ].join("\n"),
+    );
+  });
+
+  it("uses a concrete rewrite template for repair-oriented rules", () => {
+    expect(noAsyncArrayCallbacks.meta.messages?.noAsyncMapCallback).toContain(
+      "Before: const results = items.map(async (item) => processItem(item));",
+    );
+    expect(noAsyncArrayCallbacks.meta.messages?.noAsyncMapCallback).toContain(
+      "After:  const results = await Promise.all(items.map(async (item) => processItem(item)));",
+    );
+
+    expect(noEmptyCatch.meta.messages?.noEmptyCatch).toContain(
+      "Choose one explicit outcome:",
+    );
+    expect(noEmptyCatch.meta.messages?.noEmptyCatch).toContain(
+      "Before: catch (error) {",
+    );
+
+    expect(maxFileLength.meta.messages?.maxFileLength).toContain(
+      "Before: order-service.ts contains types, validation, formatting, and persistence.",
+    );
+    expect(maxFileLength.meta.messages?.maxFileLength).toContain(
+      "After:  order-service.ts keeps orchestration; move validation to order-validation.ts",
+    );
+
+    expect(maxFunctionLength.meta.messages?.maxFunctionLength).toContain(
+      "Before: function processOrder(order) { validate(order); calculate(order); save(order); }",
+    );
+    expect(maxFunctionLength.meta.messages?.maxFunctionLength).toContain(
+      "After:  function processOrder(order) {",
     );
   });
 });

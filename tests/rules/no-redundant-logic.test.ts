@@ -26,6 +26,18 @@ ruleTester.run("no-redundant-logic", rule, {
 
     // Pattern 1: comparisons not using === or !== — not flagged
     `if (x > true) {}`,
+
+    // Pattern 2: no else block — not flagged
+    `function f() { if (cond) { return 1; } doSomething(); }`,
+
+    // Pattern 2: else-if chain — not flagged
+    `function f() { if (a) { return 1; } else if (b) { return 2; } }`,
+
+    // Pattern 2: if consequent does NOT end with return/throw — not flagged
+    `function f() { if (cond) { doWork(); } else { return 1; } }`,
+
+    // Pattern 2: else has more than one statement — not flagged
+    `function f() { if (cond) { return 1; } else { doWork(); return 2; } }`,
   ],
 
   invalid: [
@@ -139,6 +151,38 @@ ruleTester.run("no-redundant-logic", rule, {
           ],
         },
       ],
+    },
+
+    // Pattern 2: if block ends with return, else block has single return
+    {
+      code: `function f(x) { if (x) { return 1; } else { return 2; } }`,
+      errors: [{ messageId: "unnecessaryElse" as const }],
+    },
+
+    // Pattern 2: if block ends with throw, else block has single return
+    {
+      code: `function f(x) { if (!x) { throw new Error(); } else { return 2; } }`,
+      errors: [{ messageId: "unnecessaryElse" as const }],
+    },
+
+    // Pattern 2: multiline — if/else with early return
+    {
+      code: [
+        "function getLabel(status) {",
+        "  if (status === 'active') {",
+        "    return 'Active';",
+        "  } else {",
+        "    return 'Inactive';",
+        "  }",
+        "}",
+      ].join("\n"),
+      errors: [{ messageId: "unnecessaryElse" as const }],
+    },
+
+    // Pattern 2: else block with single throw
+    {
+      code: `function validate(x) { if (x > 0) { return x; } else { throw new Error('invalid'); } }`,
+      errors: [{ messageId: "unnecessaryElse" as const }],
     },
   ],
 });

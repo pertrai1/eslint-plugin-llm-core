@@ -57,6 +57,10 @@ npm install eslint-plugin-llm-core --save-dev
 
 ## Quick Start
 
+### Option 1: Recommended (All-in-one)
+
+All recommended rules are active and ready out of the box.
+
 ```js
 // eslint.config.mjs
 import llmCore from "eslint-plugin-llm-core";
@@ -64,14 +68,32 @@ import llmCore from "eslint-plugin-llm-core";
 export default [...llmCore.configs.recommended];
 ```
 
-That's it. All recommended rules are now active.
+### Option 2: Mix & Match
+
+Select only the specific categories that fit your project.
+
+```js
+// eslint.config.mjs
+import llmCore from "eslint-plugin-llm-core";
+
+export default [
+  ...llmCore.configs.complexity,
+  ...llmCore.configs.typescript,
+  ...llmCore.configs.hygiene,
+];
+```
 
 ### Available Configs
 
-| Config        | Description                                     |
-| ------------- | ----------------------------------------------- |
-| `recommended` | Safe defaults — rules most codebases should use |
-| `all`         | Every rule at `error` — for strict codebases    |
+| Config           | Description                                                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `recommended`    | Safe defaults — rules most codebases should use                                                                                       |
+| `all`            | Every rule at `error` — for strict codebases                                                                                          |
+| `complexity`     | Enforce structural limits to prevent oversized files and functions                                                                    |
+| `typescript`     | Rules focused on type safety and clarity to avoid common 'any' traps (TS/TSX files only)                                              |
+| `best-practices` | Core logic and reliability rules that catch common bugs and anti-patterns (also available as `bestPractices` for dot-notation access) |
+| `style`          | Focuses on consistent naming and structure for predictability                                                                         |
+| `hygiene`        | Rules addressing development 'litter' and shortcuts like LLM artifacts and inline disables                                            |
 
 ### Manual Rule Configuration
 

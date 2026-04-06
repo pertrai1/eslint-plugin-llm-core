@@ -9,16 +9,19 @@ const rulesEnabled: Record<string, "error"> = Object.fromEntries(
   Object.keys(rulesMap).map((name) => [`llm-core/${name}`, "error"]),
 );
 
-const linterInstance = new Linter();
+const linterInstance = new Linter({ configType: "flat" });
 
-const flatConfig = {
-  plugins: { "llm-core": { rules: rulesMap } },
-  rules: rulesEnabled,
-  languageOptions: {
-    parser: tsParser,
-    parserOptions: { ecmaVersion: 2022, sourceType: "module" },
+const flatConfig = [
+  {
+    files: ["**/*.ts"],
+    plugins: { "llm-core": { rules: rulesMap } },
+    rules: rulesEnabled,
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: { ecmaVersion: 2022, sourceType: "module" },
+    },
   },
-};
+];
 
 export function lintCode(code: string): LintViolation[] {
   const messages = linterInstance.verify(

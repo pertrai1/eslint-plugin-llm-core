@@ -22,21 +22,20 @@ function extractCode(response: string): string {
   return response.trim();
 }
 
-export async function fixViolations(
-  code: string,
-  violations: LintViolation[],
-  model: string = DEFAULT_MODEL,
-): Promise<string> {
-  const client = new Anthropic({ apiKey: requireApiKey() });
-
-  const violationList = violations
+export function formatViolationList(violations: LintViolation[]): string {
+  return violations
     .map(
       (v, i) =>
-        `${i + 1}. [${v.ruleId}] Line ${v.line}, Col ${v.column}:\n   ${v.message.replace(/\n/g, "\n   ")}`,
+        `${i + 1}. Line ${v.line}, Col ${v.column}:\n   ${v.message.replace(/\n/g, "\n   ")}`,
     )
     .join("\n\n");
+}
 
-  const userMessage = [
+export function buildFixViolationsPrompt(
+  code: string,
+  violations: LintViolation[],
+): string {
+  return [
     "Fix the following ESLint violations in this TypeScript code:",
     "",
     "## Code",
@@ -45,8 +44,17 @@ export async function fixViolations(
     "```",
     "",
     "## Violations to fix",
-    violationList,
+    formatViolationList(violations),
   ].join("\n");
+}
+
+export async function fixViolations(
+  code: string,
+  violations: LintViolation[],
+  model: string = DEFAULT_MODEL,
+): Promise<string> {
+  const client = new Anthropic({ apiKey: requireApiKey() });
+  const userMessage = buildFixViolationsPrompt(code, violations);
 
   const response = await client.messages.create({
     model,

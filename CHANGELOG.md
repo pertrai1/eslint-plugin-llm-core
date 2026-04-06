@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.11.1
+
+### Patch Changes
+
+- [#85](https://github.com/pertrai1/eslint-plugin-llm-core/pull/85) [`65289c7`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/65289c77c815a0a8b61cd40004d59477bca49f2d) Thanks [@pertrai1](https://github.com/pertrai1)! - Fix rule conflict between `explicit-export-types` and `@typescript-eslint/no-inferrable-types`. Parameters with primitive literal defaults (`= 0`, `= "hello"`, `= true`, `= null`, `= -1`, `= 0n`) are no longer flagged as missing type annotations, since TypeScript infers the type deterministically from the literal value.
+
 ## 0.11.0
 
 ### Minor Changes

@@ -35,6 +35,21 @@ export default createRule<[], MessageIds>({
   },
   defaultOptions: [],
   create(context) {
+    function isPrimitiveLiteralDefault(node: TSESTree.Expression): boolean {
+      if (node.type === AST_NODE_TYPES.Literal) {
+        return true;
+      }
+      if (
+        node.type === AST_NODE_TYPES.UnaryExpression &&
+        (node.operator === "-" || node.operator === "+") &&
+        node.argument.type === AST_NODE_TYPES.Literal &&
+        typeof node.argument.value === "number"
+      ) {
+        return true;
+      }
+      return false;
+    }
+
     function getFunctionName(
       fn:
         | TSESTree.FunctionDeclaration
@@ -60,10 +75,11 @@ export default createRule<[], MessageIds>({
           }
           break;
         case AST_NODE_TYPES.AssignmentPattern:
-          // Default value pattern: `x = 0`, `{ id } = obj`, `[x] = arr`
-          // The type annotation lives on the left-hand node, not the AssignmentPattern itself
           if (param.left.type === AST_NODE_TYPES.Identifier) {
-            if (!param.left.typeAnnotation) {
+            if (
+              !param.left.typeAnnotation &&
+              !isPrimitiveLiteralDefault(param.right)
+            ) {
               context.report({
                 node: param.left,
                 messageId: "missingParamType",

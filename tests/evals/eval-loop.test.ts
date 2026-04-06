@@ -18,6 +18,15 @@ describe("eval fixture API preservation", () => {
     ]);
   });
 
+  it("skips re-exported names from other modules", () => {
+    const code = [
+      'export { buildClient } from "./shared";',
+      "export function fetchUser(): void {}",
+    ].join("\n");
+
+    expect(collectExportedSymbolNames(code)).toEqual(["fetchUser"]);
+  });
+
   it("requires candidate code to preserve all original exported names", () => {
     const original = [
       "export const buildClient = () => {};",

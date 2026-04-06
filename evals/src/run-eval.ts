@@ -29,7 +29,7 @@ Environment:
 Examples:
   npx tsx evals/src/run-eval.ts
   npx tsx evals/src/run-eval.ts --mode treatment
-  npx tsx evals/src/run-eval.ts --fixture error-handling.ts --max-iterations 3
+  npx tsx evals/src/run-eval.ts --fixture api-service.ts --max-iterations 3
 `);
 }
 

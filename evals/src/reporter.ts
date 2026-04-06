@@ -31,9 +31,24 @@ function formatFixtureSection(
   } else {
     for (const rec of result.iterationRecords) {
       const check = rec.violationsAfter === 0 ? " ✅" : "";
+      const details: string[] = [];
+
+      if (rec.remainingRuleIds && rec.remainingRuleIds.length > 0) {
+        details.push(`remaining rules: ${rec.remainingRuleIds.join(", ")}`);
+      }
+
+      if (rec.rejectedCandidate) {
+        details.push(`candidate rejected: ${rec.rejectedCandidate}`);
+      }
+
+      const suffix = details.length > 0 ? ` (${details.join("; ")})` : "";
+
       lines.push(
         `- Iteration ${rec.iteration}: ${rec.violationsBefore} violations → ${rec.violationsAfter} violations${check}`,
       );
+      if (suffix) {
+        lines[lines.length - 1] += suffix;
+      }
     }
   }
 

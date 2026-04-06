@@ -21,7 +21,7 @@ Or directly with options:
 ```bash
 npx tsx evals/src/run-eval.ts --help
 
-npx tsx evals/src/run-eval.ts --mode treatment --fixture error-handling.ts
+npx tsx evals/src/run-eval.ts --mode treatment --fixture api-service.ts
 npx tsx evals/src/run-eval.ts --model claude-opus-4-5 --max-iterations 3
 npx tsx evals/src/run-eval.ts --output /tmp/eval-results
 ```
@@ -58,13 +58,13 @@ Parameter 'order' in exported function 'processOrder' is missing a type annotati
 
 ## Fixtures
 
-| File                  | Target rules                                                                                                               |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `error-handling.ts`   | no-empty-catch, throw-error-objects, prefer-unknown-in-catch, no-type-assertion-any, structured-logging                    |
-| `type-safety.ts`      | explicit-export-types, no-any-in-generic, no-type-assertion-any, prefer-unknown-in-catch                                   |
-| `code-style.ts`       | no-exported-function-expressions, prefer-early-return, no-redundant-logic, consistent-catch-param-name, naming-conventions |
-| `hygiene.ts`          | no-commented-out-code, no-llm-artifacts, no-inline-disable, no-magic-numbers                                               |
-| `mixed-violations.ts` | Mix from all categories                                                                                                    |
+| File                    | Target rules                                                                                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api-service.ts`        | explicit-export-types, no-exported-function-expressions, structured-logging, no-type-assertion-any, no-magic-numbers, prefer-early-return               |
+| `error-pipeline.ts`     | no-empty-catch, throw-error-objects, prefer-unknown-in-catch, structured-logging, no-redundant-logic, no-magic-numbers                                  |
+| `data-transformer.ts`   | no-exported-function-expressions, explicit-export-types, no-type-assertion-any, no-any-in-generic, no-async-array-callbacks, no-redundant-logic         |
+| `event-system.ts`       | naming-conventions, no-exported-function-expressions, explicit-export-types, no-async-array-callbacks, consistent-catch-param-name, throw-error-objects |
+| `integration-module.ts` | no-commented-out-code, no-llm-artifacts, no-inline-disable, explicit-export-types, no-async-array-callbacks, max-params, structured-logging             |
 
 ## Output
 
@@ -76,11 +76,11 @@ Reports are written to `evals/results/` (gitignored):
 Example markdown output:
 
 ```markdown
-| Fixture           | Treatment (iterations) | Control (iterations) | Δ                    |
-| ----------------- | ---------------------- | -------------------- | -------------------- |
-| error-handling.ts | 1                      | 3                    | -2                   |
-| type-safety.ts    | 1                      | 2                    | -1                   |
-| **Average**       | **1.2**                | **2.6**              | **-1.4 (54% fewer)** |
+| Fixture         | Treatment (iterations) | Control (iterations) | Δ                    |
+| --------------- | ---------------------- | -------------------- | -------------------- |
+| api-service.ts  | 2                      | 4                    | -2                   |
+| event-system.ts | 2                      | 5                    | -3                   |
+| **Average**     | **1.2**                | **2.6**              | **-1.4 (54% fewer)** |
 ```
 
 ## Architecture

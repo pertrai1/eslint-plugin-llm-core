@@ -4,7 +4,7 @@
 
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`, 🎨 `style`.
 
-💡 Some problems reported by this rule are manually fixable by editor [suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
+💡 This rule is manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
 
 <!-- end auto-generated rule header -->
 
@@ -44,8 +44,6 @@ if (!hasPermission) {
 while (running) {}
 ```
 
----
-
 ### Pattern 2 — Unnecessary else after return/throw
 
 An `else` block that follows an `if` block ending in `return` or `throw` is unreachable via fall-through. The `else` can be removed and its body placed at the outer scope.
@@ -79,58 +77,6 @@ function getLabel(status: string): string {
 }
 ```
 
----
-
-# llm-core/no-redundant-logic
-
-📝 Disallow redundant boolean logic and unnecessary control flow patterns.
-
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`, 🎨 `style`.
-
-💡 This rule is manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
-
-<!-- end auto-generated rule header -->
-
-# llm-core/no-redundant-logic
-
-📝 Disallow redundant boolean logic and unnecessary control flow patterns.
-
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`, 🎨 `style`.
-
-💡 This rule is manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
-
-<!-- end auto-generated rule header -->
-
-# llm-core/no-redundant-logic
-
-📝 Disallow redundant boolean logic and unnecessary control flow patterns.
-
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`, 🎨 `style`.
-
-💡 This rule is manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
-
-<!-- end auto-generated rule header -->
-
-# llm-core/no-redundant-logic
-
-📝 Disallow redundant boolean logic and unnecessary control flow patterns.
-
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`, 🎨 `style`.
-
-💡 This rule is manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
-
-<!-- end auto-generated rule header -->
-
-# llm-core/no-redundant-logic
-
-📝 Disallow redundant boolean logic and unnecessary control flow patterns.
-
-💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
-
-💡 This rule is manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
-
-<!-- end auto-generated rule header -->
-
 ### Pattern 3 — Ternary returning boolean literals
 
 A ternary of the form `condition ? true : false` or `condition ? false : true` is identical to the condition (or its negation).
@@ -148,8 +94,6 @@ const isBlocked = isAdmin ? false : true;
 const isEligible = age >= 18;
 const isBlocked = !isAdmin;
 ```
-
----
 
 ### Pattern 4 — If/else returning or assigning boolean literals
 

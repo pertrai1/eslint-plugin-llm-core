@@ -1,7 +1,21 @@
-# Make GitHub issue references optional in PR descriptions
+---
+date: 2026-04-05
+task: Relax PR template validation so pull requests without GitHub issues can still pass CI
+domain: pr-issue-linking
+kind: repo-policy
+scope: repo
+status: active
+triggers:
+  - editing pull request template policy
+  - changing PR issue reference requirements
+  - updating CI checks for PR descriptions
+applies_to:
+  - .github/PULL_REQUEST_TEMPLATE.md
+  - .github/workflows/pr-checks.yml
+supersedes: []
+---
 
-**Date:** 2026-04-05
-**Task:** Relax PR template validation so pull requests without GitHub issues can still pass CI
+# Make GitHub issue references optional in PR descriptions
 
 ## Context
 

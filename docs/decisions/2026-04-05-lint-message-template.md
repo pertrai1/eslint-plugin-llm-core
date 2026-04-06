@@ -1,7 +1,22 @@
-# Use before/after rewrites for agent-facing lint messages
+---
+date: 2026-04-05
+task: Define a concrete rewrite template for lint messages and tighten inaccurate guidance
+domain: lint-messages
+kind: code-convention
+scope: cross-cutting
+status: active
+triggers:
+  - editing rule messages
+  - changing lint guidance format
+  - updating the lint-message guide
+applies_to:
+  - docs/guides/lint-message-template.md
+  - src/rules/**
+  - tests/rules/message-guidance.test.ts
+supersedes: []
+---
 
-**Date:** 2026-04-05
-**Task:** Define a concrete rewrite template for lint messages and tighten inaccurate guidance
+# Use before/after rewrites for agent-facing lint messages
 
 ## Context
 

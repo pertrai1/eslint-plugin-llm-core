@@ -33,6 +33,10 @@ If there is no `test:` commit before a `feat:` commit, the RED phase was skipped
 
 See [TYPE_DRIVEN_DEVELOPMENT](.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md), [TEST_DRIVEN_DEVELOPMENT](.agents/directives/TEST_DRIVEN_DEVELOPMENT.md), and [SESSION_DECISIONS](.agents/directives/SESSION_DECISIONS.md) for detailed guidance.
 
+## Decision Log Lookup
+
+Before changing repo policy, contributor workflow, rule-authoring conventions, lint-message format, or any other cross-cutting convention, scan the frontmatter in `docs/decisions/*.md` and load the active entries whose `domain`, `triggers`, or `applies_to` match the task. Use the decision logs for progressive disclosure; do not bulk-read every record by default.
+
 ## Project Overview
 
 Custom ESLint plugin designed to help LLM agents self-correct and learn from mistakes.
@@ -110,11 +114,11 @@ Use these criteria in issue triage, implementation review, and config-placement 
 
 **You MUST read and follow every directive listed below. These govern how you work, not what you build.**
 
-| Directive               | What it governs                                  | File                                                                                             |
-| ----------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| Type-First Development  | Types must be defined before implementation      | [`.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md`](.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md) |
-| Test-Driven Development | RED/GREEN/REFACTOR cycle for all code changes    | [`.agents/directives/TEST_DRIVEN_DEVELOPMENT.md`](.agents/directives/TEST_DRIVEN_DEVELOPMENT.md) |
-| Session Decisions       | Capture non-obvious decisions at task completion | [`.agents/directives/SESSION_DECISIONS.md`](.agents/directives/SESSION_DECISIONS.md)             |
+| Directive               | What it governs                                                             | File                                                                                             |
+| ----------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Type-First Development  | Types must be defined before implementation                                 | [`.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md`](.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md) |
+| Test-Driven Development | RED/GREEN/REFACTOR cycle for all code changes                               | [`.agents/directives/TEST_DRIVEN_DEVELOPMENT.md`](.agents/directives/TEST_DRIVEN_DEVELOPMENT.md) |
+| Session Decisions       | Capture durable repo/process and cross-cutting decisions at task completion | [`.agents/directives/SESSION_DECISIONS.md`](.agents/directives/SESSION_DECISIONS.md)             |
 
 ## Conventions
 

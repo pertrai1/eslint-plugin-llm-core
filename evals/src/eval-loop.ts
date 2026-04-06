@@ -66,6 +66,10 @@ export function collectExportedSymbolNames(code: string): string[] {
         pushExportedName(names, node.declaration);
       }
 
+      if (node.source) {
+        continue;
+      }
+
       for (const specifier of node.specifiers) {
         if (specifier.type !== AST_NODE_TYPES.ExportSpecifier) continue;
         if (specifier.exported.type === AST_NODE_TYPES.Identifier) {

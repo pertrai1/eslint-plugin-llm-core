@@ -11,6 +11,8 @@ export interface IterationRecord {
   iteration: number;
   violationsBefore: number;
   violationsAfter: number;
+  rejectedCandidate?: string;
+  remainingRuleIds?: string[];
 }
 
 export interface FixtureResult {

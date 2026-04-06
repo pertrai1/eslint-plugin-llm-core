@@ -61,6 +61,9 @@ export function greet({ name }: User): string {
 
 // ✅ Default param with explicit type
 export function retry(times: number = 3): void {}
+
+// ✅ Default param with primitive literal — type is inferrable
+export function retry(times = 3): void {}
 ```
 
 ## What This Rule Catches
@@ -83,6 +86,7 @@ Covered export forms:
 - Typed destructuring — `export function foo({ id }: User): void {}` — the pattern has a type annotation
 - Typed rest params — `export function foo(...args: string[]): void {}` — already annotated
 - Default params with explicit types — `export function foo(x: number = 0): string { ... }` — fine
+- Default params with primitive literal values — `export function foo(x = 0): string { ... }` — TypeScript infers the type deterministically from the literal, so the annotation is not required. This avoids a conflict with `@typescript-eslint/no-inferrable-types`. Non-literal defaults (e.g., `x = getDefault()`) are still flagged.
 
 ### Known Limitations
 
@@ -107,6 +111,8 @@ With explicit annotations, the TypeScript compiler enforces the contract. The ag
 ## Relationship to `@typescript-eslint` Rules
 
 `@typescript-eslint/explicit-function-return-type` and `@typescript-eslint/explicit-module-boundary-types` cover similar ground but are not enabled in `recommended`. This rule fills that gap with LLM-specific error messages that teach the correct process: define types first, then implement against them.
+
+This rule is compatible with `@typescript-eslint/no-inferrable-types`. Parameters with primitive literal defaults (numbers, strings, booleans, null, bigint) are not flagged, so there is no conflict when both rules are enabled.
 
 ## Error Messages
 

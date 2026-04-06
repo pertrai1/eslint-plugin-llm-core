@@ -37,6 +37,27 @@ ruleTester.run("explicit-export-types", rule, {
     // Default param with explicit type on the identifier
     `export function foo(x: number = 0): string { return String(x); }`,
 
+    // Default param with number literal — type inferrable, no annotation needed
+    `export function foo(x = 0): string { return String(x); }`,
+
+    // Default param with string literal — type inferrable
+    `export function foo(name = "default"): string { return name; }`,
+
+    // Default param with boolean literal — type inferrable
+    `export function foo(enabled = true): string { return String(enabled); }`,
+
+    // Default param with null literal — type inferrable
+    `export function foo(value = null): string { return String(value); }`,
+
+    // Default param with negative number literal — type inferrable
+    `export function foo(offset = -1): string { return String(offset); }`,
+
+    // Default param with bigint literal — type inferrable
+    `export function foo(big = 0n): string { return String(big); }`,
+
+    // Mixed: one typed, one with inferrable default — both fine
+    `export function foo(name: string, retries = 3): string { return name; }`,
+
     // Re-exported type alias — not a function, not flagged
     `export type Foo = { id: string };`,
 
@@ -147,9 +168,9 @@ ruleTester.run("explicit-export-types", rule, {
       errors: [{ messageId: "missingParamType" as const }],
     },
 
-    // Default param without type annotation
+    // Default param with non-literal default — type is NOT inferrable, must annotate
     {
-      code: `export function foo(x = 0): string { return String(x); }`,
+      code: `export function foo(x = getDefault()): string { return String(x); }`,
       errors: [{ messageId: "missingParamType" as const }],
     },
 

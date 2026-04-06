@@ -3,3 +3,5 @@ dist/
 coverage/
 *.tsbuildinfo
 .DS_Store
+evals/results/*.json
+evals/results/*.md

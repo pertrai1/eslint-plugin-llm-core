@@ -60,7 +60,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "update:eslint-docs": "eslint-doc-generator",
+    "update:eslint-docs": "eslint-doc-generator && prettier --write README.md \"docs/rules/**/*.md\"",
     "prepare": "husky",
     "changeset": "changeset",
     "version": "changeset version",

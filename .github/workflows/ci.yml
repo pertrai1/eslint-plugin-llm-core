@@ -28,7 +28,7 @@ jobs:
         run: |
           npm run update:eslint-docs
           if ! git diff --quiet docs/ README.md; then
-            echo "::error::Rule docs are stale. Run 'npm run update:eslint-docs' and commit the changes."
+            echo "::error::Rule docs are stale. Run 'npm run update:eslint-docs' and commit the formatted changes."
             git diff --stat docs/ README.md
             exit 1
           fi

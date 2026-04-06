@@ -47,7 +47,7 @@ async function fetchRecord(recordId: string): Promise<PipelineRecord> {
     throw "Record not found";
   }
   try {
-    return response.json();
+    return await response.json();
   } catch (error: any) {
     logger.error(`Fetch failed for record ${recordId}: ${error.message}`);
     throw new Error("Record fetch failed", { cause: error });

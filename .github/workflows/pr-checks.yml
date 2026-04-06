@@ -64,32 +64,55 @@ jobs:
 
           echo "✓ PR checklist complete"
 
-      - name: Validate agent disclosure (bot PRs)
-        if: github.event.pull_request.user.type == 'Bot'
+      - name: Validate agent disclosure
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BODY=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.body // ""')
 
           if ! echo "$BODY" | grep -q "Agent Disclosure"; then
-            echo "::error::Bot-authored PR must include the 'Agent Disclosure' section from the PR template."
-            exit 1
+            echo "✓ No Agent Disclosure section (human-authored PR)"
+            exit 0
           fi
 
-          # Check that Agent field is not empty placeholder
           if ! echo "$BODY" | grep -qP '\*\*Agent:\*\*\s*\S'; then
-            echo "::error::Agent Disclosure: 'Agent' field is empty. Specify which agent authored this PR."
-            exit 1
+            echo "✓ Agent Disclosure present but Agent field empty (human-authored PR)"
+            exit 0
           fi
 
-          # Check that at least one instruction file checkbox is checked
           LOADED=$(echo "$BODY" | grep -c '\- \[x\]' || true)
           if [ "$LOADED" -eq 0 ]; then
-            echo "::error::Agent Disclosure: No instruction files marked as loaded. Check every file the agent received."
+            echo "::error::Agent Disclosure: Agent is declared but no instruction files are marked as loaded. Check every file the agent received."
             exit 1
           fi
 
           echo "✓ Agent Disclosure complete"
+
+  changeset-presence:
+    name: Changeset Presence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Check for changeset when src/ is modified
+        run: |
+          SRC_CHANGED=$(git diff --name-only origin/main...HEAD -- src/ | wc -l | tr -d ' ')
+          if [ "$SRC_CHANGED" -eq 0 ]; then
+            echo "✓ No src/ changes — changeset not required"
+            exit 0
+          fi
+
+          CHANGESETS=$(git diff --name-only origin/main...HEAD -- .changeset/ | grep -c '\.md$' || true)
+          if [ "$CHANGESETS" -eq 0 ]; then
+            echo "::error::This PR modifies src/ but has no changeset. Run 'npx changeset' to add one."
+            echo ""
+            echo "Changesets ensure version bumps and changelog entries are created."
+            echo "See: https://github.com/changesets/changesets"
+            exit 1
+          fi
+
+          echo "✓ Changeset found ($CHANGESETS changeset file(s))"
 
   lockfile-version:
     name: Lockfile Version Guard

@@ -30,7 +30,7 @@ export function lintCode(code: string): LintViolation[] {
   return messages
     .filter((msg) => msg.ruleId !== null)
     .map((msg) => ({
-      ruleId: msg.ruleId,
+      ruleId: msg.ruleId!,
       message: msg.message,
       line: msg.line,
       column: msg.column,

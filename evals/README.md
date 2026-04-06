@@ -40,7 +40,7 @@ npx tsx evals/src/run-eval.ts --output /tmp/eval-results
 
 **Treatment** — the LLM receives the plugin's full structured message:
 
-```
+```text
 Parameter 'order' in exported function 'processOrder' is missing a type annotation.
 
 Why: Exported function parameters should be declared in the contract, not inferred from usage.
@@ -52,7 +52,7 @@ How to fix:
 
 **Control** — the LLM receives only the first line:
 
-```
+```text
 Parameter 'order' in exported function 'processOrder' is missing a type annotation.
 ```
 
@@ -85,7 +85,7 @@ Example markdown output:
 
 ## Architecture
 
-```
+```text
 evals/src/
   types.ts         — shared type definitions
   linter.ts        — ESLint Linter class wrapper (runs all plugin rules)

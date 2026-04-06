@@ -19,7 +19,7 @@ export async function fetchWithRetry(
 
   let retries = 0;
 
-  while (retries < 3) {
+  while (retries < config.maxRetries) {
     try {
       const response = await fetch(url);
       return await response.json();

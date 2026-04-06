@@ -1,7 +1,7 @@
 export type EvalMode = "treatment" | "control";
 
 export interface LintViolation {
-  ruleId: string | null;
+  ruleId: string;
   message: string;
   line: number;
   column: number;

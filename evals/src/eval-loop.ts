@@ -1,5 +1,10 @@
 import { readFile } from "fs/promises";
-import type { EvalMode, FixtureResult, LintViolation } from "./types";
+import type {
+  EvalMode,
+  FixtureResult,
+  IterationRecord,
+  LintViolation,
+} from "./types";
 import { fixViolations } from "./llm-client";
 import { lintCode } from "./linter";
 import { stripViolationMessages } from "./strip-messages";
@@ -26,7 +31,7 @@ export async function runFixture(
   let currentCode = initialCode;
   let currentViolations = lintCode(currentCode);
 
-  const iterationRecords = [];
+  const iterationRecords: IterationRecord[] = [];
   let iterations = 0;
 
   while (currentViolations.length > 0 && iterations < options.maxIterations) {

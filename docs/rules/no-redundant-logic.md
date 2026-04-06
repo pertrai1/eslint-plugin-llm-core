@@ -105,6 +105,16 @@ function getLabel(status: string): string {
 
 📝 Disallow redundant boolean logic and unnecessary control flow patterns.
 
+💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`, 🎨 `style`.
+
+💡 This rule is manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).
+
+<!-- end auto-generated rule header -->
+
+# llm-core/no-redundant-logic
+
+📝 Disallow redundant boolean logic and unnecessary control flow patterns.
+
 💼 This rule is enabled in the following configs: 🌐 `all`, ✅ `recommended`.
 
 💡 This rule is manually fixable by [editor suggestions](https://eslint.org/docs/latest/use/core-concepts#rule-suggestions).

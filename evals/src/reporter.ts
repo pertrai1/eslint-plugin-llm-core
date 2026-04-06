@@ -51,7 +51,9 @@ export function generateMarkdown(results: EvalResults): string {
     (r) => r.mode === "treatment",
   );
   const controlResults = results.results.filter((r) => r.mode === "control");
-  const fixtureNames = [...new Set(results.results.map((r) => r.fixture))];
+  const fixtureNames = [...new Set(results.results.map((r) => r.fixture))].sort(
+    (a, b) => a.localeCompare(b),
+  );
 
   const summaryRows = fixtureNames.map((name) => {
     const t = treatmentResults.find((r) => r.fixture === name);
@@ -118,7 +120,7 @@ export async function writeReports(
 ): Promise<{ jsonPath: string; mdPath: string }> {
   await mkdir(outputDir, { recursive: true });
 
-  const slug = results.date.replace(/\//g, "-");
+  const slug = results.date.replace(/[^a-zA-Z0-9._-]/g, "-");
   const jsonPath = join(outputDir, `eval-${slug}.json`);
   const mdPath = join(outputDir, `eval-${slug}.md`);
 

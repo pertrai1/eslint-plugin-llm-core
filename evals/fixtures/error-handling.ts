@@ -16,7 +16,7 @@ function isValidOrderId(id: string): boolean {
 
 export async function fetchOrder(orderId: string): Promise<Order> {
   const response = await fetch(`/api/orders/${orderId}`);
-  const data = (response as any).json();
+  const data = await (response as any).json();
   logger.info(`Fetched order ${orderId}`);
   return data as Order;
 }

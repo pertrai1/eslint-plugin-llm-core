@@ -15,7 +15,7 @@ function requireApiKey(): string {
 
 function extractCode(response: string): string {
   const fenceMatch =
-    /^```(?:typescript|ts|javascript|js)?\n([\s\S]*?)```\s*$/m.exec(response);
+    /```(?:typescript|ts|javascript|js)?\n([\s\S]*?)\n```/.exec(response);
   if (fenceMatch) {
     return fenceMatch[1] ?? response;
   }
@@ -32,7 +32,7 @@ export async function fixViolations(
   const violationList = violations
     .map(
       (v, i) =>
-        `${i + 1}. [${v.ruleId ?? "unknown"}] Line ${v.line}, Col ${v.column}:\n   ${v.message.replace(/\n/g, "\n   ")}`,
+        `${i + 1}. [${v.ruleId}] Line ${v.line}, Col ${v.column}:\n   ${v.message.replace(/\n/g, "\n   ")}`,
     )
     .join("\n\n");
 

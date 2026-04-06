@@ -169,7 +169,7 @@ async function main(): Promise<void> {
   const pluginVersion = await getPluginVersion();
 
   const evalResults: EvalResults = {
-    date: new Date().toISOString().split("T")[0] ?? new Date().toISOString(),
+    date: new Date().toISOString().split("T")[0]!,
     model: config.model,
     pluginVersion,
     results,

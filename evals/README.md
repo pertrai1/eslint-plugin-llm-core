@@ -58,13 +58,15 @@ Parameter 'order' in exported function 'processOrder' is missing a type annotati
 
 ## Fixtures
 
-| File                    | Target rules                                                                                                                                            |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `api-service.ts`        | explicit-export-types, no-exported-function-expressions, structured-logging, no-type-assertion-any, no-magic-numbers, prefer-early-return               |
-| `error-pipeline.ts`     | no-empty-catch, throw-error-objects, prefer-unknown-in-catch, structured-logging, no-redundant-logic, no-magic-numbers                                  |
-| `data-transformer.ts`   | no-exported-function-expressions, explicit-export-types, no-type-assertion-any, no-any-in-generic, no-async-array-callbacks, no-redundant-logic         |
-| `event-system.ts`       | naming-conventions, no-exported-function-expressions, explicit-export-types, no-async-array-callbacks, consistent-catch-param-name, throw-error-objects |
-| `integration-module.ts` | no-commented-out-code, no-llm-artifacts, no-inline-disable, explicit-export-types, no-async-array-callbacks, max-params, structured-logging             |
+| File                    | Target rules                                                                                                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api-service.ts`        | explicit-export-types, no-exported-function-expressions, structured-logging, no-type-assertion-any, no-magic-numbers, prefer-early-return                                    |
+| `auth-middleware.ts`    | prefer-early-return, max-nesting-depth, structured-logging, no-magic-numbers, throw-error-objects, no-empty-catch, no-type-assertion-any, explicit-export-types              |
+| `config-loader.ts`      | no-exported-function-expressions, explicit-export-types, no-redundant-logic, structured-logging, no-magic-numbers, prefer-unknown-in-catch, no-empty-catch                   |
+| `data-transformer.ts`   | no-exported-function-expressions, explicit-export-types, no-type-assertion-any, no-any-in-generic, no-async-array-callbacks, no-redundant-logic                              |
+| `error-pipeline.ts`     | no-empty-catch, throw-error-objects, prefer-unknown-in-catch, structured-logging, no-redundant-logic, no-magic-numbers                                                       |
+| `event-system.ts`       | naming-conventions, no-exported-function-expressions, explicit-export-types, no-async-array-callbacks, consistent-catch-param-name, throw-error-objects, prefer-early-return |
+| `integration-module.ts` | no-commented-out-code, no-llm-artifacts, no-inline-disable, explicit-export-types, no-async-array-callbacks, max-params, structured-logging                                  |
 
 ## Output
 

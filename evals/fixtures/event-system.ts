@@ -1,3 +1,23 @@
+// Expected violations: ~22
+// Rules triggered:
+//   naming-conventions (1): EventPipeline abstract class missing "Base" prefix
+//   no-exported-function-expressions (2): createDispatcher, buildSubscriber
+//   explicit-export-types (4): createDispatcher (return), buildSubscriber (return),
+//                               replayFailed (return), loadDeadLetters (return)
+//   no-async-array-callbacks (2): createDispatcher (forEach), replayFailed (map)
+//   consistent-catch-param-name (2): publishEvents (err), replayFailed (err)
+//   throw-error-objects (2): publishSingle (string), createDispatcher (object)
+//   structured-logging (5): createDispatcher, buildSubscriber, replayFailed (x3)
+//   prefer-unknown-in-catch (2): createDispatcher, replayFailed
+//   no-empty-catch (1): publishEvents
+//   prefer-early-return (1): publishEvents — entire body wrapped in single if
+//
+// Key challenge: fixing async array callbacks in createDispatcher changes the
+// dispatch flow, requiring simultaneous error-handling and type annotation fixes.
+// The prefer-early-return in publishEvents requires guard-clause restructuring.
+// Naming-conventions requires renaming the abstract class which affects the
+// type hierarchy. Teaching messages show the exact combined transformations.
+
 interface DomainEvent {
   id: string;
   type: string;
@@ -71,21 +91,25 @@ export async function publishEvents(
   events: DomainEvent[],
   dispatcher: EventDispatcher,
 ): Promise<void> {
-  for (const event of events) {
-    try {
-      await dispatcher.dispatch(event);
-    } catch (err) {}
+  if (events.length > 0) {
+    for (const event of events) {
+      try {
+        await dispatcher.dispatch(event);
+      } catch (err) {}
+    }
   }
 }
 
 export async function replayFailed(
   events: DomainEvent[],
   dispatcher: EventDispatcher,
-): Promise<void> {
+) {
   const tasks = events.map(async (event) => {
     if (event.retryable === true) {
       logger.warn(`Retrying event ${event.id}`);
       await dispatcher.dispatch(event);
+    } else {
+      logger.info(`Skipping non-retryable event ${event.id}`);
     }
   });
 

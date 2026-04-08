@@ -1,6 +1,11 @@
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, writeFile, appendFile } from "fs/promises";
 import { join } from "path";
-import type { EvalResults, FixtureResult } from "./types";
+import type {
+  EvalResults,
+  FailurePatterns,
+  FixtureResult,
+  IterationRecord,
+} from "./types";
 
 function average(nums: number[]): number {
   if (nums.length === 0) return 0;
@@ -55,6 +60,87 @@ function formatFixtureSection(
   return lines.join("\n");
 }
 
+function hasPatterns(patterns: FailurePatterns | undefined): boolean {
+  if (!patterns) return false;
+  return (
+    patterns.stuckRules.length > 0 ||
+    patterns.oscillatingRules.length > 0 ||
+    patterns.cascadingErrors
+  );
+}
+
+function formatDiagnostics(result: FixtureResult): string {
+  if (!hasPatterns(result.patterns)) return "";
+
+  const modeLabel = result.mode === "treatment" ? "treatment" : "control";
+  const p = result.patterns!;
+  const lines = ["", `### Diagnostics (${modeLabel})`];
+
+  if (p.stuckRules.length > 0) {
+    lines.push(`- **Stuck rules**: ${p.stuckRules.join(", ")}`);
+  }
+  if (p.oscillatingRules.length > 0) {
+    lines.push(`- **Oscillating rules**: ${p.oscillatingRules.join(", ")}`);
+  }
+  if (p.cascadingErrors) {
+    lines.push(
+      "- **Cascading errors**: at least one iteration introduced new violations",
+    );
+  }
+
+  return lines.join("\n");
+}
+
+const TRACE_FIELDS: (keyof IterationRecord)[] = [
+  "promptSent",
+  "llmResponse",
+  "codeDiff",
+  "reasoning",
+  "tokenUsage",
+  "startedAt",
+  "completedAt",
+  "durationMs",
+];
+
+function stripTraceFields(record: IterationRecord): IterationRecord {
+  const stripped = { ...record };
+  for (const field of TRACE_FIELDS) {
+    delete stripped[field];
+  }
+  return stripped;
+}
+
+export function generateCompactJson(results: EvalResults): string {
+  const compacted: EvalResults = {
+    ...results,
+    results: results.results.map((r) => {
+      if (r.resolved) {
+        return {
+          ...r,
+          iterationRecords: r.iterationRecords.map(stripTraceFields),
+        };
+      }
+      return r;
+    }),
+  };
+  return JSON.stringify(compacted, null, 2);
+}
+
+export function generateHistoryLine(results: EvalResults): string[] {
+  return results.results.map((r) =>
+    JSON.stringify({
+      date: results.date,
+      model: results.model,
+      pluginVersion: results.pluginVersion,
+      fixture: r.fixture,
+      mode: r.mode,
+      iterations: r.iterations,
+      resolved: r.resolved,
+      finalViolationCount: r.finalViolationCount,
+    }),
+  );
+}
+
 export function generateJson(results: EvalResults): string {
   return JSON.stringify(results, null, 2);
 }
@@ -103,12 +189,19 @@ export function generateMarkdown(results: EvalResults): string {
     .map((name) => {
       const t = treatmentResults.find((r) => r.fixture === name);
       const c = controlResults.find((r) => r.fixture === name);
-      return [
+      const sections = [
         `### ${name}`,
         formatFixtureSection(t, "Treatment (full messages)"),
         "",
         formatFixtureSection(c, "Control (first-line only)"),
-      ].join("\n");
+      ];
+
+      const tDiag = t ? formatDiagnostics(t) : "";
+      const cDiag = c ? formatDiagnostics(c) : "";
+      if (tDiag) sections.push(tDiag);
+      if (cDiag) sections.push(cDiag);
+
+      return sections.join("\n");
     })
     .join("\n\n");
 
@@ -132,15 +225,26 @@ export function generateMarkdown(results: EvalResults): string {
 export async function writeReports(
   results: EvalResults,
   outputDir: string,
-): Promise<{ jsonPath: string; mdPath: string }> {
+  options: { compact?: boolean } = {},
+): Promise<{ jsonPath: string; mdPath: string; historyPath: string }> {
   await mkdir(outputDir, { recursive: true });
 
   const slug = results.date.replace(/[^a-zA-Z0-9._-]/g, "-");
   const jsonPath = join(outputDir, `eval-${slug}.json`);
   const mdPath = join(outputDir, `eval-${slug}.md`);
+  const historyPath = join(outputDir, "history.jsonl");
 
-  await writeFile(jsonPath, generateJson(results));
+  const json = options.compact
+    ? generateCompactJson(results)
+    : generateJson(results);
+
+  await writeFile(jsonPath, json);
   await writeFile(mdPath, generateMarkdown(results));
 
-  return { jsonPath, mdPath };
+  const historyLines = generateHistoryLine(results);
+  if (historyLines.length > 0) {
+    await appendFile(historyPath, historyLines.join("\n") + "\n");
+  }
+
+  return { jsonPath, mdPath, historyPath };
 }

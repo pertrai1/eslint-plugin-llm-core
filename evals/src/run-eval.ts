@@ -3,6 +3,8 @@ import { join, resolve } from "path";
 import type { EvalConfig, EvalMode, EvalResults, FixtureResult } from "./types";
 import { runFixture } from "./eval-loop";
 import { writeReports } from "./reporter";
+import { findIterationTrace, type ReplayTarget } from "./replay";
+import { SYSTEM_PROMPT, extractReasoning, requireApiKey } from "./llm-client";
 
 const DEFAULTS = {
   mode: "both" as const,
@@ -21,6 +23,9 @@ Options:
   --fixture <name>                Run specific fixture only (repeatable)
   --max-iterations <n>            Max iterations per fixture (default: ${DEFAULTS.maxIterations})
   --output <dir>                  Output directory (default: evals/results)
+  --compact                       Strip trace fields from resolved fixtures in JSON
+  --replay <file>                 Replay a specific iteration from a saved eval
+  --iteration <n>                 Iteration to replay (use with --replay)
   --help                          Show this help
 
 Environment:
@@ -30,6 +35,7 @@ Examples:
   npx tsx evals/src/run-eval.ts
   npx tsx evals/src/run-eval.ts --mode treatment
   npx tsx evals/src/run-eval.ts --fixture api-service.ts --max-iterations 3
+  npx tsx evals/src/run-eval.ts --replay evals/results/eval-2026-04-08.json --fixture api-service.ts --mode treatment --iteration 2
 `);
 }
 
@@ -42,6 +48,9 @@ function parseArgs(argv: string[]): EvalConfig {
     fixtureFilter: [],
     maxIterations: DEFAULTS.maxIterations,
     outputDir: DEFAULTS.outputDir,
+    compact: false,
+    replayFile: null,
+    replayIteration: null,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -78,6 +87,21 @@ function parseArgs(argv: string[]): EvalConfig {
       i++;
     } else if (arg === "--output" && next) {
       config.outputDir = resolve(next);
+      i++;
+    } else if (arg === "--compact") {
+      config.compact = true;
+    } else if (arg === "--replay" && next) {
+      config.replayFile = resolve(next);
+      i++;
+    } else if (arg === "--iteration" && next) {
+      const n = parseInt(next, 10);
+      if (isNaN(n) || n < 1) {
+        process.stderr.write(
+          `Invalid --iteration "${next}". Must be a positive integer.\n`,
+        );
+        process.exit(1);
+      }
+      config.replayIteration = n;
       i++;
     }
   }
@@ -121,8 +145,87 @@ async function getPluginVersion(): Promise<string> {
   }
 }
 
+async function runReplay(config: EvalConfig): Promise<void> {
+  if (!config.replayFile) {
+    process.stderr.write("--replay requires a file path.\n");
+    process.exit(1);
+  }
+  if (!config.replayIteration) {
+    process.stderr.write("--replay requires --iteration <n>.\n");
+    process.exit(1);
+  }
+  if (config.fixtureFilter.length !== 1) {
+    process.stderr.write("--replay requires exactly one --fixture.\n");
+    process.exit(1);
+  }
+  if (config.mode === "both") {
+    process.stderr.write(
+      "--replay requires --mode treatment or --mode control.\n",
+    );
+    process.exit(1);
+  }
+
+  const raw = await readFile(config.replayFile, "utf-8");
+  const results = JSON.parse(raw) as EvalResults;
+
+  const modelWasExplicit = process.argv.includes("--model");
+  const replayModel = modelWasExplicit ? config.model : results.model;
+
+  const target: ReplayTarget = {
+    fixture: config.fixtureFilter[0]!.endsWith(".ts")
+      ? config.fixtureFilter[0]!
+      : `${config.fixtureFilter[0]!}.ts`,
+    mode: config.mode,
+    iteration: config.replayIteration,
+  };
+
+  const trace = findIterationTrace(results, target);
+  if (!trace) {
+    process.stderr.write(
+      `No trace found for ${target.fixture} [${target.mode}] iteration ${target.iteration}.\n`,
+    );
+    process.exit(1);
+  }
+
+  process.stdout.write(
+    `Replaying ${target.fixture} [${target.mode}] iteration ${target.iteration}\n`,
+  );
+  process.stdout.write(
+    `  Model: ${replayModel}${modelWasExplicit ? " (override)" : " (from trace)"}\n\n`,
+  );
+
+  const Anthropic = (await import("@anthropic-ai/sdk")).default;
+  const client = new Anthropic({ apiKey: requireApiKey() });
+  const response = await client.messages.create({
+    model: replayModel,
+    max_tokens: 4096,
+    system: SYSTEM_PROMPT,
+    messages: [{ role: "user", content: trace.promptSent! }],
+  });
+
+  const textBlock = response.content.find((block) => block.type === "text");
+  if (!textBlock || textBlock.type !== "text") {
+    process.stderr.write("LLM returned no text content.\n");
+    process.exit(1);
+  }
+
+  const reasoning = extractReasoning(textBlock.text);
+  if (reasoning) {
+    process.stdout.write(`Reasoning:\n${reasoning}\n\n`);
+  }
+  process.stdout.write(`Response:\n${textBlock.text}\n`);
+  process.stdout.write(
+    `\nTokens: ${response.usage.input_tokens} in / ${response.usage.output_tokens} out\n`,
+  );
+}
+
 async function main(): Promise<void> {
   const config = parseArgs(process.argv);
+
+  if (config.replayFile) {
+    return runReplay(config);
+  }
+
   const fixturesDir = resolve(__dirname, "../fixtures");
   const fixturePaths = await resolveFixturePaths(
     fixturesDir,
@@ -175,14 +278,16 @@ async function main(): Promise<void> {
     results,
   };
 
-  const { jsonPath, mdPath } = await writeReports(
+  const { jsonPath, mdPath, historyPath } = await writeReports(
     evalResults,
     config.outputDir,
+    { compact: config.compact },
   );
 
   process.stdout.write(`\nReports written:\n`);
-  process.stdout.write(`  JSON: ${jsonPath}\n`);
-  process.stdout.write(`  MD:   ${mdPath}\n`);
+  process.stdout.write(`  JSON:    ${jsonPath}\n`);
+  process.stdout.write(`  MD:      ${mdPath}\n`);
+  process.stdout.write(`  History: ${historyPath}\n`);
 }
 
 main().catch((err) => {

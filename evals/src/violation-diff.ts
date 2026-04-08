@@ -1,7 +1,7 @@
 import type { LintViolation, ViolationDiff } from "./types";
 
 function violationKey(v: LintViolation): string {
-  return `${v.ruleId}::${v.line}::${v.column}`;
+  return `${v.ruleId}::${v.line}::${v.column}::${v.message}`;
 }
 
 export function computeViolationDiff(

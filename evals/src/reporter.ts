@@ -72,8 +72,9 @@ function hasPatterns(patterns: FailurePatterns | undefined): boolean {
 function formatDiagnostics(result: FixtureResult): string {
   if (!hasPatterns(result.patterns)) return "";
 
+  const modeLabel = result.mode === "treatment" ? "treatment" : "control";
   const p = result.patterns!;
-  const lines = ["", "### Diagnostics"];
+  const lines = ["", `### Diagnostics (${modeLabel})`];
 
   if (p.stuckRules.length > 0) {
     lines.push(`- **Stuck rules**: ${p.stuckRules.join(", ")}`);

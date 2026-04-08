@@ -86,7 +86,7 @@ describe("eval reporting", () => {
 
     const markdown = generateMarkdown(results);
 
-    expect(markdown).toContain("### Diagnostics");
+    expect(markdown).toContain("### Diagnostics (treatment)");
     expect(markdown).toContain("Stuck rules");
     expect(markdown).toContain("llm-core/no-magic-numbers");
     expect(markdown).toContain("Oscillating rules");
@@ -124,7 +124,7 @@ describe("eval reporting", () => {
 
     const markdown = generateMarkdown(results);
 
-    expect(markdown).not.toContain("### Diagnostics");
+    expect(markdown).not.toContain("### Diagnostics (");
   });
 });
 

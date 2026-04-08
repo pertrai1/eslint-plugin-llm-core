@@ -16,7 +16,7 @@ export const SYSTEM_PROMPT = [
   "export function example(): string { return 'hello'; }",
 ].join("\n");
 
-function requireApiKey(): string {
+export function requireApiKey(): string {
   const key = process.env["ANTHROPIC_API_KEY"];
   if (!key) {
     throw new Error(
@@ -68,7 +68,14 @@ export function buildFixViolationsPrompt(
 }
 
 function stripReasoningTags(response: string): string {
-  return response.replace(/<reasoning>[\s\S]*?<\/reasoning>\s*/, "").trim();
+  const closeTag = "</reasoning>";
+  const closeIndex = response.indexOf(closeTag);
+
+  if (closeIndex !== -1) {
+    return response.slice(closeIndex + closeTag.length).trim();
+  }
+
+  return response.trim();
 }
 
 export async function fixViolations(

@@ -4,7 +4,7 @@ import type { EvalConfig, EvalMode, EvalResults, FixtureResult } from "./types";
 import { runFixture } from "./eval-loop";
 import { writeReports } from "./reporter";
 import { findIterationTrace, type ReplayTarget } from "./replay";
-import { SYSTEM_PROMPT, extractReasoning } from "./llm-client";
+import { SYSTEM_PROMPT, extractReasoning, requireApiKey } from "./llm-client";
 
 const DEFAULTS = {
   mode: "both" as const,
@@ -190,7 +190,7 @@ async function runReplay(config: EvalConfig): Promise<void> {
   process.stdout.write(`  Model: ${config.model}\n\n`);
 
   const Anthropic = (await import("@anthropic-ai/sdk")).default;
-  const client = new Anthropic();
+  const client = new Anthropic({ apiKey: requireApiKey() });
   const response = await client.messages.create({
     model: config.model,
     max_tokens: 4096,

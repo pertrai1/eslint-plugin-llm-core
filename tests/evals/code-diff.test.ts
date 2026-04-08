@@ -22,6 +22,25 @@ describe("computeCodeDiff", () => {
     expect(diff).not.toContain("-  return a + b;");
   });
 
+  it("handles line insertions without misaligning subsequent lines", () => {
+    const before = ["const a = 1;", "const b = 2;", "const c = 3;"].join("\n");
+
+    const after = [
+      "import { x } from 'y';",
+      "const a = 1;",
+      "const b = 2;",
+      "const c = 3;",
+    ].join("\n");
+
+    const diff = computeCodeDiff(before, after);
+
+    expect(diff).toContain("+import { x } from 'y';");
+    expect(diff).toContain(" const a = 1;");
+    expect(diff).toContain(" const b = 2;");
+    expect(diff).toContain(" const c = 3;");
+    expect(diff).not.toContain("-const a = 1;");
+  });
+
   it("returns empty string when code is unchanged", () => {
     const code = "export const x = 1;";
 

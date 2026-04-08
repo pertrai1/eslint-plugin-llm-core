@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  SYSTEM_PROMPT,
   buildFixViolationsPrompt,
+  extractReasoning,
   formatViolationList,
 } from "../../evals/src/llm-client";
 import { stripViolationMessages } from "../../evals/src/strip-messages";
@@ -57,5 +59,40 @@ describe("eval prompt formatting", () => {
     );
     expect(prompt).not.toContain("How to fix:");
     expect(prompt).not.toContain("llm-core/explicit-export-types");
+  });
+});
+
+describe("system prompt", () => {
+  it("requests reasoning in a structured tag before the code", () => {
+    expect(SYSTEM_PROMPT).toContain("<reasoning>");
+    expect(SYSTEM_PROMPT).toContain("</reasoning>");
+  });
+});
+
+describe("extractReasoning", () => {
+  it("extracts reasoning from a response with reasoning tags", () => {
+    const response = [
+      "<reasoning>",
+      "The function is missing a return type annotation.",
+      "I need to add Promise<void> as the return type.",
+      "</reasoning>",
+      "```typescript",
+      "export async function fetchUser(): Promise<void> {}",
+      "```",
+    ].join("\n");
+
+    expect(extractReasoning(response)).toBe(
+      "The function is missing a return type annotation.\nI need to add Promise<void> as the return type.",
+    );
+  });
+
+  it("returns null when no reasoning tags are present", () => {
+    const response = [
+      "```typescript",
+      "export async function fetchUser(): Promise<void> {}",
+      "```",
+    ].join("\n");
+
+    expect(extractReasoning(response)).toBeNull();
   });
 });

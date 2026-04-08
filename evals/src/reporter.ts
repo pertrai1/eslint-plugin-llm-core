@@ -96,6 +96,10 @@ const TRACE_FIELDS: (keyof IterationRecord)[] = [
   "llmResponse",
   "codeDiff",
   "reasoning",
+  "tokenUsage",
+  "startedAt",
+  "completedAt",
+  "durationMs",
 ];
 
 function stripTraceFields(record: IterationRecord): IterationRecord {

@@ -40,7 +40,8 @@ function findStuckRules(records: IterationRecord[]): string[] {
   const last = records[records.length - 1];
   if (!last?.remainingRuleIds?.length) return [];
 
-  return last.remainingRuleIds.filter((ruleId) =>
-    records.slice(0, -1).every((r) => r.remainingRuleIds?.includes(ruleId)),
-  );
+  const secondToLast = records[records.length - 2];
+  const prevRules = new Set(secondToLast?.remainingRuleIds ?? []);
+
+  return last.remainingRuleIds.filter((ruleId) => prevRules.has(ruleId));
 }

@@ -103,4 +103,30 @@ describe("computeViolationDiff", () => {
     expect(diff.persisted).toEqual([]);
     expect(diff.introduced).toEqual([]);
   });
+
+  it("classifies a violation as persisted when its line shifts due to edits above", () => {
+    const before: LintViolation[] = [
+      {
+        ruleId: "llm-core/no-magic-numbers",
+        message: "No magic numbers",
+        line: 10,
+        column: 5,
+      },
+    ];
+
+    const after: LintViolation[] = [
+      {
+        ruleId: "llm-core/no-magic-numbers",
+        message: "No magic numbers",
+        line: 13,
+        column: 5,
+      },
+    ];
+
+    const diff = computeViolationDiff(before, after);
+
+    expect(diff.persisted).toHaveLength(1);
+    expect(diff.resolved).toHaveLength(0);
+    expect(diff.introduced).toHaveLength(0);
+  });
 });

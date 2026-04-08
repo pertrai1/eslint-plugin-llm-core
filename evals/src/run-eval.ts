@@ -168,6 +168,9 @@ async function runReplay(config: EvalConfig): Promise<void> {
   const raw = await readFile(config.replayFile, "utf-8");
   const results = JSON.parse(raw) as EvalResults;
 
+  const modelWasExplicit = process.argv.includes("--model");
+  const replayModel = modelWasExplicit ? config.model : results.model;
+
   const target: ReplayTarget = {
     fixture: config.fixtureFilter[0]!.endsWith(".ts")
       ? config.fixtureFilter[0]!
@@ -187,12 +190,14 @@ async function runReplay(config: EvalConfig): Promise<void> {
   process.stdout.write(
     `Replaying ${target.fixture} [${target.mode}] iteration ${target.iteration}\n`,
   );
-  process.stdout.write(`  Model: ${config.model}\n\n`);
+  process.stdout.write(
+    `  Model: ${replayModel}${modelWasExplicit ? " (override)" : " (from trace)"}\n\n`,
+  );
 
   const Anthropic = (await import("@anthropic-ai/sdk")).default;
   const client = new Anthropic({ apiKey: requireApiKey() });
   const response = await client.messages.create({
-    model: config.model,
+    model: replayModel,
     max_tokens: 4096,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: trace.promptSent! }],

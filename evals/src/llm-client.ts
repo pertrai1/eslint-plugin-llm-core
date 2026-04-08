@@ -93,12 +93,17 @@ export async function fixViolations(
     messages: [{ role: "user", content: prompt }],
   });
 
-  const textBlock = response.content.find((block) => block.type === "text");
-  if (!textBlock || textBlock.type !== "text") {
+  const textBlocks = response.content.filter(
+    (
+      block,
+    ): block is Extract<(typeof response.content)[number], { type: "text" }> =>
+      block.type === "text",
+  );
+  if (textBlocks.length === 0) {
     throw new Error("LLM returned no text content");
   }
 
-  const rawResponse = textBlock.text;
+  const rawResponse = textBlocks.map((b) => b.text).join("\n");
 
   return {
     code: extractCode(stripReasoningTags(rawResponse)),

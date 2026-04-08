@@ -150,6 +150,10 @@ describe("generateCompactJson", () => {
               llmResponse: "Here is the fixed code...",
               codeDiff: "-old\n+new",
               reasoning: "I added types",
+              tokenUsage: { inputTokens: 100, outputTokens: 200 },
+              startedAt: "2026-04-08T00:00:00Z",
+              completedAt: "2026-04-08T00:00:01Z",
+              durationMs: 1000,
             },
           ],
         },
@@ -164,6 +168,10 @@ describe("generateCompactJson", () => {
     expect(record.llmResponse).toBeUndefined();
     expect(record.codeDiff).toBeUndefined();
     expect(record.reasoning).toBeUndefined();
+    expect(record.tokenUsage).toBeUndefined();
+    expect(record.startedAt).toBeUndefined();
+    expect(record.completedAt).toBeUndefined();
+    expect(record.durationMs).toBeUndefined();
     expect(record.iteration).toBe(1);
     expect(record.violationsBefore).toBe(5);
   });

@@ -57,6 +57,12 @@ function parseArgs(argv: string[]): QueryConfig {
     } else if (arg === "--stuck-rules") {
       config.query = "stuck-rules";
     } else if (arg === "--mode" && next) {
+      if (next !== "treatment" && next !== "control") {
+        process.stderr.write(
+          `Invalid --mode "${next}". Use: treatment or control.\n`,
+        );
+        process.exit(1);
+      }
       config.mode = next;
       i++;
     } else if (arg === "--input" && next) {
@@ -106,6 +112,16 @@ async function main(): Promise<void> {
 
   if (runs.length === 0) {
     process.stderr.write("No result files found.\n");
+    process.exit(1);
+  }
+
+  const totalResults = runs.reduce((n, r) => n + r.results.length, 0);
+  if (totalResults === 0) {
+    process.stderr.write(
+      config.mode
+        ? `No results found for mode "${config.mode}".\n`
+        : "No results found.\n",
+    );
     process.exit(1);
   }
 

@@ -1,7 +1,20 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { LintViolation } from "./types";
+import type { LintViolation, LlmFixResult } from "./types";
 
 const DEFAULT_MODEL = "claude-sonnet-4-20250514";
+
+export const SYSTEM_PROMPT = [
+  "You are a TypeScript developer fixing ESLint violations.",
+  "",
+  "First, briefly explain your reasoning inside <reasoning> tags.",
+  "Then return the complete fixed TypeScript code (no markdown fences).",
+  "",
+  "Example response format:",
+  "<reasoning>",
+  "The function needs an explicit return type annotation.",
+  "</reasoning>",
+  "export function example(): string { return 'hello'; }",
+].join("\n");
 
 function requireApiKey(): string {
   const key = process.env["ANTHROPIC_API_KEY"];
@@ -11,6 +24,12 @@ function requireApiKey(): string {
     );
   }
   return key;
+}
+
+export function extractReasoning(response: string): string | null {
+  const match = /<reasoning>([\s\S]*?)<\/reasoning>/.exec(response);
+  if (!match) return null;
+  return (match[1] ?? "").trim();
 }
 
 function extractCode(response: string): string {
@@ -48,20 +67,23 @@ export function buildFixViolationsPrompt(
   ].join("\n");
 }
 
+function stripReasoningTags(response: string): string {
+  return response.replace(/<reasoning>[\s\S]*?<\/reasoning>\s*/, "").trim();
+}
+
 export async function fixViolations(
   code: string,
   violations: LintViolation[],
   model: string = DEFAULT_MODEL,
-): Promise<string> {
+): Promise<LlmFixResult> {
   const client = new Anthropic({ apiKey: requireApiKey() });
-  const userMessage = buildFixViolationsPrompt(code, violations);
+  const prompt = buildFixViolationsPrompt(code, violations);
 
   const response = await client.messages.create({
     model,
     max_tokens: 4096,
-    system:
-      "You are a TypeScript developer fixing ESLint violations. Return ONLY the fixed TypeScript code, no explanations, no markdown fences.",
-    messages: [{ role: "user", content: userMessage }],
+    system: SYSTEM_PROMPT,
+    messages: [{ role: "user", content: prompt }],
   });
 
   const textBlock = response.content.find((block) => block.type === "text");
@@ -69,5 +91,16 @@ export async function fixViolations(
     throw new Error("LLM returned no text content");
   }
 
-  return extractCode(textBlock.text);
+  const rawResponse = textBlock.text;
+
+  return {
+    code: extractCode(stripReasoningTags(rawResponse)),
+    rawResponse,
+    reasoning: extractReasoning(rawResponse),
+    tokenUsage: {
+      inputTokens: response.usage.input_tokens,
+      outputTokens: response.usage.output_tokens,
+    },
+    prompt,
+  };
 }

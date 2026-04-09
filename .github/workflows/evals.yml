@@ -1,0 +1,83 @@
+name: Evals
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Eval mode"
+        required: false
+        default: "both"
+        type: choice
+        options:
+          - both
+          - treatment
+          - control
+      fixture:
+        description: "Run a specific fixture (leave blank for all)"
+        required: false
+        type: string
+      max_iterations:
+        description: "Max fix iterations per fixture"
+        required: false
+        default: "5"
+        type: string
+
+jobs:
+  run-evals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run evals
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          args="--mode ${{ inputs.mode }}"
+          if [ -n "${{ inputs.fixture }}" ]; then
+            args="$args --fixture ${{ inputs.fixture }}"
+          fi
+          if [ -n "${{ inputs.max_iterations }}" ]; then
+            args="$args --max-iterations ${{ inputs.max_iterations }}"
+          fi
+          npx tsx evals/src/run-eval.ts $args
+
+      - name: Commit results to eval-results branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Fetch or create the eval-results branch
+          git fetch origin eval-results 2>/dev/null || true
+          if git rev-parse --verify origin/eval-results >/dev/null 2>&1; then
+            git checkout eval-results
+          else
+            git checkout --orphan eval-results
+            git rm -rf . 2>/dev/null || true
+            echo "# Eval Results" > README.md
+            echo "" >> README.md
+            echo "This branch stores eval results committed by CI." >> README.md
+            echo "Each JSON file includes a \`gitCommit\` field linking back to the main branch state." >> README.md
+            git add README.md
+            git commit -m "init: eval-results branch"
+          fi
+
+          # Copy results from the working directory
+          cp -r evals/results/*.json . 2>/dev/null || true
+          cp -r evals/results/*.md . 2>/dev/null || true
+
+          # Stage and commit if there are changes
+          git add *.json *.md 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No new eval results to commit."
+          else
+            commit_sha=$(git rev-parse --short HEAD~0)
+            git commit -m "eval: results from $(date +%Y-%m-%d) (source: ${{ github.sha }})"
+            git push origin eval-results
+          fi

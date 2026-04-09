@@ -56,6 +56,32 @@ How to fix:
 Parameter 'order' in exported function 'processOrder' is missing a type annotation.
 ```
 
+## CI Workflow
+
+Evals can be run via GitHub Actions using the **manual trigger** (`workflow_dispatch`):
+
+1. Go to **Actions > Evals** in the GitHub UI
+2. Click **Run workflow**
+3. Select mode, fixture filter, and max iterations
+4. Results are committed to the `eval-results` branch
+
+The `eval-results` branch stores JSON and markdown reports. Each result file includes a `gitCommit` field linking back to the exact main branch state that was evaluated.
+
+**Reading trend data:**
+
+```bash
+git fetch origin eval-results
+git log origin/eval-results --oneline    # timeline of eval runs
+git show origin/eval-results:eval-2026-04-09.json  # specific result
+```
+
+**Requires:** `ANTHROPIC_API_KEY` secret configured in the repository.
+
+**Future triggers** (not yet implemented):
+
+- Filtered merge trigger — runs when PRs touching `src/rules/`, `evals/fixtures/`, or `docs/guides/lint-message-template.md` merge to main
+- Monthly scheduled — detects model drift when Claude API updates change behavior
+
 ## Fixtures
 
 | File                    | Target rules                                                                                                                                                                 |
@@ -66,6 +92,7 @@ Parameter 'order' in exported function 'processOrder' is missing a type annotati
 | `data-transformer.ts`   | no-exported-function-expressions, explicit-export-types, no-type-assertion-any, no-any-in-generic, no-async-array-callbacks, no-redundant-logic                              |
 | `error-pipeline.ts`     | no-empty-catch, throw-error-objects, prefer-unknown-in-catch, structured-logging, no-redundant-logic, no-magic-numbers                                                       |
 | `event-system.ts`       | naming-conventions, no-exported-function-expressions, explicit-export-types, no-async-array-callbacks, consistent-catch-param-name, throw-error-objects, prefer-early-return |
+| `file-structure.ts`     | max-file-length, max-function-length, max-params, no-magic-numbers, structured-logging, no-exported-function-expressions, no-empty-catch, throw-error-objects                |
 | `integration-module.ts` | no-commented-out-code, no-llm-artifacts, no-inline-disable, explicit-export-types, no-async-array-callbacks, max-params, structured-logging                                  |
 
 ## Output

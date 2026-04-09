@@ -68,7 +68,7 @@ Evals can be run via GitHub Actions using the **manual trigger** (`workflow_disp
 3. Select mode, fixture filter, and max iterations
 4. Results are committed to the `eval-results` branch
 
-The `eval-results` branch stores JSON and markdown reports. Each result file includes a `gitCommit` field linking back to the exact main branch state that was evaluated.
+The `eval-results` branch stores JSON and markdown reports. Each result file includes a `gitCommit` field linking back to the exact commit/ref that was evaluated.
 
 **Reading trend data:**
 
@@ -102,8 +102,8 @@ git show origin/eval-results:eval-2026-04-09.json  # specific result
 
 Reports are written to `evals/results/` (gitignored):
 
-- `eval-YYYY-MM-DD.json` — full results with decision traces for debugging
-- `eval-YYYY-MM-DD.md` — human-readable comparison table with diagnostics
+- `eval-<timestamp>.json` — full results with decision traces for debugging
+- `eval-<timestamp>.md` — human-readable comparison table with diagnostics
 - `history.jsonl` — append-only log for cross-run trend analysis
 
 Example markdown output:

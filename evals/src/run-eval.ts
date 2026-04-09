@@ -282,7 +282,7 @@ async function main(): Promise<void> {
   const gitCommit = getGitCommit();
 
   const evalResults: EvalResults = {
-    date: new Date().toISOString().split("T")[0]!,
+    date: new Date().toISOString(),
     model: config.model,
     pluginVersion,
     gitCommit,

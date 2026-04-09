@@ -153,12 +153,27 @@ describe("rule message guidance", () => {
 
     // Must show the 'prop' in error narrowing pattern for custom properties
     expect(message).toContain("'code' in error");
-    // "After:" sections must not use "as any" as a fix pattern
-    const afterSections = message
-      .split("\n")
-      .filter((line) => line.trimStart().startsWith("After:"));
-    for (const line of afterSections) {
-      expect(line).not.toContain("as any");
+    // "After:" sections (including continuation lines) must not use "as any"
+    const lines = message.split("\n");
+    const afterSections: string[] = [];
+    let current: string[] = [];
+    for (const line of lines) {
+      if (line.trimStart().startsWith("After:")) {
+        if (current.length > 0) afterSections.push(current.join("\n"));
+        current = [line];
+      } else if (current.length > 0) {
+        if (line.trim() === "" || line.trimStart().startsWith("Before:")) {
+          afterSections.push(current.join("\n"));
+          current = [];
+        } else {
+          current.push(line);
+        }
+      }
+    }
+    if (current.length > 0) afterSections.push(current.join("\n"));
+    expect(afterSections.length).toBeGreaterThan(0);
+    for (const section of afterSections) {
+      expect(section).not.toContain("as any");
     }
   });
 });

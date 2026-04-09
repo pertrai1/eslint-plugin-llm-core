@@ -71,7 +71,7 @@
     "eslint": "^8.57.0 || ^9.0.0 || ^10.0.0"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.82.0",
+    "@anthropic-ai/sdk": "^0.86.1",
     "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.27.0",
     "@commitlint/cli": "^20.5.0",

@@ -10,6 +10,9 @@ import type {
 import { fixViolations } from "./llm-client";
 import { lintCode } from "./linter";
 import { stripViolationMessages } from "./strip-messages";
+import { computeViolationDiff } from "./violation-diff";
+import { computeCodeDiff } from "./code-diff";
+import { detectPatterns } from "./patterns";
 
 function basename(filePath: string): string {
   return filePath.split("/").pop() ?? filePath;
@@ -110,6 +113,7 @@ export async function runFixture(
 ): Promise<FixtureResult> {
   const fixtureName = basename(fixturePath);
   const initialCode = await readFile(fixturePath, "utf-8");
+  const fixtureStartedAt = new Date();
 
   let currentCode = initialCode;
   let currentViolations = lintCode(currentCode);
@@ -119,16 +123,18 @@ export async function runFixture(
 
   while (currentViolations.length > 0 && iterations < options.maxIterations) {
     iterations++;
+    const iterStartedAt = new Date();
     const violationsBefore = currentViolations.length;
 
     const violationsForLlm = prepareViolationsForMode(currentViolations, mode);
-    const candidateCode = await fixViolations(
+    const fixResult = await fixViolations(
       currentCode,
       violationsForLlm,
       options.model,
     );
 
-    if (!preservesExportedApi(initialCode, candidateCode)) {
+    if (!preservesExportedApi(initialCode, fixResult.code)) {
+      const iterCompletedAt = new Date();
       iterationRecords.push({
         iteration: iterations,
         violationsBefore,
@@ -137,11 +143,24 @@ export async function runFixture(
         remainingRuleIds: [
           ...new Set(currentViolations.map((v) => v.ruleId)),
         ].sort((a, b) => a.localeCompare(b)),
+        promptSent: fixResult.prompt,
+        llmResponse: fixResult.rawResponse,
+        codeDiff: computeCodeDiff(currentCode, fixResult.code),
+        tokenUsage: fixResult.tokenUsage,
+        reasoning: fixResult.reasoning,
+        violationDiff: computeViolationDiff(
+          currentViolations,
+          currentViolations,
+        ),
+        startedAt: iterStartedAt.toISOString(),
+        completedAt: iterCompletedAt.toISOString(),
+        durationMs: iterCompletedAt.getTime() - iterStartedAt.getTime(),
       });
       continue;
     }
 
-    const newViolations = lintCode(candidateCode);
+    const newViolations = lintCode(fixResult.code);
+    const iterCompletedAt = new Date();
 
     iterationRecords.push({
       iteration: iterations,
@@ -150,11 +169,22 @@ export async function runFixture(
       remainingRuleIds: [...new Set(newViolations.map((v) => v.ruleId))].sort(
         (a, b) => a.localeCompare(b),
       ),
+      promptSent: fixResult.prompt,
+      llmResponse: fixResult.rawResponse,
+      codeDiff: computeCodeDiff(currentCode, fixResult.code),
+      tokenUsage: fixResult.tokenUsage,
+      reasoning: fixResult.reasoning,
+      violationDiff: computeViolationDiff(currentViolations, newViolations),
+      startedAt: iterStartedAt.toISOString(),
+      completedAt: iterCompletedAt.toISOString(),
+      durationMs: iterCompletedAt.getTime() - iterStartedAt.getTime(),
     });
 
-    currentCode = candidateCode;
+    currentCode = fixResult.code;
     currentViolations = newViolations;
   }
+
+  const fixtureCompletedAt = new Date();
 
   return {
     fixture: fixtureName,
@@ -163,5 +193,9 @@ export async function runFixture(
     resolved: currentViolations.length === 0,
     iterationRecords,
     finalViolationCount: currentViolations.length,
+    patterns: detectPatterns(iterationRecords),
+    startedAt: fixtureStartedAt.toISOString(),
+    completedAt: fixtureCompletedAt.toISOString(),
+    durationMs: fixtureCompletedAt.getTime() - fixtureStartedAt.getTime(),
   };
 }

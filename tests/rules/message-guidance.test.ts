@@ -5,6 +5,7 @@ import maxFunctionLength from "../../src/rules/max-function-length";
 import namingConventions from "../../src/rules/naming-conventions";
 import noAsyncArrayCallbacks from "../../src/rules/no-async-array-callbacks";
 import noEmptyCatch from "../../src/rules/no-empty-catch";
+import preferUnknownInCatch from "../../src/rules/prefer-unknown-in-catch";
 
 function expectSingleWhyLine(message: string): void {
   const whyLines = message
@@ -141,5 +142,23 @@ describe("rule message guidance", () => {
     expect(maxFunctionLengthMessage).not.toContain(
       "And extract the validation and normalization details into helpers.",
     );
+  });
+
+  it("prefer-unknown-in-catch shows custom property narrowing without as any", () => {
+    const message =
+      preferUnknownInCatch.meta.messages?.preferUnknownInCatch ?? "";
+
+    expectSingleWhyLine(message);
+    expectTemplateShape(message);
+
+    // Must show the 'prop' in error narrowing pattern for custom properties
+    expect(message).toContain("'code' in error");
+    // "After:" sections must not use "as any" as a fix pattern
+    const afterSections = message
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("After:"));
+    for (const line of afterSections) {
+      expect(line).not.toContain("as any");
+    }
   });
 });

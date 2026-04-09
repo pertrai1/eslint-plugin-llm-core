@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.11.2
+
+### Patch Changes
+
+- [#105](https://github.com/pertrai1/eslint-plugin-llm-core/pull/105) [`8994099`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/899409977e75b7f1d69b2626d133733893fefa00) Thanks [@pertrai1](https://github.com/pertrai1)! - Add custom property narrowing example to prefer-unknown-in-catch message to prevent cascading no-type-assertion-any violations
+
 ## 0.11.1
 
 ### Patch Changes

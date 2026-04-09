@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   generateCompactJson,
   generateHistoryLine,
+  generateJson,
   generateMarkdown,
 } from "../../evals/src/reporter";
 import type { EvalResults } from "../../evals/src/types";
@@ -12,6 +13,7 @@ describe("eval reporting", () => {
       date: "2026-04-06",
       model: "claude-haiku-4-5-20251001",
       pluginVersion: "0.11.1",
+      gitCommit: "abc1234",
       results: [
         {
           fixture: "event-system.ts",
@@ -46,11 +48,44 @@ describe("eval reporting", () => {
     expect(markdown).toContain("candidate rejected: dropped-exported-api");
   });
 
+  it("includes gitCommit in JSON and markdown output", () => {
+    const results: EvalResults = {
+      date: "2026-04-07",
+      model: "claude-sonnet-4-20250514",
+      pluginVersion: "0.12.0",
+      gitCommit: "f3a9b21",
+      results: [
+        {
+          fixture: "api-service.ts",
+          mode: "treatment",
+          iterations: 1,
+          resolved: true,
+          finalViolationCount: 0,
+          iterationRecords: [
+            {
+              iteration: 1,
+              violationsBefore: 5,
+              violationsAfter: 0,
+            },
+          ],
+        },
+      ],
+    };
+
+    const json = generateJson(results);
+    const parsed = JSON.parse(json) as EvalResults;
+    expect(parsed.gitCommit).toBe("f3a9b21");
+
+    const markdown = generateMarkdown(results);
+    expect(markdown).toContain("**Commit**: f3a9b21");
+  });
+
   it("includes diagnostics section when failure patterns are detected", () => {
     const results: EvalResults = {
       date: "2026-04-08",
       model: "claude-sonnet-4-20250514",
       pluginVersion: "0.11.1",
+      gitCommit: "d4e5f67",
       results: [
         {
           fixture: "api-service.ts",
@@ -99,6 +134,7 @@ describe("eval reporting", () => {
       date: "2026-04-08",
       model: "claude-sonnet-4-20250514",
       pluginVersion: "0.11.1",
+      gitCommit: "a1b2c3d",
       results: [
         {
           fixture: "api-service.ts",
@@ -134,6 +170,7 @@ describe("generateCompactJson", () => {
       date: "2026-04-08",
       model: "claude-sonnet-4-20250514",
       pluginVersion: "0.11.1",
+      gitCommit: "e5f6a7b",
       results: [
         {
           fixture: "api-service.ts",
@@ -181,6 +218,7 @@ describe("generateCompactJson", () => {
       date: "2026-04-08",
       model: "claude-sonnet-4-20250514",
       pluginVersion: "0.11.1",
+      gitCommit: "c8d9e0f",
       results: [
         {
           fixture: "api-service.ts",
@@ -218,6 +256,7 @@ describe("generateHistoryLine", () => {
       date: "2026-04-08",
       model: "claude-sonnet-4-20250514",
       pluginVersion: "0.11.1",
+      gitCommit: "f1a2b3c",
       results: [
         {
           fixture: "api-service.ts",

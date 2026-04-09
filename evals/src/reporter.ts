@@ -146,7 +146,8 @@ export function generateJson(results: EvalResults): string {
 }
 
 export function generateMarkdown(results: EvalResults): string {
-  const { date, model, pluginVersion } = results;
+  const { model, pluginVersion, gitCommit } = results;
+  const date = results.date.split("T")[0] ?? results.date;
 
   const treatmentResults = results.results.filter(
     (r) => r.mode === "treatment",
@@ -211,6 +212,7 @@ export function generateMarkdown(results: EvalResults): string {
     `**Date**: ${date}`,
     `**Model**: ${model}`,
     `**Plugin version**: ${pluginVersion}`,
+    `**Commit**: ${gitCommit}`,
     "",
     "## Summary",
     "",

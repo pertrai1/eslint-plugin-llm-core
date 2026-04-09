@@ -1,3 +1,4 @@
+import { execSync } from "child_process";
 import { readFile, readdir } from "fs/promises";
 import { join, resolve } from "path";
 import type { EvalConfig, EvalMode, EvalResults, FixtureResult } from "./types";
@@ -145,6 +146,14 @@ async function getPluginVersion(): Promise<string> {
   }
 }
 
+function getGitCommit(): string {
+  try {
+    return execSync("git rev-parse --short HEAD").toString().trim();
+  } catch {
+    return "unknown";
+  }
+}
+
 async function runReplay(config: EvalConfig): Promise<void> {
   if (!config.replayFile) {
     process.stderr.write("--replay requires a file path.\n");
@@ -270,11 +279,13 @@ async function main(): Promise<void> {
   }
 
   const pluginVersion = await getPluginVersion();
+  const gitCommit = getGitCommit();
 
   const evalResults: EvalResults = {
-    date: new Date().toISOString().split("T")[0]!,
+    date: new Date().toISOString(),
     model: config.model,
     pluginVersion,
+    gitCommit,
     results,
   };
 

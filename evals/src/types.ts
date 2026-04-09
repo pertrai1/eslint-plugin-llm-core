@@ -77,5 +77,6 @@ export interface EvalResults {
   date: string;
   model: string;
   pluginVersion: string;
+  gitCommit: string;
   results: FixtureResult[];
 }

@@ -22,6 +22,7 @@ const sampleResults: EvalResults = {
   date: "2026-04-08",
   model: "claude-sonnet-4-20250514",
   pluginVersion: "0.11.1",
+  gitCommit: "a1b2c3d",
   results: [
     makeResult({
       fixture: "api-service.ts",

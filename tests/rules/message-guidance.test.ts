@@ -5,6 +5,7 @@ import maxFunctionLength from "../../src/rules/max-function-length";
 import namingConventions from "../../src/rules/naming-conventions";
 import noAsyncArrayCallbacks from "../../src/rules/no-async-array-callbacks";
 import noEmptyCatch from "../../src/rules/no-empty-catch";
+import preferUnknownInCatch from "../../src/rules/prefer-unknown-in-catch";
 
 function expectSingleWhyLine(message: string): void {
   const whyLines = message
@@ -141,5 +142,38 @@ describe("rule message guidance", () => {
     expect(maxFunctionLengthMessage).not.toContain(
       "And extract the validation and normalization details into helpers.",
     );
+  });
+
+  it("prefer-unknown-in-catch shows custom property narrowing without as any", () => {
+    const message =
+      preferUnknownInCatch.meta.messages?.preferUnknownInCatch ?? "";
+
+    expectSingleWhyLine(message);
+    expectTemplateShape(message);
+
+    // Must show the 'prop' in error narrowing pattern for custom properties
+    expect(message).toContain("'code' in error");
+    // "After:" sections (including continuation lines) must not use "as any"
+    const lines = message.split("\n");
+    const afterSections: string[] = [];
+    let current: string[] = [];
+    for (const line of lines) {
+      if (line.trimStart().startsWith("After:")) {
+        if (current.length > 0) afterSections.push(current.join("\n"));
+        current = [line];
+      } else if (current.length > 0) {
+        if (line.trim() === "" || line.trimStart().startsWith("Before:")) {
+          afterSections.push(current.join("\n"));
+          current = [];
+        } else {
+          current.push(line);
+        }
+      }
+    }
+    if (current.length > 0) afterSections.push(current.join("\n"));
+    expect(afterSections.length).toBeGreaterThan(0);
+    for (const section of afterSections) {
+      expect(section).not.toContain("as any");
+    }
   });
 });

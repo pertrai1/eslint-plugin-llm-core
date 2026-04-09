@@ -1,3 +1,4 @@
+import { execSync } from "child_process";
 import { readFile, readdir } from "fs/promises";
 import { join, resolve } from "path";
 import type { EvalConfig, EvalMode, EvalResults, FixtureResult } from "./types";
@@ -121,6 +122,14 @@ async function getPluginVersion(): Promise<string> {
   }
 }
 
+function getGitCommit(): string {
+  try {
+    return execSync("git rev-parse --short HEAD").toString().trim();
+  } catch {
+    return "unknown";
+  }
+}
+
 async function main(): Promise<void> {
   const config = parseArgs(process.argv);
   const fixturesDir = resolve(__dirname, "../fixtures");
@@ -167,11 +176,13 @@ async function main(): Promise<void> {
   }
 
   const pluginVersion = await getPluginVersion();
+  const gitCommit = getGitCommit();
 
   const evalResults: EvalResults = {
     date: new Date().toISOString().split("T")[0]!,
     model: config.model,
     pluginVersion,
+    gitCommit,
     results,
   };
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generateMarkdown } from "../../evals/src/reporter";
+import { generateJson, generateMarkdown } from "../../evals/src/reporter";
 import type { EvalResults } from "../../evals/src/types";
 
 describe("eval reporting", () => {
@@ -8,6 +8,7 @@ describe("eval reporting", () => {
       date: "2026-04-06",
       model: "claude-haiku-4-5-20251001",
       pluginVersion: "0.11.1",
+      gitCommit: "abc1234",
       results: [
         {
           fixture: "event-system.ts",
@@ -40,5 +41,37 @@ describe("eval reporting", () => {
       "remaining rules: llm-core/explicit-export-types",
     );
     expect(markdown).toContain("candidate rejected: dropped-exported-api");
+  });
+
+  it("includes gitCommit in JSON and markdown output", () => {
+    const results: EvalResults = {
+      date: "2026-04-07",
+      model: "claude-sonnet-4-20250514",
+      pluginVersion: "0.12.0",
+      gitCommit: "f3a9b21",
+      results: [
+        {
+          fixture: "api-service.ts",
+          mode: "treatment",
+          iterations: 1,
+          resolved: true,
+          finalViolationCount: 0,
+          iterationRecords: [
+            {
+              iteration: 1,
+              violationsBefore: 5,
+              violationsAfter: 0,
+            },
+          ],
+        },
+      ],
+    };
+
+    const json = generateJson(results);
+    const parsed = JSON.parse(json) as EvalResults;
+    expect(parsed.gitCommit).toBe("f3a9b21");
+
+    const markdown = generateMarkdown(results);
+    expect(markdown).toContain("**Commit**: f3a9b21");
   });
 });

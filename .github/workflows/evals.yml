@@ -57,9 +57,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Fetch or create the eval-results branch
-          git fetch origin eval-results 2>/dev/null || true
+          git fetch origin eval-results:refs/remotes/origin/eval-results 2>/dev/null || true
           if git rev-parse --verify origin/eval-results >/dev/null 2>&1; then
-            git checkout eval-results
+            git checkout -b eval-results origin/eval-results
           else
             git checkout --orphan eval-results
             git rm -rf . 2>/dev/null || true

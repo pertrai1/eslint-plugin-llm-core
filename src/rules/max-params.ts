@@ -154,6 +154,7 @@ export default createRule<Options, MessageIds>({
       }
 
       // Detect re-exported functions: function helper() {} export { helper }
+      // Also detects: const foo = () => {}; export default foo;
       if (
         node.parent?.type === AST_NODE_TYPES.Program &&
         node.type === AST_NODE_TYPES.FunctionDeclaration &&
@@ -171,6 +172,33 @@ export default createRule<Options, MessageIds>({
                 spec.local.type === AST_NODE_TYPES.Identifier &&
                 spec.local.name === funcName,
             )
+          ) {
+            return true;
+          }
+          if (
+            stmt.type === AST_NODE_TYPES.ExportDefaultDeclaration &&
+            stmt.declaration.type === AST_NODE_TYPES.Identifier &&
+            stmt.declaration.name === funcName
+          ) {
+            return true;
+          }
+        }
+      }
+
+      // Detect default-exported arrow/const: const foo = () => {}; export default foo;
+      if (
+        node.parent?.type === AST_NODE_TYPES.VariableDeclarator &&
+        node.parent.id.type === AST_NODE_TYPES.Identifier &&
+        node.parent.parent?.type === AST_NODE_TYPES.VariableDeclaration &&
+        node.parent.parent.parent?.type === AST_NODE_TYPES.Program
+      ) {
+        const varName = node.parent.id.name;
+        const program = node.parent.parent.parent;
+        for (const stmt of program.body) {
+          if (
+            stmt.type === AST_NODE_TYPES.ExportDefaultDeclaration &&
+            stmt.declaration.type === AST_NODE_TYPES.Identifier &&
+            stmt.declaration.name === varName
           ) {
             return true;
           }

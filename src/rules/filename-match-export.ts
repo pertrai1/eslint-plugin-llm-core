@@ -35,10 +35,29 @@ function filenameMatchesExport(filename: string, exportName: string): boolean {
   if (kebabToPascal(base) === exportName) return true;
 
   if (base.includes("-")) {
-    // Kebab-case is lossy for acronym casing (`kb` vs `KB`), so fall back to a
-    // case-insensitive structural comparison once the exact conversions fail.
-    const normalizedBase = base.replace(/-/g, "").toLowerCase();
-    if (normalizedBase === exportName.toLowerCase()) return true;
+    // Kebab-case is lossy for acronym casing (`kb` vs `KB`). After exact
+    // conversions fail, check each kebab segment against the export name
+    // allowing either TitleCase or ALLCAPS for each segment.
+    const segments = base.split("-");
+    let remaining = exportName;
+    let matched = true;
+    for (const segment of segments) {
+      const titleCased =
+        segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase();
+      const allCaps = segment.toUpperCase();
+      if (
+        remaining.length >= titleCased.length &&
+        (remaining.slice(0, titleCased.length) === titleCased ||
+          remaining.slice(0, allCaps.length) === allCaps)
+      ) {
+        const matchLen = Math.max(titleCased.length, allCaps.length);
+        remaining = remaining.slice(matchLen);
+      } else {
+        matched = false;
+        break;
+      }
+    }
+    if (matched && remaining.length === 0) return true;
   }
 
   // Also handle PascalCase filename matching camelCase export

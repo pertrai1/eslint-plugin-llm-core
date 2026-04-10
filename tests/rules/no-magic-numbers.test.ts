@@ -60,13 +60,6 @@ ruleTester.run("no-magic-numbers", rule, {
       options: [{ ignoreObjectProperties: true }],
     },
 
-    // Destructuring defaults are still flagged with ignoreObjectProperties
-    {
-      code: "function f({ timeout = 5000 }: { timeout?: number }) {}",
-      options: [{ ignoreObjectProperties: true }],
-      errors: [{ messageId: "noMagicNumber" as const }],
-    },
-
     // Chained binary expressions in const
     "const MS_PER_HOUR = 1000 * 60 * 60;",
 

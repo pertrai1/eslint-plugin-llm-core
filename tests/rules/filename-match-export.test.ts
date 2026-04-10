@@ -28,6 +28,24 @@ ruleTester.run("filename-match-export", rule, {
       filename: "user-service.ts",
     },
 
+    // kebab-case filename with acronym segments → PascalCase export
+    {
+      code: "export class BedrockKBRagTool {}",
+      filename: "bedrock-kb-rag-tool.ts",
+    },
+
+    // kebab-case filename with multi-letter acronym segments → PascalCase export
+    {
+      code: "export class HttpAPIHandler {}",
+      filename: "http-api-handler.ts",
+    },
+
+    // kebab-case filename with single-word PascalCase export
+    {
+      code: "export class BedrockHandler {}",
+      filename: "bedrock-handler.ts",
+    },
+
     // PascalCase filename → camelCase export
     {
       code: "export function userService() {}",
@@ -160,6 +178,13 @@ ruleTester.run("filename-match-export", rule, {
     {
       code: "export class UserRepository {}",
       filename: "AccountRepository.ts",
+      errors: [{ messageId: "filenameMismatch" as const }],
+    },
+
+    // kebab-case filename should still reject genuinely wrong exports
+    {
+      code: "export class OrderProcessor {}",
+      filename: "user-service.ts",
       errors: [{ messageId: "filenameMismatch" as const }],
     },
 

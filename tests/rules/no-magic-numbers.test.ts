@@ -48,6 +48,18 @@ ruleTester.run("no-magic-numbers", rule, {
     // Numbers in const declaration expressions
     "const timeout = 5000 * 2;",
 
+    // Object literal property values ignored when configured
+    {
+      code: "const config = { timeout: 5000, retries: 3, port: 8080 };",
+      options: [{ ignoreObjectProperties: true }],
+    },
+
+    // Nested object property values ignored when configured
+    {
+      code: "const config = { server: { port: 3000 } };",
+      options: [{ ignoreObjectProperties: true }],
+    },
+
     // Chained binary expressions in const
     "const MS_PER_HOUR = 1000 * 60 * 60;",
 
@@ -177,6 +189,19 @@ ruleTester.run("no-magic-numbers", rule, {
       code: "if (retries > 5) {}",
       filename: "foo.test.ts",
       options: [{ skipTestFiles: false }],
+      errors: [{ messageId: "noMagicNumber" as const }],
+    },
+
+    // Object literal property values are flagged by default
+    {
+      code: "const config = { timeout: 5000 };",
+      errors: [{ messageId: "noMagicNumber" as const }],
+    },
+
+    // Non-object property numbers still flagged when ignoreObjectProperties is true
+    {
+      code: "function wait(ms) { return delay(500); }",
+      options: [{ ignoreObjectProperties: true }],
       errors: [{ messageId: "noMagicNumber" as const }],
     },
   ],

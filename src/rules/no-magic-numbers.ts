@@ -11,6 +11,7 @@ type Options = [
     ignoreDefaultValues?: boolean;
     ignoreEnums?: boolean;
     skipTestFiles?: boolean;
+    ignoreObjectProperties?: boolean;
   },
 ];
 
@@ -67,6 +68,11 @@ export default createRule<Options, MessageIds>({
             description:
               "Whether to skip test files (.test.ts, .spec.ts) (default: true)",
           },
+          ignoreObjectProperties: {
+            type: "boolean",
+            description:
+              "Allow numbers used as object literal property values (default: false)",
+          },
         },
         additionalProperties: false,
       },
@@ -80,6 +86,7 @@ export default createRule<Options, MessageIds>({
     const ignoreDefaultValues = options.ignoreDefaultValues ?? true;
     const ignoreEnums = options.ignoreEnums ?? true;
     const skipTestFiles = options.skipTestFiles ?? true;
+    const ignoreObjectProperties = options.ignoreObjectProperties ?? false;
 
     if (skipTestFiles) {
       const filename = path.basename(context.filename);
@@ -144,6 +151,44 @@ export default createRule<Options, MessageIds>({
       return node.parent?.type === AST_NODE_TYPES.TSEnumMember;
     }
 
+    function isObjectPropertyValue(node: TSESTree.Literal): boolean {
+      if (!ignoreObjectProperties) return false;
+
+      let current: TSESTree.Node = node;
+      let parent: TSESTree.Node | undefined = node.parent;
+
+      while (parent) {
+        if (parent.type === AST_NODE_TYPES.Property) {
+          return (
+            parent.parent?.type === AST_NODE_TYPES.ObjectExpression &&
+            parent.kind === "init" &&
+            parent.value === current
+          );
+        }
+
+        if (
+          parent.type === AST_NODE_TYPES.ObjectExpression ||
+          parent.type === AST_NODE_TYPES.ArrayExpression ||
+          parent.type === AST_NODE_TYPES.CallExpression ||
+          parent.type === AST_NODE_TYPES.NewExpression ||
+          parent.type === AST_NODE_TYPES.AssignmentExpression ||
+          parent.type === AST_NODE_TYPES.VariableDeclarator ||
+          parent.type === AST_NODE_TYPES.ReturnStatement ||
+          parent.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+          parent.type === AST_NODE_TYPES.FunctionExpression ||
+          parent.type === AST_NODE_TYPES.FunctionDeclaration ||
+          parent.type === AST_NODE_TYPES.Program
+        ) {
+          return false;
+        }
+
+        current = parent;
+        parent = parent.parent;
+      }
+
+      return false;
+    }
+
     function isTypeContext(node: TSESTree.Node): boolean {
       let current: TSESTree.Node | undefined = node.parent;
       while (current) {
@@ -170,6 +215,7 @@ export default createRule<Options, MessageIds>({
         if (isArrayIndex(node)) return;
         if (isDefaultValue(node)) return;
         if (isEnumMember(node)) return;
+        if (isObjectPropertyValue(node)) return;
         if (isTypeContext(node)) return;
 
         // Ignore negative numbers by checking parent UnaryExpression

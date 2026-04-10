@@ -10,6 +10,7 @@ For EACH behavior you implement:
 
 ```text
 1. Write ONE failing test     → run `npm test` → confirm it FAILS
+   ⛔ STOP — verify ONLY test files are staged (no src/ changes)
    ⛔ STOP — commit: "test: failing test for <rule> <behavior>"
 
 2. Write MINIMUM code to pass → run `npm test` → confirm ALL pass

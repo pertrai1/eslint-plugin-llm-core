@@ -39,6 +39,18 @@ ruleTester.run("max-params", rule, {
       options: [{ max: 4 }],
     },
 
+    // Non-exported function can use maxInternal
+    {
+      code: "function handleError(error: Error, message: string, context: object) {}",
+      options: [{ max: 2, maxInternal: 3 }],
+    },
+
+    // Non-exported arrow function can use maxInternal
+    {
+      code: "const formatError = (err: Error, msg: string, ctx: object) => {};",
+      options: [{ max: 2, maxInternal: 3 }],
+    },
+
     // Arrow function with 2 params
     "const add = (a: number, b: number) => a + b;",
 
@@ -100,6 +112,55 @@ ruleTester.run("max-params", rule, {
     {
       code: "class Service { constructor(a: A, b: B, c: C) {} }",
       options: [{ maxConstructor: 2 }],
+      errors: [{ messageId: "maxParams" as const }],
+    },
+
+    // Non-exported function exceeding maxInternal
+    {
+      code: "function processData(a: string, b: number, c: boolean, d: object) {}",
+      options: [{ max: 2, maxInternal: 3 }],
+      errors: [{ messageId: "maxParams" as const }],
+    },
+
+    // Exported function still uses max
+    {
+      code: "export function publicApi(a: string, b: number, c: boolean) {}",
+      options: [{ max: 2, maxInternal: 3 }],
+      errors: [{ messageId: "maxParams" as const }],
+    },
+
+    // Exported arrow function still uses max
+    {
+      code: "export const createHandler = (a: string, b: number, c: boolean) => {};",
+      options: [{ max: 2, maxInternal: 3 }],
+      errors: [{ messageId: "maxParams" as const }],
+    },
+
+    // Re-exported function uses max, not maxInternal
+    {
+      code: "function helper(a: string, b: number, c: boolean) {} export { helper };",
+      options: [{ max: 2, maxInternal: 3 }],
+      errors: [{ messageId: "maxParams" as const }],
+    },
+
+    // Separate export default for function uses max, not maxInternal
+    {
+      code: "function handler(a: string, b: number, c: boolean) {} export default handler;",
+      options: [{ max: 2, maxInternal: 3 }],
+      errors: [{ messageId: "maxParams" as const }],
+    },
+
+    // Separate export default for arrow const uses max, not maxInternal
+    {
+      code: "const createHandler = (a: string, b: number, c: boolean) => {}; export default createHandler;",
+      options: [{ max: 2, maxInternal: 3 }],
+      errors: [{ messageId: "maxParams" as const }],
+    },
+
+    // Without maxInternal, internal functions fall back to max
+    {
+      code: "function internalHelper(a: string, b: number, c: boolean) {}",
+      options: [{ max: 2 }],
       errors: [{ messageId: "maxParams" as const }],
     },
 

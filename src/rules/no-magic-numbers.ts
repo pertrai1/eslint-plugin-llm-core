@@ -159,7 +159,11 @@ export default createRule<Options, MessageIds>({
 
       while (parent) {
         if (parent.type === AST_NODE_TYPES.Property) {
-          return parent.kind === "init" && parent.value === current;
+          return (
+            parent.parent?.type === AST_NODE_TYPES.ObjectExpression &&
+            parent.kind === "init" &&
+            parent.value === current
+          );
         }
 
         if (

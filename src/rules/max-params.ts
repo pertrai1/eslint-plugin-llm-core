@@ -153,6 +153,30 @@ export default createRule<Options, MessageIds>({
         return true;
       }
 
+      // Detect re-exported functions: function helper() {} export { helper }
+      if (
+        node.parent?.type === AST_NODE_TYPES.Program &&
+        node.type === AST_NODE_TYPES.FunctionDeclaration &&
+        node.id
+      ) {
+        const program = node.parent;
+        const funcName = node.id.name;
+        for (const stmt of program.body) {
+          if (
+            stmt.type === AST_NODE_TYPES.ExportNamedDeclaration &&
+            stmt.source == null &&
+            stmt.specifiers.some(
+              (spec) =>
+                spec.type === AST_NODE_TYPES.ExportSpecifier &&
+                spec.local.type === AST_NODE_TYPES.Identifier &&
+                spec.local.name === funcName,
+            )
+          ) {
+            return true;
+          }
+        }
+      }
+
       return false;
     }
 

@@ -7,6 +7,7 @@ type Options = [
   {
     max?: number;
     maxConstructor?: number;
+    maxInternal?: number;
   },
 ];
 
@@ -51,6 +52,12 @@ export default createRule<Options, MessageIds>({
             description:
               "Maximum allowed parameters for class constructors (default: 5)",
           },
+          maxInternal: {
+            type: "integer",
+            minimum: 1,
+            description:
+              "Maximum allowed parameters for non-exported functions (default: same as max)",
+          },
         },
         additionalProperties: false,
       },
@@ -61,6 +68,7 @@ export default createRule<Options, MessageIds>({
   create(context, [options]) {
     const max = options.max ?? 2;
     const maxConstructor = options.maxConstructor ?? 5;
+    const maxInternal = options.maxInternal ?? max;
     const sourceCode = context.sourceCode;
 
     function getFunctionName(
@@ -118,13 +126,47 @@ export default createRule<Options, MessageIds>({
       );
     }
 
+    function isExported(
+      node:
+        | TSESTree.FunctionDeclaration
+        | TSESTree.FunctionExpression
+        | TSESTree.ArrowFunctionExpression,
+    ): boolean {
+      if (isConstructor(node)) {
+        return false;
+      }
+
+      if (node.parent?.type === AST_NODE_TYPES.ExportNamedDeclaration) {
+        return true;
+      }
+
+      if (node.parent?.type === AST_NODE_TYPES.ExportDefaultDeclaration) {
+        return true;
+      }
+
+      if (
+        node.parent?.type === AST_NODE_TYPES.VariableDeclarator &&
+        node.parent.parent?.type === AST_NODE_TYPES.VariableDeclaration &&
+        node.parent.parent.parent?.type ===
+          AST_NODE_TYPES.ExportNamedDeclaration
+      ) {
+        return true;
+      }
+
+      return false;
+    }
+
     function checkParams(
       node:
         | TSESTree.FunctionDeclaration
         | TSESTree.FunctionExpression
         | TSESTree.ArrowFunctionExpression,
     ): void {
-      const limit = isConstructor(node) ? maxConstructor : max;
+      const limit = isConstructor(node)
+        ? maxConstructor
+        : isExported(node)
+          ? max
+          : maxInternal;
       const count = node.params.length;
 
       if (count <= limit) return;

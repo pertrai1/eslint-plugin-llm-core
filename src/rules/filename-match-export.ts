@@ -34,6 +34,13 @@ function filenameMatchesExport(filename: string, exportName: string): boolean {
   if (kebabToCamel(base) === exportName) return true;
   if (kebabToPascal(base) === exportName) return true;
 
+  if (base.includes("-")) {
+    // Kebab-case is lossy for acronym casing (`kb` vs `KB`), so fall back to a
+    // case-insensitive structural comparison once the exact conversions fail.
+    const normalizedBase = base.replace(/-/g, "").toLowerCase();
+    if (normalizedBase === exportName.toLowerCase()) return true;
+  }
+
   // Also handle PascalCase filename matching camelCase export
   const lowerFirst = base.charAt(0).toLowerCase() + base.slice(1);
   if (lowerFirst === exportName) return true;

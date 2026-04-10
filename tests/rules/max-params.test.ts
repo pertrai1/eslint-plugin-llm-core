@@ -136,6 +136,13 @@ ruleTester.run("max-params", rule, {
       errors: [{ messageId: "maxParams" as const }],
     },
 
+    // Re-exported function uses max, not maxInternal
+    {
+      code: "function helper(a: string, b: number, c: boolean) {} export { helper };",
+      options: [{ max: 2, maxInternal: 3 }],
+      errors: [{ messageId: "maxParams" as const }],
+    },
+
     // Without maxInternal, internal functions fall back to max
     {
       code: "function internalHelper(a: string, b: number, c: boolean) {}",

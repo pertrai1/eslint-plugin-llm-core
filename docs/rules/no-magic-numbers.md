@@ -92,7 +92,7 @@ const PRICING = { basic: 9.99, pro: 29.99, enterprise: 99.99 };
 const HTTP_STATUS = { BAD_REQUEST: 400, NOT_FOUND: 404 };
 ```
 
-Numbers outside object literals are still flagged even with this option enabled.
+Numbers outside object literals are still flagged even with this option enabled. This only applies to object literal property values (`ObjectExpression`) — destructuring defaults like `function f({ timeout = 5000 }) {}` are still flagged.
 
 ```json
 {

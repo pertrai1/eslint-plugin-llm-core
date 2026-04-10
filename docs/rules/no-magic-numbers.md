@@ -80,6 +80,20 @@ Whether to skip test files (`.test.ts`, `.spec.ts`, etc.). Default: `true`.
 
 Test files are full of numeric literals in assertions — `expect(sum(2, 3)).toBe(5)` — where extracting to constants hurts readability.
 
+### `ignoreObjectProperties`
+
+Allow numbers used as object literal property values. Default: `false`.
+
+Useful for data files like pricing tables, model config maps, and HTTP status maps where the values **are** the data:
+
+```ts
+// With ignoreObjectProperties: true — no errors
+const PRICING = { basic: 9.99, pro: 29.99, enterprise: 99.99 };
+const HTTP_STATUS = { BAD_REQUEST: 400, NOT_FOUND: 404 };
+```
+
+Numbers outside object literals are still flagged even with this option enabled.
+
 ```json
 {
   "llm-core/no-magic-numbers": [
@@ -89,7 +103,8 @@ Test files are full of numeric literals in assertions — `expect(sum(2, 3)).toB
       "ignoreArrayIndexes": true,
       "ignoreDefaultValues": true,
       "ignoreEnums": true,
-      "skipTestFiles": true
+      "skipTestFiles": true,
+      "ignoreObjectProperties": true
     }
   ]
 }

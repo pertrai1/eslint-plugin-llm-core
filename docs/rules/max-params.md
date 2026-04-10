@@ -64,13 +64,20 @@ Maximum allowed parameters for functions. Default: `2`.
 
 Maximum allowed parameters for class constructors. Default: `5`.
 
+### `maxInternal`
+
+Maximum allowed parameters for non-exported functions. Default: same as `max`.
+
+This creates a useful tiering: exported functions (public API) are held to the stricter `max` limit and encouraged to use options objects, while internal helpers like `handleError(error, message, context)` get a relaxed limit.
+
 ```json
 {
   "llm-core/max-params": [
     "error",
     {
-      "max": 3,
-      "maxConstructor": 10
+      "max": 2,
+      "maxConstructor": 5,
+      "maxInternal": 3
     }
   ]
 }

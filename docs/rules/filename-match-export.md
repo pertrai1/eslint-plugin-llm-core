@@ -17,6 +17,7 @@ Supported filename conventions:
 - **Exact match** — `UserService.ts` exports `UserService`
 - **kebab-case → camelCase** — `user-service.ts` exports `userService`
 - **kebab-case → PascalCase** — `user-service.ts` exports `UserService`
+- **kebab-case → acronym-aware PascalCase** — `bedrock-kb-rag-tool.ts` exports `BedrockKBRagTool` (case-insensitive fallback since kebab loses acronym casing)
 - **PascalCase → camelCase** — `UserService.ts` exports `userService`
 
 ## Examples

@@ -116,6 +116,24 @@ You cannot:
 
 If the test doesn't fail, the cycle is invalid.
 
+### Rule 7: No Retrofitting
+
+You cannot:
+
+- Write implementation first, then write a test for it, then commit them
+  in sequence to create the appearance of TDD
+- Edit implementation and test files in the same editing pass before
+  running tests between edits
+- Hold implementation code in context while writing the "failing" test
+
+The RED phase must produce genuine discovery. If you already wrote the
+fix, the test is not driving anything — it's theater.
+
+**Checkpoint:** After editing ONLY the test file, run the test suite.
+Confirm the new test fails. This failure output is evidence that RED
+happened. Do not open the implementation file until you have seen this
+failure.
+
 ---
 
 ## The Workflow
@@ -310,6 +328,22 @@ describe("UserRepository", () => {
 
 // etc.
 ```
+
+---
+
+## TDD Applies to Fixes and Review Changes Too
+
+Bug fixes, review feedback, and edge-case patches are NOT exempt from
+the RED/GREEN cycle. The cycle is the same:
+
+1. RED — Write a test that demonstrates the bug or missing edge case
+2. Confirm it fails
+3. GREEN — Write the fix
+4. GATES + COMMIT
+
+The temptation to "just fix it" is strongest for small changes. That
+is exactly when discipline matters most — small changes have the
+highest ratio of assumption to verification.
 
 ---
 

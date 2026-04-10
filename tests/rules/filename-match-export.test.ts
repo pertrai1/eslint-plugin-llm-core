@@ -188,6 +188,13 @@ ruleTester.run("filename-match-export", rule, {
       errors: [{ messageId: "filenameMismatch" as const }],
     },
 
+    // Segment-wise kebab matching rejects collapsed names (foo-bar → Foobar)
+    {
+      code: "export class Foobar {}",
+      filename: "foo-bar.ts",
+      errors: [{ messageId: "filenameMismatch" as const }],
+    },
+
     // Default export name mismatch
     {
       code: "export default function fetchData() {}",

@@ -143,6 +143,20 @@ ruleTester.run("max-params", rule, {
       errors: [{ messageId: "maxParams" as const }],
     },
 
+    // Separate export default for function uses max, not maxInternal
+    {
+      code: "function handler(a: string, b: number, c: boolean) {} export default handler;",
+      options: [{ max: 2, maxInternal: 3 }],
+      errors: [{ messageId: "maxParams" as const }],
+    },
+
+    // Separate export default for arrow const uses max, not maxInternal
+    {
+      code: "const createHandler = (a: string, b: number, c: boolean) => {}; export default createHandler;",
+      options: [{ max: 2, maxInternal: 3 }],
+      errors: [{ messageId: "maxParams" as const }],
+    },
+
     // Without maxInternal, internal functions fall back to max
     {
       code: "function internalHelper(a: string, b: number, c: boolean) {}",

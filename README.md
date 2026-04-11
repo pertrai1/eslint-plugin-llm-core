@@ -147,6 +147,7 @@ export default [
 | [no-llm-artifacts](docs/rules/no-llm-artifacts.md)                                 | Disallow common LLM placeholder comments and incomplete code markers that indicate skipped implementation    | 🌐 🧹 ✅ |     |
 | [no-magic-numbers](docs/rules/no-magic-numbers.md)                                 | Disallow magic numbers and enforce named constants for clarity                                               | 🌐 🏆 ✅ |     |
 | [no-redundant-logic](docs/rules/no-redundant-logic.md)                             | Disallow redundant boolean logic and unnecessary control flow patterns                                       | 🌐 ✅ 🎨 | 💡  |
+| [no-swallowed-errors](docs/rules/no-swallowed-errors.md)                           | Disallow catch blocks that only log to console and swallow the error                                         | 🌐 🏆 ✅ |     |
 | [no-type-assertion-any](docs/rules/no-type-assertion-any.md)                       | Disallow type assertions to `any` that bypass TypeScript's type safety                                       | 🌐 ✅ ⌨️ |     |
 | [prefer-early-return](docs/rules/prefer-early-return.md)                           | Enforce guard clauses (early returns) instead of wrapping function bodies in a single if statement           | 🌐 ✅ 🎨 |     |
 | [prefer-unknown-in-catch](docs/rules/prefer-unknown-in-catch.md)                   | Disallow `any` type annotation on catch clause parameters; prefer `unknown`                                  | 🌐 ✅ ⌨️ |     |

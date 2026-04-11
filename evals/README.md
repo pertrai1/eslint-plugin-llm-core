@@ -97,6 +97,7 @@ git show origin/eval-results:eval-2026-04-09.json  # specific result
 | `event-system.ts`       | naming-conventions, no-exported-function-expressions, explicit-export-types, no-async-array-callbacks, consistent-catch-param-name, throw-error-objects, prefer-early-return |
 | `file-structure.ts`     | max-file-length, max-function-length, max-params, no-magic-numbers, structured-logging, no-exported-function-expressions, no-empty-catch, throw-error-objects                |
 | `integration-module.ts` | no-commented-out-code, no-llm-artifacts, no-inline-disable, explicit-export-types, no-async-array-callbacks, max-params, structured-logging                                  |
+| `swallowed-errors.ts`   | no-swallowed-errors, prefer-unknown-in-catch, structured-logging, throw-error-objects, no-magic-numbers                                                                      |
 
 ## Output
 

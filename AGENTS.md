@@ -2,6 +2,8 @@
 
 ## Mandatory: Read This First
 
+**NEVER commit directly to `main`.** All work MUST happen on a feature branch. Create a descriptive branch (e.g., `feat/rule-name`, `fix/bug-description`, `docs/update-topic`) before making any changes. No exceptions.
+
 **All code changes must follow this sequence — no skipping steps:**
 
 | Step | Phase    | Action                                   | Verify                                                                |
@@ -74,6 +76,11 @@ Follow the [mandatory workflow above](#mandatory-read-this-first) for each step.
 
 - **`recommended`** — Manually curated safe defaults. New rules must be explicitly added to `recommendedRules` in `src/index.ts`.
 - **`all`** — Every rule at `error`. Auto-expands as rules are added to `src/rules/index.ts`.
+- **`complexity`** — Complexity-related rules (max-file-length, max-function-length, max-nesting-depth, max-params).
+- **`typescript`** — TypeScript-specific rules (no-any-in-generic, no-type-assertion-any, prefer-unknown-in-catch, explicit-export-types).
+- **`best-practices`** — Best-practice rules (no-async-array-callbacks, no-empty-catch, no-swallowed-errors, structured-logging, no-magic-numbers, throw-error-objects).
+- **`style`** — Style and consistency rules (consistent-catch-param-name, filename-match-export, naming-conventions, no-exported-function-expressions, no-redundant-logic, prefer-early-return).
+- **`hygiene`** — Code hygiene rules (no-llm-artifacts, no-inline-disable, no-commented-out-code).
 
 ## Scope
 

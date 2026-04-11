@@ -32,9 +32,10 @@ const typescriptRules: TSESLint.FlatConfig.Rules = {
 const bestPracticesRules: TSESLint.FlatConfig.Rules = {
   "llm-core/no-async-array-callbacks": "error",
   "llm-core/no-empty-catch": "error",
-  "llm-core/throw-error-objects": "error",
-  "llm-core/structured-logging": "error",
   "llm-core/no-magic-numbers": "error",
+  "llm-core/no-swallowed-errors": "error",
+  "llm-core/structured-logging": "error",
+  "llm-core/throw-error-objects": "error",
 };
 
 const styleRules: TSESLint.FlatConfig.Rules = {

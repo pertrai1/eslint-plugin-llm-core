@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.13.0
+
+### Minor Changes
+
+- [#111](https://github.com/pertrai1/eslint-plugin-llm-core/pull/111) [`2bfcda8`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/2bfcda8ac95e2a484a6216e3da91a8a559183b85) Thanks [@pertrai1](https://github.com/pertrai1)! - Add `no-swallowed-errors` rule — flags catch blocks that only log to console without rethrowing, returning, or delegating to an error handler
+
 ## 0.12.0
 
 ### Minor Changes

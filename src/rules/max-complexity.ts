@@ -99,6 +99,15 @@ export default createRule<Options, MessageIds>({
         return node.id.name;
       }
 
+      if (
+        (node.type === AST_NODE_TYPES.FunctionExpression ||
+          node.type === AST_NODE_TYPES.ArrowFunctionExpression) &&
+        node.parent?.type === AST_NODE_TYPES.VariableDeclarator &&
+        node.parent.id.type === AST_NODE_TYPES.Identifier
+      ) {
+        return node.parent.id.name;
+      }
+
       return "anonymous";
     }
 

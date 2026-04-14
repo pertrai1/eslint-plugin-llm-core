@@ -104,8 +104,37 @@ export default createRule<Options, MessageIds>({
 
     const listeners = {
       onCodePathStart,
+      CatchClause: increaseComplexity,
+      ConditionalExpression: increaseComplexity,
+      LogicalExpression: increaseComplexity,
+      ForStatement: increaseComplexity,
+      ForInStatement: increaseComplexity,
+      ForOfStatement: increaseComplexity,
       IfStatement() {
         increaseComplexity();
+      },
+      WhileStatement: increaseComplexity,
+      DoWhileStatement: increaseComplexity,
+      AssignmentPattern: increaseComplexity,
+      "SwitchCase[test]": increaseComplexity,
+      AssignmentExpression(node: TSESTree.AssignmentExpression) {
+        if (
+          node.operator === "&&=" ||
+          node.operator === "||=" ||
+          node.operator === "??="
+        ) {
+          increaseComplexity();
+        }
+      },
+      MemberExpression(node: TSESTree.MemberExpression) {
+        if (node.optional === true) {
+          increaseComplexity();
+        }
+      },
+      CallExpression(node: TSESTree.CallExpression) {
+        if (node.optional === true) {
+          increaseComplexity();
+        }
       },
       onCodePathEnd,
     } as unknown as TSESLint.RuleListener;

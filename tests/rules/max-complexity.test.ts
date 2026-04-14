@@ -230,5 +230,31 @@ ruleTester.run("max-complexity", rule, {
       options: [{ skipTestFiles: false }],
       errors: [{ messageId: "maxComplexity" as const }],
     },
+    {
+      code: `const api = {
+        handler: () => {
+          if (step === 1) return 1;
+          if (step === 2) return 2;
+          if (step === 3) return 3;
+          return 4;
+        },
+      };`,
+      options: [{ max: 2 }],
+      errors: [
+        {
+          message: [
+            "Function 'handler' has a complexity of 4, exceeding the maximum of 2.",
+            "",
+            "Why: Each branching path is an independent surface for logic errors — high-complexity functions are harder to test and modify safely.",
+            "",
+            "How to fix:",
+            "  Replace branching logic with a data structure.",
+            "  Before: if (type === 'a') return 1; else if (type === 'b') return 2; else if (type === 'c') return 3;",
+            "  After:  const VALUES: Record<string, number> = { a: 1, b: 2, c: 3 };",
+            "          function getValue(type: string): number { return VALUES[type] ?? 0; }",
+          ].join("\n"),
+        },
+      ],
+    },
   ],
 });

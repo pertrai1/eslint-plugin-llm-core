@@ -5,6 +5,7 @@ export { default as "max-file-length" } from "./max-file-length";
 export { default as "max-function-length" } from "./max-function-length";
 export { default as "max-nesting-depth" } from "./max-nesting-depth";
 export { default as "max-params" } from "./max-params";
+export { default as "max-complexity" } from "./max-complexity";
 export { default as "naming-conventions" } from "./naming-conventions";
 export { default as "no-any-in-generic" } from "./no-any-in-generic";
 export { default as "no-async-array-callbacks" } from "./no-async-array-callbacks";

@@ -24,6 +24,22 @@ ruleTester.run("max-complexity", rule, {
         return 10;
       }`,
     },
+    {
+      code: `function regularAssignment(value) {
+        value = 1;
+        return value;
+      }`,
+      options: [{ max: 1 }],
+    },
+    {
+      code: `function defaultOnly(action) {
+        switch (action) {
+          default:
+            return 0;
+        }
+      }`,
+      options: [{ max: 1 }],
+    },
   ],
   invalid: [
     {
@@ -40,6 +56,108 @@ ruleTester.run("max-complexity", rule, {
         if (value === 10) return 10;
         return 11;
       }`,
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countFor(items) {
+        for (const item of items) {
+          consume(item);
+        }
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countForIn(record) {
+        for (const key in record) {
+          consume(key);
+        }
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countWhile(active) {
+        while (active()) {
+          tick();
+        }
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countDoWhile(active) {
+        do {
+          tick();
+        } while (active());
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countCatch() {
+        try {
+          work();
+        } catch (error) {
+          handle(error);
+        }
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countConditional(flag) {
+        return flag ? 1 : 0;
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countLogical(left, right) {
+        return left && right;
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countSwitch(action) {
+        switch (action) {
+          case "a":
+            return 1;
+          default:
+            return 0;
+        }
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countDefaultValue(value = 1) {
+        return value;
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countLogicalAssignment(value) {
+        value ||= 1;
+        return value;
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countOptionalMember(input) {
+        return input?.value;
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countOptionalCall(callback) {
+        return callback?.();
+      }`,
+      options: [{ max: 1 }],
       errors: [{ messageId: "maxComplexity" as const }],
     },
   ],

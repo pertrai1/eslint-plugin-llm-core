@@ -1,3 +1,5 @@
+import type { Rule } from "eslint";
+import { AST_NODE_TYPES, TSESLint, TSESTree } from "@typescript-eslint/utils";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "maxComplexity";
@@ -51,7 +53,63 @@ export default createRule<Options, MessageIds>({
     defaultOptions: [{ max: 10, skipTestFiles: true }],
   },
   defaultOptions: [{ max: 10, skipTestFiles: true }],
-  create() {
-    return {};
+  create(context, [options]) {
+    const max = options.max ?? 10;
+    const complexityStack: number[] = [];
+
+    function currentComplexity(): number {
+      return complexityStack[complexityStack.length - 1]!;
+    }
+
+    function increaseComplexity(): void {
+      complexityStack[complexityStack.length - 1] = currentComplexity() + 1;
+    }
+
+    function onCodePathStart(): void {
+      complexityStack.push(1);
+    }
+
+    function onCodePathEnd(codePath: Rule.CodePath, node: TSESTree.Node): void {
+      const complexity = complexityStack.pop();
+
+      if (
+        !complexity ||
+        codePath.origin !== "function" ||
+        complexity <= max ||
+        (node.type !== AST_NODE_TYPES.FunctionDeclaration &&
+          node.type !== AST_NODE_TYPES.FunctionExpression &&
+          node.type !== AST_NODE_TYPES.ArrowFunctionExpression)
+      ) {
+        return;
+      }
+
+      context.report({
+        node,
+        messageId: "maxComplexity",
+        data: {
+          name: getFunctionName(node),
+          count: String(complexity),
+          max: String(max),
+        },
+      });
+    }
+
+    function getFunctionName(node: TSESTree.Node): string {
+      if (node.type === AST_NODE_TYPES.FunctionDeclaration && node.id) {
+        return node.id.name;
+      }
+
+      return "anonymous";
+    }
+
+    const listeners = {
+      onCodePathStart,
+      IfStatement() {
+        increaseComplexity();
+      },
+      onCodePathEnd,
+    } as unknown as TSESLint.RuleListener;
+
+    return listeners;
   },
 });

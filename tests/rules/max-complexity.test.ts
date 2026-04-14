@@ -160,5 +160,41 @@ ruleTester.run("max-complexity", rule, {
       options: [{ max: 1 }],
       errors: [{ messageId: "maxComplexity" as const }],
     },
+    {
+      code: `function outer(flag) {
+        if (flag) return 1;
+
+        const helper = () => {
+          if (flag === 1) return 1;
+          if (flag === 2) return 2;
+          if (flag === 3) return 3;
+          if (flag === 4) return 4;
+          if (flag === 5) return 5;
+          if (flag === 6) return 6;
+          if (flag === 7) return 7;
+          if (flag === 8) return 8;
+          if (flag === 9) return 9;
+          if (flag === 10) return 10;
+          return 11;
+        };
+
+        return helper();
+      }`,
+      errors: [
+        {
+          message: [
+            "Function 'helper' has a complexity of 11, exceeding the maximum of 10.",
+            "",
+            "Why: Each branching path is an independent surface for logic errors — high-complexity functions are harder to test and modify safely.",
+            "",
+            "How to fix:",
+            "  Replace branching logic with a data structure.",
+            "  Before: if (type === 'a') return 1; else if (type === 'b') return 2; else if (type === 'c') return 3;",
+            "  After:  const VALUES: Record<string, number> = { a: 1, b: 2, c: 3 };",
+            "          function getValue(type: string): number { return VALUES[type] ?? 0; }",
+          ].join("\n"),
+        },
+      ],
+    },
   ],
 });

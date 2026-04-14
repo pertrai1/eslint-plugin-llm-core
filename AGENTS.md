@@ -13,6 +13,7 @@
 | 3    | GREEN    | Write minimum code to pass               | New test passes, all existing tests still pass, `tsc --noEmit` passes |
 | 4    | REFACTOR | Clean up if needed                       | All tests still pass                                                  |
 | 5    | GATES    | Run quality gates                        | `npm test && npm run lint && npm run build`                           |
+| 5.5  | DOCS     | Regenerate rule docs (if rules changed)  | `npm run update:eslint-docs`, then commit                             |
 | 6    | COMMIT   | Atomic commit                            | One behavior per commit                                               |
 
 **Steps 2–6 repeat for each behavior. Do not batch multiple behaviors into one cycle.**
@@ -126,6 +127,41 @@ Use these criteria in issue triage, implementation review, and config-placement 
 | Type-First Development  | Types must be defined before implementation                                 | [`.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md`](.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md) |
 | Test-Driven Development | RED/GREEN/REFACTOR cycle for all code changes                               | [`.agents/directives/TEST_DRIVEN_DEVELOPMENT.md`](.agents/directives/TEST_DRIVEN_DEVELOPMENT.md) |
 | Session Decisions       | Capture durable repo/process and cross-cutting decisions at task completion | [`.agents/directives/SESSION_DECISIONS.md`](.agents/directives/SESSION_DECISIONS.md)             |
+
+## Before Pushing a PR
+
+Complete these steps **after** all TDD cycles are done, **before** pushing and opening a pull request.
+
+### 1. Final Doc Regeneration
+
+Run `npm run update:eslint-docs` after the last commit. This regenerates the README rule table and rule doc headers from the current rule metadata. Commit the result.
+
+### 2. Changeset
+
+Create a changeset file for the change. This project uses [Changesets](https://github.com/changesets/changesets) for versioning — never run `npm run version` locally.
+
+```bash
+# Create a changeset (interactive — pick patch/minor/major and write a summary)
+npx changeset
+```
+
+The changeset file goes in `.changeset/<name>.md`. Commit it alongside the code changes. CI handles the actual version bump when the PR merges.
+
+**Bump guidance:**
+
+- `patch` — bug fixes, message wording tweaks
+- `minor` — new rules, new options, new features
+- `major` — breaking changes (removed rules, changed defaults)
+
+### 3. PR Template
+
+Follow `.github/PULL_REQUEST_TEMPLATE.md` exactly. Every PR body MUST include:
+
+- **"What does this PR do?"** section with `Closes #<number>` if applicable
+- **Checklist** section with all items checked off
+- **Agent Disclosure** section listing every instruction file that was loaded (checked) and explaining any that were expected but not loaded
+
+Do not use custom section headers or omit the checklist format. CI checks the PR body structure.
 
 ## Conventions
 

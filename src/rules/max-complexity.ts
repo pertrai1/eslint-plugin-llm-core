@@ -1,4 +1,5 @@
 import type { Rule } from "eslint";
+import path from "path";
 import { AST_NODE_TYPES, TSESLint, TSESTree } from "@typescript-eslint/utils";
 import { createRule } from "../utils/create-rule";
 
@@ -55,7 +56,15 @@ export default createRule<Options, MessageIds>({
   defaultOptions: [{ max: 10, skipTestFiles: true }],
   create(context, [options]) {
     const max = options.max ?? 10;
+    const skipTestFiles = options.skipTestFiles ?? true;
     const complexityStack: number[] = [];
+
+    if (skipTestFiles) {
+      const filename = path.basename(context.filename);
+      if (/\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$/.test(filename)) {
+        return {};
+      }
+    }
 
     function currentComplexity(): number {
       return complexityStack[complexityStack.length - 1]!;

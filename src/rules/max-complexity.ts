@@ -80,15 +80,9 @@ export default createRule<Options, MessageIds>({
 
     function onCodePathEnd(codePath: Rule.CodePath, node: TSESTree.Node): void {
       const complexity = complexityStack.pop();
+      const name = getCodePathName(codePath, node);
 
-      if (
-        !complexity ||
-        codePath.origin !== "function" ||
-        complexity <= max ||
-        (node.type !== AST_NODE_TYPES.FunctionDeclaration &&
-          node.type !== AST_NODE_TYPES.FunctionExpression &&
-          node.type !== AST_NODE_TYPES.ArrowFunctionExpression)
-      ) {
+      if (!complexity || !name || complexity <= max) {
         return;
       }
 
@@ -96,11 +90,35 @@ export default createRule<Options, MessageIds>({
         node,
         messageId: "maxComplexity",
         data: {
-          name: getFunctionName(node),
+          name,
           count: String(complexity),
           max: String(max),
         },
       });
+    }
+
+    function getCodePathName(
+      codePath: Rule.CodePath,
+      node: TSESTree.Node,
+    ): string | null {
+      if (codePath.origin === "class-field-initializer") {
+        return "class field initializer";
+      }
+
+      if (codePath.origin === "class-static-block") {
+        return "class static block";
+      }
+
+      if (
+        codePath.origin === "function" &&
+        (node.type === AST_NODE_TYPES.FunctionDeclaration ||
+          node.type === AST_NODE_TYPES.FunctionExpression ||
+          node.type === AST_NODE_TYPES.ArrowFunctionExpression)
+      ) {
+        return getFunctionName(node);
+      }
+
+      return null;
     }
 
     function getFunctionName(node: TSESTree.Node): string {

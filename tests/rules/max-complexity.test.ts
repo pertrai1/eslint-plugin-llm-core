@@ -64,7 +64,7 @@ ruleTester.run("max-complexity", rule, {
 
         return new Example();
       }`,
-      options: [{ max: 1 }],
+      options: [{ max: 2 }],
     },
   ],
   invalid: [

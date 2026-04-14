@@ -133,6 +133,7 @@ export default [
 | [consistent-catch-param-name](docs/rules/consistent-catch-param-name.md)           | Enforce consistent naming for catch clause parameters across the codebase                                    | 🌐 ✅ 🎨 | 💡  |
 | [explicit-export-types](docs/rules/explicit-export-types.md)                       | Require explicit parameter and return type annotations on exported functions                                 | 🌐 ✅ ⌨️ |     |
 | [filename-match-export](docs/rules/filename-match-export.md)                       | Enforce that filenames match their single exported function, class, or component name                        | 🌐 ✅ 🎨 |     |
+| [max-complexity](docs/rules/max-complexity.md)                                     | Enforce a maximum cyclomatic complexity per function to encourage decomposition                              | 🌐 🧮 ✅ |     |
 | [max-file-length](docs/rules/max-file-length.md)                                   | Enforce a maximum number of lines per file to encourage proper module separation                             | 🌐 🧮 ✅ |     |
 | [max-function-length](docs/rules/max-function-length.md)                           | Enforce a maximum number of lines per function to encourage decomposition                                    | 🌐 🧮 ✅ |     |
 | [max-nesting-depth](docs/rules/max-nesting-depth.md)                               | Enforce a maximum nesting depth for control flow statements to reduce cognitive complexity                   | 🌐 🧮 ✅ |     |

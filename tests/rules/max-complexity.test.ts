@@ -208,17 +208,12 @@ ruleTester.run("max-complexity", rule, {
       }`,
       errors: [
         {
-          message: [
-            "Function 'helper' has a complexity of 11, exceeding the maximum of 10.",
-            "",
-            "Why: Each branching path is an independent surface for logic errors — high-complexity functions are harder to test and modify safely.",
-            "",
-            "How to fix:",
-            "  Replace branching logic with a data structure.",
-            "  Before: if (type === 'a') return 1; else if (type === 'b') return 2; else if (type === 'c') return 3;",
-            "  After:  const VALUES: Record<string, number> = { a: 1, b: 2, c: 3 };",
-            "          function getValue(type: string): number { return VALUES[type] ?? 0; }",
-          ].join("\n"),
+          messageId: "maxComplexity" as const,
+          data: {
+            name: "helper",
+            count: "11",
+            max: "10",
+          },
         },
       ],
     },
@@ -252,17 +247,12 @@ ruleTester.run("max-complexity", rule, {
       options: [{ max: 2 }],
       errors: [
         {
-          message: [
-            "Function 'handler' has a complexity of 4, exceeding the maximum of 2.",
-            "",
-            "Why: Each branching path is an independent surface for logic errors — high-complexity functions are harder to test and modify safely.",
-            "",
-            "How to fix:",
-            "  Replace branching logic with a data structure.",
-            "  Before: if (type === 'a') return 1; else if (type === 'b') return 2; else if (type === 'c') return 3;",
-            "  After:  const VALUES: Record<string, number> = { a: 1, b: 2, c: 3 };",
-            "          function getValue(type: string): number { return VALUES[type] ?? 0; }",
-          ].join("\n"),
+          messageId: "maxComplexity" as const,
+          data: {
+            name: "handler",
+            count: "4",
+            max: "2",
+          },
         },
       ],
     },
@@ -273,17 +263,12 @@ ruleTester.run("max-complexity", rule, {
       options: [{ max: 1 }],
       errors: [
         {
-          message: [
-            "Function 'class field initializer' has a complexity of 2, exceeding the maximum of 1.",
-            "",
-            "Why: Each branching path is an independent surface for logic errors — high-complexity functions are harder to test and modify safely.",
-            "",
-            "How to fix:",
-            "  Replace branching logic with a data structure.",
-            "  Before: if (type === 'a') return 1; else if (type === 'b') return 2; else if (type === 'c') return 3;",
-            "  After:  const VALUES: Record<string, number> = { a: 1, b: 2, c: 3 };",
-            "          function getValue(type: string): number { return VALUES[type] ?? 0; }",
-          ].join("\n"),
+          messageId: "maxComplexity" as const,
+          data: {
+            name: "class field initializer",
+            count: "2",
+            max: "1",
+          },
         },
       ],
     },
@@ -296,17 +281,12 @@ ruleTester.run("max-complexity", rule, {
       options: [{ max: 1 }],
       errors: [
         {
-          message: [
-            "Function 'class static block' has a complexity of 2, exceeding the maximum of 1.",
-            "",
-            "Why: Each branching path is an independent surface for logic errors — high-complexity functions are harder to test and modify safely.",
-            "",
-            "How to fix:",
-            "  Replace branching logic with a data structure.",
-            "  Before: if (type === 'a') return 1; else if (type === 'b') return 2; else if (type === 'c') return 3;",
-            "  After:  const VALUES: Record<string, number> = { a: 1, b: 2, c: 3 };",
-            "          function getValue(type: string): number { return VALUES[type] ?? 0; }",
-          ].join("\n"),
+          messageId: "maxComplexity" as const,
+          data: {
+            name: "class static block",
+            count: "2",
+            max: "1",
+          },
         },
       ],
     },
@@ -322,17 +302,12 @@ ruleTester.run("max-complexity", rule, {
       options: [{ max: 2 }],
       errors: [
         {
-          message: [
-            "Function 'handle' has a complexity of 4, exceeding the maximum of 2.",
-            "",
-            "Why: Each branching path is an independent surface for logic errors — high-complexity functions are harder to test and modify safely.",
-            "",
-            "How to fix:",
-            "  Replace branching logic with a data structure.",
-            "  Before: if (type === 'a') return 1; else if (type === 'b') return 2; else if (type === 'c') return 3;",
-            "  After:  const VALUES: Record<string, number> = { a: 1, b: 2, c: 3 };",
-            "          function getValue(type: string): number { return VALUES[type] ?? 0; }",
-          ].join("\n"),
+          messageId: "maxComplexity" as const,
+          data: {
+            name: "handle",
+            count: "4",
+            max: "2",
+          },
         },
       ],
     },

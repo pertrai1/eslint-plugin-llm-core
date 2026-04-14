@@ -17,10 +17,10 @@ const plugin = {
 };
 
 const complexityRules: TSESLint.FlatConfig.Rules = {
+  "llm-core/max-complexity": "error",
   "llm-core/max-file-length": "error",
   "llm-core/max-function-length": "error",
   "llm-core/max-nesting-depth": "error",
-  "llm-core/max-complexity": "error",
   "llm-core/max-params": "error",
 };
 

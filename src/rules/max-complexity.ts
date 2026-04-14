@@ -67,7 +67,7 @@ export default createRule<Options, MessageIds>({
     }
 
     function currentComplexity(): number {
-      return complexityStack[complexityStack.length - 1]!;
+      return complexityStack[complexityStack.length - 1] ?? 1;
     }
 
     function increaseComplexity(): void {

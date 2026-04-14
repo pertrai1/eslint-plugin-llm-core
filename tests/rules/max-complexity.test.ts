@@ -40,6 +40,22 @@ ruleTester.run("max-complexity", rule, {
       }`,
       options: [{ max: 1 }],
     },
+    {
+      code: `function ignoredTestFile(value) {
+        if (value === 1) return 1;
+        if (value === 2) return 2;
+        if (value === 3) return 3;
+        if (value === 4) return 4;
+        if (value === 5) return 5;
+        if (value === 6) return 6;
+        if (value === 7) return 7;
+        if (value === 8) return 8;
+        if (value === 9) return 9;
+        if (value === 10) return 10;
+        return 11;
+      }`,
+      filename: "ignored.test.ts",
+    },
   ],
   invalid: [
     {
@@ -195,6 +211,24 @@ ruleTester.run("max-complexity", rule, {
           ].join("\n"),
         },
       ],
+    },
+    {
+      code: `function enforceTestFile(value) {
+        if (value === 1) return 1;
+        if (value === 2) return 2;
+        if (value === 3) return 3;
+        if (value === 4) return 4;
+        if (value === 5) return 5;
+        if (value === 6) return 6;
+        if (value === 7) return 7;
+        if (value === 8) return 8;
+        if (value === 9) return 9;
+        if (value === 10) return 10;
+        return 11;
+      }`,
+      filename: "enforce.test.ts",
+      options: [{ skipTestFiles: false }],
+      errors: [{ messageId: "maxComplexity" as const }],
     },
   ],
 });

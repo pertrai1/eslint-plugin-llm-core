@@ -121,6 +121,38 @@ export default createRule<Options, MessageIds>({
       return null;
     }
 
+    function getStaticKeyName(
+      parent: TSESTree.Property | TSESTree.MethodDefinition,
+    ): string | null {
+      const key = parent.key;
+
+      if (parent.computed) {
+        // Computed with a static literal value: { ["name"]() {} }
+        if (key.type === AST_NODE_TYPES.Literal) {
+          return typeof key.value === "string" ? key.value : String(key.value);
+        }
+        // Computed with a simple template literal: { [`name`]() {} }
+        if (
+          key.type === AST_NODE_TYPES.TemplateLiteral &&
+          key.expressions.length === 0 &&
+          key.quasis.length === 1
+        ) {
+          return key.quasis[0].value.cooked;
+        }
+        // Dynamic computed key: { [expr]() {} }
+        return null;
+      }
+
+      if (key.type === AST_NODE_TYPES.Identifier) {
+        return key.name;
+      }
+      if (key.type === AST_NODE_TYPES.PrivateIdentifier) {
+        return `#${key.name}`;
+      }
+
+      return null;
+    }
+
     function getFunctionName(node: TSESTree.Node): string {
       if (node.type === AST_NODE_TYPES.FunctionDeclaration && node.id) {
         return node.id.name;
@@ -138,10 +170,12 @@ export default createRule<Options, MessageIds>({
       if (
         (node.type === AST_NODE_TYPES.FunctionExpression ||
           node.type === AST_NODE_TYPES.ArrowFunctionExpression) &&
-        node.parent?.type === AST_NODE_TYPES.Property &&
-        node.parent.key.type === AST_NODE_TYPES.Identifier
+        node.parent?.type === AST_NODE_TYPES.Property
       ) {
-        return node.parent.key.name;
+        const name = getStaticKeyName(node.parent);
+        if (name !== null) {
+          return name;
+        }
       }
 
       if (
@@ -149,11 +183,9 @@ export default createRule<Options, MessageIds>({
           node.type === AST_NODE_TYPES.ArrowFunctionExpression) &&
         node.parent?.type === AST_NODE_TYPES.MethodDefinition
       ) {
-        if (node.parent.key.type === AST_NODE_TYPES.Identifier) {
-          return node.parent.key.name;
-        }
-        if (node.parent.key.type === AST_NODE_TYPES.PrivateIdentifier) {
-          return `#${node.parent.key.name}`;
+        const name = getStaticKeyName(node.parent);
+        if (name !== null) {
+          return name;
         }
       }
 

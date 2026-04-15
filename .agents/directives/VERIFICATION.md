@@ -5,6 +5,7 @@
 This directive applies after REFACTOR and before the final GATES run:
 
 ```
+0. Verify clean baseline          → AGENTS.md Step 0 (BASELINE)
 1. Define types              → [TYPE_DRIVEN_DEVELOPMENT](./TYPE_DRIVEN_DEVELOPMENT.md)
 2. Write failing test        → [TEST_DRIVEN_DEVELOPMENT](./TEST_DRIVEN_DEVELOPMENT.md)
 3. Implement minimum code    → driven by failing tests

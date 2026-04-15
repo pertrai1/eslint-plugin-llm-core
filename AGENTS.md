@@ -32,16 +32,17 @@ mistake, every time.
 
 **All code changes follow this sequence — no skipping steps:**
 
-| Step | Phase      | Action                                   | Verify                                                                 |
-| ---- | ---------- | ---------------------------------------- | ---------------------------------------------------------------------- |
-| 1    | TYPES      | Define types in `types.ts` or co-located | `tsc --noEmit` passes                                                  |
-| 2    | RED        | Write ONE failing test                   | Test fails                                                             |
-| 3    | GREEN      | Write minimum code to pass               | New test passes, all existing tests still pass, `tsc --noEmit` passes  |
-| 4    | REFACTOR   | Clean up if needed                       | All tests still pass                                                   |
-| 4.5  | **VERIFY** | **Produce verification summary**         | **[VERIFICATION](.agents/directives/VERIFICATION.md) protocol output** |
-| 5    | GATES      | Run quality gates                        | `npm test && npm run lint && npm run build`                            |
-| 5.5  | DOCS       | Regenerate rule docs (if rules changed)  | `npm run update:eslint-docs`, then commit                              |
-| 6    | COMMIT     | Atomic commit                            | One behavior per commit                                                |
+| Step | Phase        | Action                                   | Verify                                                                                                   |
+| ---- | ------------ | ---------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 0    | **BASELINE** | **Verify starting state is clean**       | **`tsc --noEmit && npm test && npm run build` all pass — if not, surface the failure before proceeding** |
+| 1    | TYPES        | Define types in `types.ts` or co-located | `tsc --noEmit` passes                                                                                    |
+| 2    | RED          | Write ONE failing test                   | Test fails                                                                                               |
+| 3    | GREEN        | Write minimum code to pass               | New test passes, all existing tests still pass, `tsc --noEmit` passes                                    |
+| 4    | REFACTOR     | Clean up if needed                       | All tests still pass                                                                                     |
+| 4.5  | **VERIFY**   | **Produce verification summary**         | **[VERIFICATION](.agents/directives/VERIFICATION.md) protocol output**                                   |
+| 5    | GATES        | Run quality gates                        | `npm test && npm run lint && npm run build`                                                              |
+| 5.5  | DOCS         | Regenerate rule docs (if rules changed)  | `npm run update:eslint-docs`, then commit                                                                |
+| 6    | COMMIT       | Atomic commit                            | One behavior per commit                                                                                  |
 
 Steps 2–6 repeat for each behavior. Do not batch.
 

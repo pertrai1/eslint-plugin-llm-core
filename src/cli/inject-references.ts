@@ -19,3 +19,7 @@ export function findInstructionFiles(cwd: string): string[] {
     fs.existsSync(path.join(cwd, filePath)),
   );
 }
+
+export function computeRelativePath(targetFile: string): string {
+  return path.relative(path.dirname(targetFile), lintingRulesPath);
+}

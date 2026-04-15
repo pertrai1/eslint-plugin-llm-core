@@ -215,6 +215,67 @@ and code quality. Key papers:
 
 - [Technical Debt in LLM Architectures](https://arxiv.org/abs/2512.04273) — 80% architectural violation rate in open-weights models; "Implementation Laziness" omits complex logic
 
+## Generated Instructions
+
+Lint rules are reactive — they fire after code is written. **Generated instructions are proactive** — they encode the same rule knowledge as imperative behavioral guidelines that shape LLM output before violations occur.
+
+Unlike static instruction files, generated instructions are:
+
+- **Personalized** — derived from your actual rule config and option values
+- **In sync** — regenerated when config changes, no drift between rules and instructions
+- **File-type-aware** — TypeScript-only rules appear in a separate section
+
+### Usage
+
+```bash
+npx eslint-plugin-llm-core generate-instructions
+```
+
+This reads your `eslint.config.*`, resolves active `llm-core` rules, and generates `.agents/linting-rules.md` with behavioral guidelines for AI coding tools.
+
+**Flags:**
+
+| Flag              | Description                                             |
+| ----------------- | ------------------------------------------------------- |
+| `--config <path>` | Specify ESLint config file path (default: auto-detect)  |
+| `--dry-run`       | Print generated content to stdout without writing files |
+
+**Example output:**
+
+```markdown
+# Coding Guidelines
+
+Generated from eslint-plugin-llm-core configuration.
+
+## All Files
+
+- Keep functions under 50 lines — extract helpers when they grow
+- Keep cyclomatic complexity under 10 — decompose when functions get complex
+- Never leave catch blocks empty — handle, rethrow, or log the error
+- Use structured logging with static message strings; pass dynamic values as separate metadata
+
+## TypeScript Files Only
+
+- Add explicit parameter and return type annotations on all exported functions
+- Never use 'any' as a generic type argument
+- Use 'unknown' for catch parameter types, not 'any'
+```
+
+### Programmatic API
+
+```typescript
+import { generateInstructions } from "eslint-plugin-llm-core/instructions";
+
+const result = await generateInstructions({
+  configPath: "eslint.config.mjs",
+});
+
+result.content; // The generated markdown string
+result.activeRules; // Resolved rules with options and derived scope
+result.allFilesRules; // Rules applying to all files
+result.typescriptRules; // TypeScript-only rules
+```
+
 ## Agent Skills
 
 Beyond ESLint rules, this plugin ships **agent skills** — markdown instruction files that LLM agents can load when performing specific tasks. Skills complement the lint rules by catching patterns that require judgment rather than pattern matching.

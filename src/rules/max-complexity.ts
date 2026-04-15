@@ -189,6 +189,21 @@ export default createRule<Options, MessageIds>({
         }
       }
 
+      if (
+        (node.type === AST_NODE_TYPES.FunctionExpression ||
+          node.type === AST_NODE_TYPES.ArrowFunctionExpression) &&
+        node.parent?.type === AST_NODE_TYPES.ExportDefaultDeclaration
+      ) {
+        return "default export";
+      }
+
+      if (
+        node.type === AST_NODE_TYPES.FunctionDeclaration &&
+        node.parent?.type === AST_NODE_TYPES.ExportDefaultDeclaration
+      ) {
+        return "default export";
+      }
+
       return "anonymous";
     }
 

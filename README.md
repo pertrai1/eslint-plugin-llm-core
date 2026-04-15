@@ -157,19 +157,6 @@ export default [
 
 <!-- end auto-generated rules list -->
 
-## Research & Evidence
-
-The rules in this plugin are based on research data from academic research on LLM coding errors. I review research to identify patterns that LLMs consistently get wrong.
-
-Key papers that have built out the rulesets:
-
-- [Bugs in Large Language Models Generated Code: An Empirical Study](https://arxiv.org/abs/2403.08937) (333 bugs, 10 distinctive patterns) — foundational taxonomy
-- [Engineering Pitfalls in AI Coding Tools: An Empirical Study of Bugs in Claude Code, Codex, and Gemini CLI](https://arxiv.org/abs/2603.20847) (3,864 bugs from real-world tool usage)
-- [A Deep Dive Into Large Language Model Code Generation Mistakes: What and Why?](https://arxiv.org/abs/2411.01414) (216 non-syntactic mistakes)
-- [Towards Understanding the Characteristics of Code Generation Errors Made by Large Language Models](https://arxiv.org/abs/2406.08731) (557 bugs across 6 LLMs)
-- [Asleep at the Keyboard? Assessing the Security of GitHub Copilot's Code Contributions](https://arxiv.org/abs/2108.09293) (security vulnerabilities in Copilot-generated code)
-- [We Have a Package for You! A Comprehensive Analysis of Package Hallucinations by Code Generating LLMs](https://arxiv.org/abs/2406.10279) (hallucinated package dependencies)
-
 ## Complementary Rules
 
 These ESLint core rules address common LLM patterns and pair well with this plugin:
@@ -199,6 +186,34 @@ export default [
   },
 ];
 ```
+
+## Research & Evidence
+
+The rules in this plugin are grounded in empirical research on LLM coding errors
+and code quality. Key papers:
+
+**Bug Patterns & Taxonomies:**
+
+- [Bugs in LLM Generated Code](https://arxiv.org/abs/2403.08937) — 333 bugs across 10 distinctive patterns
+- [Engineering Pitfalls in AI Coding Tools](https://arxiv.org/abs/2603.20847) — 3,864 bugs from Claude Code, Codex, and Gemini CLI
+- [LLM Code Generation Mistakes: What and Why?](https://arxiv.org/abs/2411.01414) — 216 non-syntactic mistakes analyzed
+- [Characteristics of Code Generation Errors](https://arxiv.org/abs/2406.08731) — 557 bugs across 6 LLMs
+
+**Code Quality Beyond Correctness:**
+
+- [A Taxonomy of Inefficiencies in LLM-Generated Code](https://arxiv.org/abs/2503.06327) — 19 subcategories of performance, readability, and maintainability issues
+- [Quality Assurance of LLM-Generated Code](https://arxiv.org/abs/2511.10271) — practitioners warn LLM code accelerates technical debt; maintainability prioritized over security
+- [No Correlation Between Functional Correctness and Code Quality](https://arxiv.org/abs/2508.14727) — passing tests ≠ production-quality code
+
+**Security & Reliability:**
+
+- [Security of GitHub Copilot's Code](https://arxiv.org/abs/2108.09293) — security vulnerabilities in AI-generated contributions
+- [How Secure is AI-Generated Code?](https://link.springer.com/article/10.1007/s10664-024-10590-1) — 51% of 112K generated programs contained vulnerabilities
+- [Package Hallucinations by Code-Generating LLMs](https://arxiv.org/abs/2406.10279) — fabricated dependency analysis
+
+**Architectural Erosion:**
+
+- [Technical Debt in LLM Architectures](https://arxiv.org/abs/2512.04273) — 80% architectural violation rate in open-weights models; "Implementation Laziness" omits complex logic
 
 ## Agent Skills
 

@@ -12,7 +12,15 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.js"
+    },
+    "./instructions": {
+      "types": "./dist/instructions/index.d.ts",
+      "import": "./dist/instructions/index.js",
+      "require": "./dist/instructions/index.js"
     }
+  },
+  "bin": {
+    "generate-instructions": "./dist/cli/generate-instructions.js"
   },
   "files": [
     "dist",

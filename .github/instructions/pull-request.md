@@ -18,6 +18,24 @@ If rules were added or changed, also run:
 npm run update:eslint-docs
 ```
 
+## Changeset
+
+**Required when `src/` is modified.** CI enforces this — PRs that touch `src/` without a changeset will fail.
+
+This project uses [Changesets](https://github.com/changesets/changesets) for versioning — never run `npm run version` locally.
+
+```bash
+npx changeset
+```
+
+The changeset file goes in `.changeset/<name>.md`. Commit it alongside the code changes. CI handles the actual version bump when the PR merges. Docs-only, workflow-only, or AGENTS.md-only changes do not require a changeset.
+
+**Bump guidance:**
+
+- `patch` — bug fixes, message wording tweaks
+- `minor` — new rules, new options, new features
+- `major` — breaking changes (removed rules, changed defaults)
+
 ## PR Template (CI-Enforced)
 
 The PR template at `.github/PULL_REQUEST_TEMPLATE.md` has required sections for the checklist and, when applicable, agent disclosure. **CI will block merge if those are incomplete.**

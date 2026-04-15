@@ -1,3 +1,4 @@
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noCommentedOutCode";
@@ -131,3 +132,7 @@ export default createRule<[], MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle: "No commented-out code — delete it, git preserves history",
+};

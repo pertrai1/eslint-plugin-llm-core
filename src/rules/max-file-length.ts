@@ -1,4 +1,5 @@
 import path from "path";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "maxFileLength";
@@ -94,3 +95,8 @@ export default createRule<Options, MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Keep files under {max} lines — split modules when they exceed this",
+};

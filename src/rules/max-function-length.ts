@@ -1,5 +1,6 @@
 import path from "path";
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "maxFunctionLength";
@@ -158,3 +159,8 @@ export default createRule<Options, MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Keep functions under {max} lines — extract helpers when they grow",
+};

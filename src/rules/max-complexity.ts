@@ -1,6 +1,7 @@
 import type { Rule } from "eslint";
 import path from "path";
 import { AST_NODE_TYPES, TSESLint, TSESTree } from "@typescript-eslint/utils";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "maxComplexity";
@@ -247,3 +248,8 @@ export default createRule<Options, MessageIds>({
     return listeners;
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Keep cyclomatic complexity under {max} — decompose when functions get complex",
+};

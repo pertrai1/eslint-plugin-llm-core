@@ -1,4 +1,5 @@
 import { TSESTree } from "@typescript-eslint/utils";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noEmptyCatch";
@@ -50,3 +51,8 @@ export default createRule<[], MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Never leave catch blocks empty — handle, rethrow, or log the error",
+};

@@ -1,3 +1,4 @@
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noInlineDisable";
@@ -51,3 +52,7 @@ export default createRule<[], MessageIds>({
     return {};
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle: "No eslint-disable comments — fix the underlying issue instead",
+};

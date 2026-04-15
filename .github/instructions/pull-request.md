@@ -20,13 +20,15 @@ npm run update:eslint-docs
 
 ## Changeset
 
-Create a changeset file for the change. This project uses [Changesets](https://github.com/changesets/changesets) for versioning — never run `npm run version` locally.
+**Required when `src/` is modified.** CI enforces this — PRs that touch `src/` without a changeset will fail.
+
+This project uses [Changesets](https://github.com/changesets/changesets) for versioning — never run `npm run version` locally.
 
 ```bash
 npx changeset
 ```
 
-The changeset file goes in `.changeset/<name>.md`. Commit it alongside the code changes. CI handles the actual version bump when the PR merges.
+The changeset file goes in `.changeset/<name>.md`. Commit it alongside the code changes. CI handles the actual version bump when the PR merges. Docs-only, workflow-only, or AGENTS.md-only changes do not require a changeset.
 
 **Bump guidance:**
 

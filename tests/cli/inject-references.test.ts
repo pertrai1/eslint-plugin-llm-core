@@ -3,6 +3,7 @@ import os from "os";
 import path from "path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
+  buildInjectionBlock,
   computeRelativePath,
   findInstructionFiles,
 } from "../../src/cli/inject-references";
@@ -39,5 +40,13 @@ describe("inject-references", () => {
     expect(computeRelativePath(".github/copilot-instructions.md")).toBe(
       "../.agents/linting-rules.md",
     );
+  });
+
+  it("buildInjectionBlock produces the delimited reference block", () => {
+    expect(buildInjectionBlock("../.agents/linting-rules.md"))
+      .toBe(`<!-- llm-core-instructions:start -->
+See [\`.agents/linting-rules.md\`](../.agents/linting-rules.md) for coding guidelines derived from your ESLint config.
+Regenerate with: \`npx llm-core-instructions\`
+<!-- llm-core-instructions:end -->`);
   });
 });

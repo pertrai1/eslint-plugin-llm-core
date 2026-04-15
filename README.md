@@ -231,14 +231,15 @@ Unlike static instruction files, generated instructions are:
 npx llm-core-instructions
 ```
 
-This reads your `eslint.config.*`, resolves active `llm-core` rules, and generates `.agents/linting-rules.md` with behavioral guidelines for AI coding tools.
+This reads your `eslint.config.*`, resolves active `llm-core` rules, and generates `.agents/linting-rules.md` with behavioral guidelines for AI coding tools. It also appends a reference to the generated file into any existing agent instruction files (`AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`) so agent tools discover it automatically. Re-running replaces the reference in-place — no duplicates.
 
 **Flags:**
 
-| Flag              | Description                                             |
-| ----------------- | ------------------------------------------------------- |
-| `--config <path>` | Specify ESLint config file path (default: auto-detect)  |
-| `--dry-run`       | Print generated content to stdout without writing files |
+| Flag              | Description                                                                              |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| `--config <path>` | Specify ESLint config file path (default: auto-detect)                                   |
+| `--dry-run`       | Print generated content to stdout without writing files                                  |
+| `--no-inject`     | Generate `.agents/linting-rules.md` only, skip appending references to instruction files |
 
 **Example output:**
 
@@ -276,32 +277,6 @@ result.allFilesRules; // Rules applying to all files
 result.typescriptRules; // TypeScript-only rules
 ```
 
-## Agent Skills
-
-Beyond ESLint rules, this plugin ships **agent skills** — markdown instruction files that LLM agents can load when performing specific tasks. Skills complement the lint rules by catching patterns that require judgment rather than pattern matching.
-
-### Available Skills
-
-| Skill                                    | Description                                                                                                                    |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| [test-reviewer](skills/test-reviewer.md) | Detects tests that duplicate production logic, use shallow assertions, skip edge cases, or assert on mocks instead of behavior |
-
-### Usage
-
-Copy the skill file into your agent's skill directory:
-
-```bash
-# Claude Code
-cp node_modules/eslint-plugin-llm-core/skills/test-reviewer.md .claude/skills/
-
-# Cursor
-cp node_modules/eslint-plugin-llm-core/skills/test-reviewer.md .cursor/skills/
-
-# Or wherever your agent tool looks for skills
-```
-
-The skill is a standalone markdown file with no dependencies. Adapt it to your project's testing conventions as needed.
-
 ## Contributing
 
 ```bash
@@ -311,7 +286,7 @@ npm run test
 npm run lint
 ```
 
-See [CLAUDE.md](CLAUDE.md) for architecture details and how to add new rules.
+See [AGENTS.md](AGENTS.md) for architecture details and how to add new rules.
 
 ## Roadmap
 

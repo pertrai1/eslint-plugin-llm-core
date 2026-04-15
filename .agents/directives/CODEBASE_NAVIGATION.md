@@ -27,11 +27,9 @@ don't constrain what the correct output looks like. This wastes the channel
 capacity that types, contracts, and test names would use far more efficiently.
 
 Types constrain the output space far more efficiently than comments — roughly
-an order of magnitude more information per token consumed (source: _The
-Meta-Engineer_, Ch. 9 §10.1.2, citing Shannon entropy analysis of TypeScript
-AST nodes vs prose comments). Reading a 200-line implementation file to
-"understand the pattern" is dramatically less efficient than reading its type
-signature and one test case.
+an order of magnitude more information per token consumed. Reading a 200-line
+implementation file to "understand the pattern" is dramatically less efficient
+than reading its type signature and one test case.
 
 The SAFE pattern maximizes information density during exploration:
 
@@ -232,9 +230,7 @@ If you've completed 5+ tasks in one session, pause and compact:
 3. Discard exploration context from earlier tasks
 4. Write any qualifying decision logs (see below)
 
-This prevents the signal-to-noise degradation observed in extended agent
-sessions (source: _The Meta-Engineer_, Ch. 9 §10.3.2). Without compaction,
-accuracy drops roughly as follows:
+Without compaction, accuracy degrades in extended agent sessions roughly as follows:
 
 ```
 Tasks 1-5:   ~90% signal

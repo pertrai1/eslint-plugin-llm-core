@@ -12,10 +12,6 @@ type MessageIds =
   | "ifElseBooleanLiteral"
   | "ifElseBooleanLiteralSuggest";
 
-export const instruction: RuleInstruction = {
-  principle: "Eliminate redundant boolean logic and unnecessary control flow",
-};
-
 function isBooleanLiteral(
   node: TSESTree.Node,
 ): node is TSESTree.Literal & { value: boolean } {
@@ -419,3 +415,7 @@ export default createRule<[], MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle: "Eliminate redundant boolean logic and unnecessary control flow",
+};

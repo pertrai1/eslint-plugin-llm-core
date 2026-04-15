@@ -3,10 +3,6 @@ import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noCommentedOutCode";
 
-export const instruction: RuleInstruction = {
-  principle: "No commented-out code — delete it, git preserves history",
-};
-
 // Patterns that strongly indicate commented-out code
 const CODE_PATTERNS = [
   // Variable declarations
@@ -136,3 +132,7 @@ export default createRule<[], MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle: "No commented-out code — delete it, git preserves history",
+};

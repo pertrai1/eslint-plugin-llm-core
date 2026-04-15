@@ -4,11 +4,6 @@ import { createRule } from "../utils/create-rule";
 
 type MessageIds = "missingBasePrefix" | "missingErrorSuffix";
 
-export const instruction: RuleInstruction = {
-  principle:
-    "Use 'Base' prefix for abstract classes and 'Error' suffix for error classes",
-};
-
 export default createRule<[], MessageIds>({
   name: "naming-conventions",
   meta: {
@@ -75,6 +70,11 @@ export default createRule<[], MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Use 'Base' prefix for abstract classes and 'Error' suffix for error classes",
+};
 
 function getSuperClassName(
   node: TSESTree.LeftHandSideExpression,

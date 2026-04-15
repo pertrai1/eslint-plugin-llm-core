@@ -13,11 +13,6 @@ type Options = [
   },
 ];
 
-export const instruction: RuleInstruction = {
-  principle:
-    "Keep cyclomatic complexity under {max} — decompose when functions get complex",
-};
-
 export default createRule<Options, MessageIds>({
   name: "max-complexity",
   meta: {
@@ -253,3 +248,8 @@ export default createRule<Options, MessageIds>({
     return listeners;
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Keep cyclomatic complexity under {max} — decompose when functions get complex",
+};

@@ -3,10 +3,6 @@ import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noInlineDisable";
 
-export const instruction: RuleInstruction = {
-  principle: "No eslint-disable comments — fix the underlying issue instead",
-};
-
 export default createRule<[], MessageIds>({
   name: "no-inline-disable",
   meta: {
@@ -56,3 +52,7 @@ export default createRule<[], MessageIds>({
     return {};
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle: "No eslint-disable comments — fix the underlying issue instead",
+};

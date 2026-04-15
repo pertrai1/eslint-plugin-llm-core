@@ -4,10 +4,6 @@ import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noAnyInGeneric";
 
-export const instruction: RuleInstruction = {
-  principle: "Never use 'any' as a generic type argument",
-};
-
 export default createRule<[], MessageIds>({
   name: "no-any-in-generic",
   meta: {
@@ -95,3 +91,7 @@ export default createRule<[], MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle: "Never use 'any' as a generic type argument",
+};

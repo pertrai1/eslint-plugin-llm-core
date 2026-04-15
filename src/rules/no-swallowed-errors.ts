@@ -4,11 +4,6 @@ import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noSwallowedErrors";
 
-export const instruction: RuleInstruction = {
-  principle:
-    "Don't swallow errors in catch blocks that only log to console — rethrow, return, or delegate to an error handler",
-};
-
 export default createRule<[], MessageIds>({
   name: "no-swallowed-errors",
   meta: {
@@ -92,3 +87,8 @@ export default createRule<[], MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Don't swallow errors in catch blocks that only log to console — rethrow, return, or delegate to an error handler",
+};

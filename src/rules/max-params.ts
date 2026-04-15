@@ -12,13 +12,6 @@ type Options = [
   },
 ];
 
-export const instruction: RuleInstruction = {
-  principle:
-    "Limit function parameters to {max} — use object parameter patterns when more are needed",
-  optionTemplate:
-    "Limit function parameters to {max} (constructors: {maxConstructor}) — use object parameter patterns",
-};
-
 export default createRule<Options, MessageIds>({
   name: "max-params",
   meta: {
@@ -266,3 +259,10 @@ export default createRule<Options, MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Limit function parameters to {max} — use object parameter patterns when more are needed",
+  optionTemplate:
+    "Limit function parameters to {max} (constructors: {maxConstructor}) — use object parameter patterns",
+};

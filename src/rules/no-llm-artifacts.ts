@@ -4,11 +4,6 @@ import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noLlmArtifact" | "notImplementedStub";
 
-export const instruction: RuleInstruction = {
-  principle:
-    "No LLM placeholder comments or incomplete code markers — write the actual implementation",
-};
-
 /**
  * Patterns that indicate LLM placeholder comments.
  * Each regex is tested against the trimmed comment text.
@@ -147,3 +142,8 @@ export default createRule<[], MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "No LLM placeholder comments or incomplete code markers — write the actual implementation",
+};

@@ -4,11 +4,6 @@ import { createRule } from "../utils/create-rule";
 
 type MessageIds = "missingParamType" | "missingReturnType";
 
-export const instruction: RuleInstruction = {
-  principle:
-    "Add explicit parameter and return type annotations on all exported functions",
-};
-
 export default createRule<[], MessageIds>({
   name: "explicit-export-types",
   meta: {
@@ -200,3 +195,8 @@ export default createRule<[], MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Add explicit parameter and return type annotations on all exported functions",
+};

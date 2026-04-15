@@ -10,11 +10,6 @@ type Options = [
   },
 ];
 
-export const instruction: RuleInstruction = {
-  principle:
-    "Keep nesting depth under {max} — use guard clauses and helper functions",
-};
-
 export default createRule<Options, MessageIds>({
   name: "max-nesting-depth",
   meta: {
@@ -152,3 +147,8 @@ export default createRule<Options, MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Keep nesting depth under {max} — use guard clauses and helper functions",
+};

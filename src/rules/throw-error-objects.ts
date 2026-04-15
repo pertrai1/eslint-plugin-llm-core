@@ -4,10 +4,6 @@ import { createRule } from "../utils/create-rule";
 
 type MessageIds = "throwErrorObjects";
 
-export const instruction: RuleInstruction = {
-  principle: "Always throw Error objects, never strings or plain objects",
-};
-
 export default createRule<[], MessageIds>({
   name: "throw-error-objects",
   meta: {
@@ -74,3 +70,7 @@ export default createRule<[], MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle: "Always throw Error objects, never strings or plain objects",
+};

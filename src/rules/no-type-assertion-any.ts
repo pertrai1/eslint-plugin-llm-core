@@ -4,10 +4,6 @@ import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noTypeAssertionAny";
 
-export const instruction: RuleInstruction = {
-  principle: "Never use type assertions to 'any'",
-};
-
 export default createRule<[], MessageIds>({
   name: "no-type-assertion-any",
   meta: {
@@ -83,3 +79,7 @@ export default createRule<[], MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle: "Never use type assertions to 'any'",
+};

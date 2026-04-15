@@ -11,11 +11,6 @@ type Options = [
   },
 ];
 
-export const instruction: RuleInstruction = {
-  principle:
-    "Use structured logging with static message strings; pass dynamic values as separate metadata",
-};
-
 const DEFAULT_LOG_FUNCTIONS = [
   "logError",
   "logInfo",
@@ -156,3 +151,8 @@ export default createRule<Options, MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Use structured logging with static message strings; pass dynamic values as separate metadata",
+};

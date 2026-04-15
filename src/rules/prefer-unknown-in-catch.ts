@@ -4,10 +4,6 @@ import { createRule } from "../utils/create-rule";
 
 type MessageIds = "preferUnknownInCatch";
 
-export const instruction: RuleInstruction = {
-  principle: "Use 'unknown' for catch parameter types, not 'any'",
-};
-
 export default createRule<[], MessageIds>({
   name: "prefer-unknown-in-catch",
   meta: {
@@ -79,3 +75,7 @@ export default createRule<[], MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle: "Use 'unknown' for catch parameter types, not 'any'",
+};

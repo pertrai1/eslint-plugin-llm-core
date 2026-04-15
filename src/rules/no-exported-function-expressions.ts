@@ -13,11 +13,6 @@ type FuncNode =
   | TSESTree.FunctionExpression
   | TSESTree.FunctionDeclaration;
 
-export const instruction: RuleInstruction = {
-  principle:
-    "Use function declarations for all exports — 'export function foo()' not 'export const foo = () =>'",
-};
-
 export default createRule<[], MessageIds>({
   name: "no-exported-function-expressions",
   meta: {
@@ -171,3 +166,8 @@ export default createRule<[], MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Use function declarations for all exports — 'export function foo()' not 'export const foo = () =>'",
+};

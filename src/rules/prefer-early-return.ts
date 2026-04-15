@@ -10,11 +10,6 @@ type Options = [
   },
 ];
 
-export const instruction: RuleInstruction = {
-  principle:
-    "Prefer early returns over wrapping function bodies in if statements",
-};
-
 function isReturnOrThrow(node: TSESTree.Statement): boolean {
   return (
     node.type === AST_NODE_TYPES.ReturnStatement ||
@@ -150,3 +145,8 @@ export default createRule<Options, MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Prefer early returns over wrapping function bodies in if statements",
+};

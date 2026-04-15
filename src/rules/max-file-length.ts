@@ -12,11 +12,6 @@ type Options = [
   },
 ];
 
-export const instruction: RuleInstruction = {
-  principle:
-    "Keep files under {max} lines — split modules when they exceed this",
-};
-
 export default createRule<Options, MessageIds>({
   name: "max-file-length",
   meta: {
@@ -100,3 +95,8 @@ export default createRule<Options, MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Keep files under {max} lines — split modules when they exceed this",
+};

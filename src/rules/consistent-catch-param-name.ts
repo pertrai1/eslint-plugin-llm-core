@@ -10,11 +10,6 @@ type Options = [
   },
 ];
 
-export const instruction: RuleInstruction = {
-  principle: "Name all catch parameters '{name}' consistently",
-  optionTemplate: "Name all catch parameters '{name}' consistently",
-};
-
 export default createRule<Options, MessageIds>({
   name: "consistent-catch-param-name",
   meta: {
@@ -114,3 +109,8 @@ export default createRule<Options, MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle: "Name all catch parameters '{name}' consistently",
+  optionTemplate: "Name all catch parameters '{name}' consistently",
+};

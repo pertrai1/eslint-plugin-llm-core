@@ -16,12 +16,6 @@ type Options = [
   },
 ];
 
-export const instruction: RuleInstruction = {
-  principle: "Extract named constants for all magic numbers",
-  optionTemplate:
-    "Extract named constants for magic numbers (ignore: {ignore})",
-};
-
 const DEFAULT_IGNORE = [0, 1, -1, 2];
 
 export default createRule<Options, MessageIds>({
@@ -243,3 +237,9 @@ export default createRule<Options, MessageIds>({
     };
   },
 });
+
+export const instruction: RuleInstruction = {
+  principle: "Extract named constants for all magic numbers",
+  optionTemplate:
+    "Extract named constants for magic numbers (ignore: {ignore})",
+};

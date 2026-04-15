@@ -10,10 +10,20 @@ jobs:
     name: TDD Commit Presence
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - name: Check feat commits have corresponding test commits
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Skip TDD check when no src/ files changed (docs, workflows, configs)
+          SRC_CHANGED=$(git diff --name-only origin/main...HEAD -- src/ | wc -l | tr -d ' ')
+          if [ "$SRC_CHANGED" -eq 0 ]; then
+            echo "✓ No src/ changes — TDD commit check not required"
+            exit 0
+          fi
+
           COMMITS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits --jq '.[].commit.message' | head -c 10000)
 
           FEAT_COUNT=$(echo "$COMMITS" | grep -c '^feat:' || true)

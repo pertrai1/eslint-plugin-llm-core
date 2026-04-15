@@ -332,5 +332,47 @@ ruleTester.run("max-complexity", rule, {
         },
       ],
     },
+    {
+      code: `const api = {
+        ["handler"](step) {
+          if (step === 1) return 1;
+          if (step === 2) return 2;
+          if (step === 3) return 3;
+          return 4;
+        },
+      };`,
+      options: [{ max: 2 }],
+      errors: [
+        {
+          messageId: "maxComplexity" as const,
+          data: {
+            name: "handler",
+            count: "4",
+            max: "2",
+          },
+        },
+      ],
+    },
+    {
+      code: `const api = {
+        [dynamicKey](step) {
+          if (step === 1) return 1;
+          if (step === 2) return 2;
+          if (step === 3) return 3;
+          return 4;
+        },
+      };`,
+      options: [{ max: 2 }],
+      errors: [
+        {
+          messageId: "maxComplexity" as const,
+          data: {
+            name: "anonymous",
+            count: "4",
+            max: "2",
+          },
+        },
+      ],
+    },
   ],
 });

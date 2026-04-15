@@ -147,10 +147,14 @@ export default createRule<Options, MessageIds>({
       if (
         (node.type === AST_NODE_TYPES.FunctionExpression ||
           node.type === AST_NODE_TYPES.ArrowFunctionExpression) &&
-        node.parent?.type === AST_NODE_TYPES.MethodDefinition &&
-        node.parent.key.type === AST_NODE_TYPES.Identifier
+        node.parent?.type === AST_NODE_TYPES.MethodDefinition
       ) {
-        return node.parent.key.name;
+        if (node.parent.key.type === AST_NODE_TYPES.Identifier) {
+          return node.parent.key.name;
+        }
+        if (node.parent.key.type === AST_NODE_TYPES.PrivateIdentifier) {
+          return `#${node.parent.key.name}`;
+        }
       }
 
       return "anonymous";

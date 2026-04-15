@@ -30,19 +30,38 @@ mistake, every time.
 
 **NEVER commit directly to `main`.** Work on a feature branch (`feat/rule-name`, `fix/bug-description`, `docs/update-topic`). No exceptions.
 
-**All code changes follow this sequence — no skipping steps:**
+**All code changes follow one of these sequences:**
 
-| Step | Phase        | Action                                   | Verify                                                                                                   |
-| ---- | ------------ | ---------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| 0    | **BASELINE** | **Verify starting state is clean**       | **`tsc --noEmit && npm test && npm run build` all pass — if not, surface the failure before proceeding** |
-| 1    | TYPES        | Define types in `types.ts` or co-located | `tsc --noEmit` passes                                                                                    |
-| 2    | RED          | Write ONE failing test                   | Test fails                                                                                               |
-| 3    | GREEN        | Write minimum code to pass               | New test passes, all existing tests still pass, `tsc --noEmit` passes                                    |
-| 4    | REFACTOR     | Clean up if needed                       | All tests still pass                                                                                     |
-| 4.5  | **VERIFY**   | **Produce verification summary**         | **See [`.agents/directives/VERIFICATION.md`](.agents/directives/VERIFICATION.md) for protocol**          |
-| 5    | GATES        | Run quality gates                        | `npm test && npm run lint && npm run build`                                                              |
-| 5.5  | DOCS         | Regenerate rule docs (if rules changed)  | `npm run update:eslint-docs`, then commit                                                                |
-| 6    | COMMIT       | Atomic commit                            | One behavior per commit                                                                                  |
+### Light Path
+
+Use when: ≤2 files changed, no new exports, no type changes, no rule logic.
+Typical: typo fixes, one-line bug fixes, docs-only changes.
+
+| Step | Phase        | Action                         | Verify                                            |
+| ---- | ------------ | ------------------------------ | ------------------------------------------------- |
+| 0    | **BASELINE** | Verify starting state is clean | `tsc --noEmit && npm test && npm run build` pass  |
+| 1    | FIX          | Make the change                | Affected test passes (or no test needed for docs) |
+| 2    | GATES        | Run quality gates              | `npm test && npm run lint && npm run build` pass  |
+| 3    | COMMIT       | Atomic commit                  | One change per commit                             |
+
+### Full Path
+
+Use for: everything else — new rules, refactors, multi-file changes, type changes.
+
+No skipping steps:
+
+| Step | Phase        | Action                                   | Verify                                                                                                          |
+| ---- | ------------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| -1   | **ORIENT**   | **Navigate codebase safely**             | **See [`.agents/directives/CODEBASE_NAVIGATION.md`](.agents/directives/CODEBASE_NAVIGATION.md) (SAFE pattern)** |
+| 0    | **BASELINE** | **Verify starting state is clean**       | **`tsc --noEmit && npm test && npm run build` all pass — if not, surface the failure before proceeding**        |
+| 1    | TYPES        | Define types in `types.ts` or co-located | `tsc --noEmit` passes                                                                                           |
+| 2    | RED          | Write ONE failing test                   | Test fails                                                                                                      |
+| 3    | GREEN        | Write minimum code to pass               | New test passes, all existing tests still pass, `tsc --noEmit` passes                                           |
+| 4    | REFACTOR     | Clean up if needed                       | All tests still pass                                                                                            |
+| 4.5  | **VERIFY**   | **Produce verification summary**         | **See [`.agents/directives/VERIFICATION.md`](.agents/directives/VERIFICATION.md) for protocol**                 |
+| 5    | GATES        | Run quality gates                        | `npm test && npm run lint && npm run build`                                                                     |
+| 5.5  | DOCS         | Regenerate rule docs (if rules changed)  | `npm run update:eslint-docs`, then commit                                                                       |
+| 6    | COMMIT       | Atomic commit                            | One behavior per commit                                                                                         |
 
 Steps 2–6 repeat for each behavior. Do not batch.
 
@@ -55,6 +74,8 @@ Read and follow every directive before implementing. They govern **how** you wor
 
 | Directive               | What it governs                             | File                                                                                             |
 | ----------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Codebase Navigation     | SAFE exploration before implementation      | [`.agents/directives/CODEBASE_NAVIGATION.md`](.agents/directives/CODEBASE_NAVIGATION.md)         |
+| Error Memory            | Persistent memory for repeated mistakes     | [`.agents/directives/ERROR_MEMORY.md`](.agents/directives/ERROR_MEMORY.md)                       |
 | Type-First Development  | Types before implementation                 | [`.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md`](.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md) |
 | Test-Driven Development | RED/GREEN/REFACTOR for all code changes     | [`.agents/directives/TEST_DRIVEN_DEVELOPMENT.md`](.agents/directives/TEST_DRIVEN_DEVELOPMENT.md) |
 | Verification Protocol   | Evidence of correctness before GATES        | [`.agents/directives/VERIFICATION.md`](.agents/directives/VERIFICATION.md)                       |

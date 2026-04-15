@@ -134,18 +134,6 @@ I've defined the type contract for [feature]. Please confirm this matches your i
 Once confirmed, I'll implement against these types.
 ```
 
-### Rationale
-
-Types are executable specifications. They:
-
-- **Reduce solution space** — From millions of implementations to thousands
-- **Provide instant feedback** — Compiler errors are immediate, tests are slow
-- **Document intent** — Types are self-documenting contracts
-- **Catch bugs early** — At compile time, not runtime
-- **Guide implementation** — The type signature tells you what to build
-
-This directive exists because LLMs without type constraints produce incorrect code 40-60% of the time. With explicit type contracts, that drops to <10%.
-
 ---
 
 ## Quick Reference

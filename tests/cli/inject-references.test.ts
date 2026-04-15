@@ -2,7 +2,10 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { findInstructionFiles } from "../../src/cli/inject-references";
+import {
+  computeRelativePath,
+  findInstructionFiles,
+} from "../../src/cli/inject-references";
 
 describe("inject-references", () => {
   let tmpDir = "";
@@ -28,5 +31,13 @@ describe("inject-references", () => {
       "AGENTS.md",
       ".github/copilot-instructions.md",
     ]);
+  });
+
+  it("computeRelativePath returns the correct path for root and .github files", () => {
+    expect(computeRelativePath("AGENTS.md")).toBe(".agents/linting-rules.md");
+    expect(computeRelativePath("CLAUDE.md")).toBe(".agents/linting-rules.md");
+    expect(computeRelativePath(".github/copilot-instructions.md")).toBe(
+      "../.agents/linting-rules.md",
+    );
   });
 });

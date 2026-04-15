@@ -2,6 +2,30 @@
 
 <!-- Brief description of the change. Add `Closes #<number>` here if this PR resolves a GitHub issue. -->
 
+## Verification
+
+<!-- Required for new rules and bug fixes. See .agents/directives/VERIFICATION.md for protocol. -->
+
+<!-- Remove this section for docs-only or chore changes where GATES output is sufficient. -->
+
+<!-- ### Detection -->
+<!-- ✅ Hit: [code that triggers the error] → [error message summary] -->
+<!-- ✅ Clean: [code that should NOT trigger] → no error -->
+
+<!-- ### Tests -->
+<!-- List passing test cases: Valid / Invalid / Edge / Suggestions -->
+
+<!-- ### Contract -->
+<!-- - [ ] Exported from src/index.ts -->
+<!-- - [ ] In correct config presets -->
+<!-- - [ ] meta.docs.url correct -->
+<!-- - [ ] meta.schema defined (if options exist) -->
+<!-- - [ ] Message follows what/why/how-to-fix format -->
+<!-- - [ ] Suggestions use actual code context -->
+
+<!-- ### Docs -->
+<!-- - [ ] Regenerated with npm run update:eslint-docs -->
+
 ## Checklist
 
 - [ ] `npm run build` passes
@@ -28,6 +52,7 @@
 - [ ] `AGENTS.md`
 - [ ] `.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md`
 - [ ] `.agents/directives/TEST_DRIVEN_DEVELOPMENT.md`
+- [ ] `.agents/directives/VERIFICATION.md`
 - [ ] `.agents/directives/SESSION_DECISIONS.md`
 - [ ] If `SESSION_DECISIONS.md` was loaded **and** this PR set a durable repo/process or cross-cutting decision whose reasoning is not obvious from the diff, a `docs/decisions/YYYY-MM-DD-<topic>.md` entry is included in this PR
 

@@ -128,24 +128,33 @@ Paste the output. That IS the verification for non-rule changes.
 
 ---
 
-## Output Format
+## Output Location: Pull Request Body
 
-The verification summary should look like this:
+The verification summary MUST be included in the PR description when the
+agent opens a pull request. This keeps the evidence next to the code it
+verifies, and the reviewer can scan it in 30 seconds without leaving the PR.
 
-```
-## Verification: no-else-return
+When opening a PR, include a `## Verification` section in the PR body
+(between the checklist and agent disclosure). The summary should look like
+this:
+
+```markdown
+## Verification
 
 ### Detection
+
 ✅ Hit: `if (x) { a(); } else { b(); }` → error with structured message
 ✅ Clean: `if (x) { a(); return; } b();` → no error
 
 ### Tests (12 passing)
+
 - Valid (4): early return, guard clause, if-without-else, nested-if
 - Invalid (5): if-else-return, else-if-chain-return, nested-else-return, ternary-else, try-catch-else
 - Edge (2): empty-else-block, single-statement-else
 - Suggestions (1): converts if-else to early-return
 
 ### Contract
+
 [x] Exported from src/index.ts
 [x] In recommended + all + best-practices configs
 [x] meta.docs.url → docs/rules/no-else-return.md
@@ -154,11 +163,15 @@ The verification summary should look like this:
 [x] Suggestions use actual code context
 
 ### Docs
+
 [x] Regenerated, docs/rules/no-else-return.md updated
 ```
 
-A reviewer scans this in 30 seconds. If anything is `[ ]` or tests are
-missing, the implementation is not ready.
+If anything is `[ ]` or tests are missing, the implementation is not ready.
+Do not open the PR until verification is complete.
+
+For bug fixes and docs/chore changes, include a shorter verification
+block in the same PR section.
 
 ---
 

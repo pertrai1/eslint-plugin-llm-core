@@ -221,6 +221,7 @@ If you've completed 5+ tasks in one session, pause and compact:
 1. Summarize all completed work (max 500 words)
 2. List current file state and pending work
 3. Discard exploration context from earlier tasks
+4. Write any qualifying decision logs (see below)
 
 This prevents the signal-to-noise degradation the research shows:
 
@@ -229,6 +230,41 @@ Tasks 1-5:   90% signal
 Tasks 6-10:  60% signal
 Tasks 11+:   30% signal (without compacting)
 ```
+
+### 5. Compact → Session Decisions Pipeline
+
+Compacting produces two outputs with different audiences:
+
+**Session digest** (for the _current_ session's context window):
+
+- What changed (1-2 sentences per task)
+- Current file state and pending work
+- Active constraints for remaining work
+- This replaces the full history — it IS the compacted context
+
+**Decision log** (for _future_ sessions and contributors):
+
+- Written via [SESSION_DECISIONS.md](./SESSION_DECISIONS.md)
+- Only when durable decisions were made (architectural, convention, policy)
+- Stored in `docs/decisions/YYYY-MM-DD-<topic>.md`
+- Future agents scan frontmatter to find relevant context without reading everything
+
+The connection: when you compact, check whether any completed task included a
+qualifying decision. If so, write the decision log _during compacting_ while the
+reasoning is fresh — don't wait until session end.
+
+```
+Compacting checklist:
+  □ Summarize completed work (session digest)
+  □ List pending work and active constraints
+  □ For each completed task: did it set a durable decision?
+    → Yes: write docs/decisions/YYYY-MM-DD-<topic>.md now
+    → No: skip
+  □ Discard exploration context
+```
+
+This ensures decisions are captured when reasoning is fresh, and the session
+digest keeps the current context window lean for the next task.
 
 ---
 

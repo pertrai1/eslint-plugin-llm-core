@@ -57,6 +57,7 @@ Read and follow every directive before implementing. They govern **how** you wor
 | Directive               | What it governs                             | File                                                                                             |
 | ----------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | Codebase Navigation     | SAFE exploration before implementation      | [`.agents/directives/CODEBASE_NAVIGATION.md`](.agents/directives/CODEBASE_NAVIGATION.md)         |
+| Error Memory            | Persistent memory for repeated mistakes     | [`.agents/directives/ERROR_MEMORY.md`](.agents/directives/ERROR_MEMORY.md)                       |
 | Type-First Development  | Types before implementation                 | [`.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md`](.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md) |
 | Test-Driven Development | RED/GREEN/REFACTOR for all code changes     | [`.agents/directives/TEST_DRIVEN_DEVELOPMENT.md`](.agents/directives/TEST_DRIVEN_DEVELOPMENT.md) |
 | Verification Protocol   | Evidence of correctness before GATES        | [`.agents/directives/VERIFICATION.md`](.agents/directives/VERIFICATION.md)                       |

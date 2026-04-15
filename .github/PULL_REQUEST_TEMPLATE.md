@@ -57,6 +57,7 @@
 - [ ] `.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md`
 - [ ] `.agents/directives/TEST_DRIVEN_DEVELOPMENT.md`
 - [ ] `.agents/directives/CODEBASE_NAVIGATION.md`
+- [ ] `.agents/directives/ERROR_MEMORY.md`
 - [ ] `.agents/directives/VERIFICATION.md`
 - [ ] `.agents/directives/SESSION_DECISIONS.md`
 - [ ] If `SESSION_DECISIONS.md` was loaded **and** this PR set a durable repo/process or cross-cutting decision whose reasoning is not obvious from the diff, a `docs/decisions/YYYY-MM-DD-<topic>.md` entry is included in this PR

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import explicitExportTypes from "../../src/rules/explicit-export-types";
+import maxComplexity from "../../src/rules/max-complexity";
 import maxFileLength from "../../src/rules/max-file-length";
 import maxFunctionLength from "../../src/rules/max-function-length";
 import namingConventions from "../../src/rules/naming-conventions";
@@ -78,6 +79,8 @@ describe("rule message guidance", () => {
     const noEmptyCatchMessage = noEmptyCatch.meta.messages?.noEmptyCatch ?? "";
     const maxFileLengthMessage =
       maxFileLength.meta.messages?.maxFileLength ?? "";
+    const maxComplexityMessage =
+      maxComplexity.meta.messages?.maxComplexity ?? "";
     const maxFunctionLengthMessage =
       maxFunctionLength.meta.messages?.maxFunctionLength ?? "";
 
@@ -123,6 +126,18 @@ describe("rule message guidance", () => {
     );
     expect(maxFileLengthMessage).toContain(
       "After:  order-service.ts keeps orchestration; move validation to order-validation.ts",
+    );
+
+    expectSingleWhyLine(maxComplexityMessage);
+    expectTemplateShape(maxComplexityMessage);
+    expect(maxComplexityMessage).toContain(
+      "Before: if (type === 'a') return 1; else if (type === 'b') return 2; else if (type === 'c') return 3;",
+    );
+    expect(maxComplexityMessage).toContain(
+      "After:  const VALUES: Record<string, number> = { a: 1, b: 2, c: 3 };",
+    );
+    expect(maxComplexityMessage).toContain(
+      "function getValue(type: string): number { return VALUES[type] ?? 0; }",
     );
 
     expectSingleWhyLine(maxFunctionLengthMessage);

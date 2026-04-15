@@ -133,6 +133,7 @@ export default [
 | [consistent-catch-param-name](docs/rules/consistent-catch-param-name.md)           | Enforce consistent naming for catch clause parameters across the codebase                                    | 🌐 ✅ 🎨 | 💡  |
 | [explicit-export-types](docs/rules/explicit-export-types.md)                       | Require explicit parameter and return type annotations on exported functions                                 | 🌐 ✅ ⌨️ |     |
 | [filename-match-export](docs/rules/filename-match-export.md)                       | Enforce that filenames match their single exported function, class, or component name                        | 🌐 ✅ 🎨 |     |
+| [max-complexity](docs/rules/max-complexity.md)                                     | Enforce a maximum cyclomatic complexity per function to encourage decomposition                              | 🌐 🧮 ✅ |     |
 | [max-file-length](docs/rules/max-file-length.md)                                   | Enforce a maximum number of lines per file to encourage proper module separation                             | 🌐 🧮 ✅ |     |
 | [max-function-length](docs/rules/max-function-length.md)                           | Enforce a maximum number of lines per function to encourage decomposition                                    | 🌐 🧮 ✅ |     |
 | [max-nesting-depth](docs/rules/max-nesting-depth.md)                               | Enforce a maximum nesting depth for control flow statements to reduce cognitive complexity                   | 🌐 🧮 ✅ |     |
@@ -173,12 +174,13 @@ Key papers that have built out the rulesets:
 
 These ESLint core rules address common LLM patterns and pair well with this plugin:
 
+> `llm-core/max-complexity` replaces ESLint's core `complexity` rule with the same classic counting semantics but a teaching-oriented message tuned for decomposition.
+
 | Rule                                                                                  | What it catches                                                            | ESLint version |
 | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | -------------- |
 | [`no-nested-ternary`](https://eslint.org/docs/latest/rules/no-nested-ternary)         | LLMs nest ternaries for "conciseness" — enforce if/else instead            | All            |
 | [`preserve-caught-error`](https://eslint.org/docs/latest/rules/preserve-caught-error) | LLMs discard original errors when re-throwing — require `{ cause: error }` | 9.35+          |
 | [`no-useless-assignment`](https://eslint.org/docs/latest/rules/no-useless-assignment) | LLMs create redundant intermediate variables — catch dead stores           | 9.0+           |
-| [`complexity`](https://eslint.org/docs/latest/rules/complexity)                       | LLMs generate high cyclomatic complexity — enforce decomposition           | All            |
 
 Add these to your config alongside `llm-core`:
 
@@ -193,7 +195,6 @@ export default [
       "no-nested-ternary": "error",
       "preserve-caught-error": "error",
       "no-useless-assignment": "error",
-      complexity: ["error", 10],
     },
   },
 ];

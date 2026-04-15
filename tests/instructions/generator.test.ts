@@ -22,7 +22,7 @@ describe("generateMarkdown", () => {
 # Coding Guidelines
 
 Generated from eslint-plugin-llm-core configuration.
-Regenerate with: npx generate-instructions
+Regenerate with: npx eslint-plugin-llm-core generate-instructions
 
 ## All Files
 
@@ -41,7 +41,7 @@ Regenerate with: npx generate-instructions
 # Coding Guidelines
 
 Generated from eslint-plugin-llm-core configuration.
-Regenerate with: npx generate-instructions
+Regenerate with: npx eslint-plugin-llm-core generate-instructions
 
 ## All Files
 
@@ -56,7 +56,7 @@ Regenerate with: npx generate-instructions
 # Coding Guidelines
 
 Generated from eslint-plugin-llm-core configuration.
-Regenerate with: npx generate-instructions
+Regenerate with: npx eslint-plugin-llm-core generate-instructions
 `.trimStart(),
     );
   });

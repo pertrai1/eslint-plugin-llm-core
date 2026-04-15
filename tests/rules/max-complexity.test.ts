@@ -173,6 +173,45 @@ ruleTester.run("max-complexity", rule, {
       errors: [{ messageId: "maxComplexity" as const }],
     },
     {
+      code: `function countClassicFor() {
+        for (let i = 0; i < 10; i++) {
+          consume(i);
+        }
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countLogicalOr(left, right) {
+        return left || right;
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countLogicalNullish(left, right) {
+        return left ?? right;
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countLogicalAndAssign(value) {
+        value &&= 1;
+        return value;
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
+      code: `function countLogicalNullishAssign(value) {
+        value ??= 1;
+        return value;
+      }`,
+      options: [{ max: 1 }],
+      errors: [{ messageId: "maxComplexity" as const }],
+    },
+    {
       code: `function countOptionalMember(input) {
         return input?.value;
       }`,

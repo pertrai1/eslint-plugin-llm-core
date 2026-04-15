@@ -30,7 +30,25 @@ mistake, every time.
 
 **NEVER commit directly to `main`.** Work on a feature branch (`feat/rule-name`, `fix/bug-description`, `docs/update-topic`). No exceptions.
 
-**All code changes follow this sequence — no skipping steps:**
+**All code changes follow one of these sequences:**
+
+### Light Path
+
+Use when: ≤2 files changed, no new exports, no type changes, no rule logic.
+Typical: typo fixes, one-line bug fixes, docs-only changes.
+
+| Step | Phase        | Action                         | Verify                                            |
+| ---- | ------------ | ------------------------------ | ------------------------------------------------- |
+| 0    | **BASELINE** | Verify starting state is clean | `tsc --noEmit && npm test && npm run build` pass  |
+| 1    | FIX          | Make the change                | Affected test passes (or no test needed for docs) |
+| 2    | GATES        | Run quality gates              | `npm test && npm run lint && npm run build` pass  |
+| 3    | COMMIT       | Atomic commit                  | One change per commit                             |
+
+### Full Path
+
+Use for: everything else — new rules, refactors, multi-file changes, type changes.
+
+No skipping steps:
 
 | Step | Phase        | Action                                   | Verify                                                                                                          |
 | ---- | ------------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |

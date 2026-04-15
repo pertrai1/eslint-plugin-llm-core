@@ -9,23 +9,6 @@ loop.
 
 ---
 
-## Why This Matters
-
-A single error corrected once is a fix. The same error corrected three times is
-a process failure. Every repeated mistake wastes tokens, review cycles, and
-trust.
-
-ERRORS.md is the repo's collective memory of what went wrong and how to prevent
-it. It serves a different purpose than decision logs or test coverage:
-
-| Mechanism                         | Purpose                             | Audience                          |
-| --------------------------------- | ----------------------------------- | --------------------------------- |
-| Decision logs (`docs/decisions/`) | Why architectural choices were made | Future agents and contributors    |
-| Test coverage                     | What behavior is verified           | CI and contributors               |
-| **ERRORS.md**                     | **What mistakes to avoid**          | **The agent about to start work** |
-
----
-
 ## When to Write an Error Entry
 
 Write an error entry when ALL of the following are true:
@@ -179,33 +162,6 @@ Compacting checklist (extended):
 
 If a task produced a corrected mistake that meets the error entry criteria,
 write it during compacting while the details are fresh.
-
----
-
-## Forbidden Patterns
-
-| Pattern                                             | Why Forbidden                                         |
-| --------------------------------------------------- | ----------------------------------------------------- |
-| "Be more careful with async code"                   | Not actionable — specify the exact guard              |
-| Entry with no code example                          | Abstract descriptions don't prevent concrete mistakes |
-| Entry for an error already caught by existing rules | Duplication — the rule IS the prevention              |
-| "AI made a mistake" as the error name               | Name the pattern, not the agent                       |
-| Writing an entry before the fix is verified         | You don't know the correct pattern yet                |
-| Loading all error entries for every task            | Use progressive disclosure — load by domain           |
-
----
-
-## Quick Reference
-
-| Question                     | Answer                                                             |
-| ---------------------------- | ------------------------------------------------------------------ |
-| When to write?               | After a mistake is corrected, if it could recur in a fresh session |
-| When NOT to write?           | One-off, already-automated, or self-corrected before commit        |
-| Where?                       | `docs/ERRORS.md`                                                   |
-| When to read?                | Anchor phase — load relevant entries before implementation         |
-| When to automate?            | 5+ occurrences → ESLint rule, type guard, or CI check              |
-| When to retire?              | Prevention is automated, no recurrence in 30+ days                 |
-| Who owns the monthly review? | First agent session after the 1st of each month                    |
 
 ---
 

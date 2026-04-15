@@ -147,22 +147,8 @@ Every decision log MUST contain all five sections:
 | ------------------------------------------------- | --------------------------------------------- |
 | "We decided to use the best approach"             | Not a decision — no alternative named         |
 | Leaving `[placeholder]` text in the output        | Decision log is incomplete — do not commit it |
-| One-line entries                                  | If it fits in one line, it doesn't need a log |
 | Logging choices already captured in code comments | Duplication — code comments are sufficient    |
 | Writing the log before finishing the task         | You don't know the consequences yet           |
-| Writing a log that says "no decisions were made"  | If no decisions were made, write nothing      |
-
----
-
-## Rationale
-
-LLM agents make architectural decisions silently. When a future agent picks up
-the same codebase, it has no record of what was tried and rejected. It will
-re-evaluate the same tradeoffs and often reach different conclusions — causing
-churn, regression, or duplicated investigation.
-
-Decision logs are the cheapest form of context transfer. A 10-line log written
-now prevents a 30-minute re-investigation later.
 
 ---
 

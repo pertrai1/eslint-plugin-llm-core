@@ -6,37 +6,10 @@ This directive governs how the agent explores and reads the codebase before
 starting any implementation work. It applies to every task — new rules, bug
 fixes, refactors, and docs changes.
 
-```
--1. ORIENT    → this file (SAFE: Survey → Anchor → Filter → Execute)
- 0. BASELINE  → verify clean state
- 1. TYPES     → define contracts
- 2. RED       → write failing test
- ...
-```
+▎ This directive runs at Step -1 of the mandatory workflow. See AGENTS.md.
 
 **Do not skip ORIENT.** Starting work without surveying the codebase produces
 code that doesn't fit existing patterns, duplicates logic, or breaks imports.
-
----
-
-## Why This Matters
-
-An agent that reads entire files floods its context window with low-information
-content — full function bodies, internal helpers, and commented-out code that
-don't constrain what the correct output looks like. This wastes the channel
-capacity that types, contracts, and test names would use far more efficiently.
-
-Types constrain the output space far more efficiently than comments — roughly
-an order of magnitude more information per token consumed. Reading a 200-line
-implementation file to "understand the pattern" is dramatically less efficient
-than reading its type signature and one test case.
-
-The SAFE pattern maximizes information density during exploration:
-
-- **S**urvey — read structure, not code
-- **A**nchor — load high-information constraints (types, tests, contracts)
-- **F**ilter — read only files the task actually touches
-- **E**xecute — begin implementation with entropy-reduced context
 
 ---
 
@@ -228,15 +201,21 @@ If you've completed 5+ tasks in one session, pause and compact:
 1. Summarize all completed work (max 500 words)
 2. List current file state and pending work
 3. Discard exploration context from earlier tasks
-4. Write any qualifying decision logs (see below)
+4. Write any qualifying decision logs or error entries (see below)
 
-Without compaction, accuracy degrades in extended agent sessions roughly as follows:
+Without compaction, accuracy degrades roughly as follows (heuristic, not measurement):
 
 ```
 Tasks 1-5:   ~90% signal
 Tasks 6-10:  ~60% signal
 Tasks 11+:   ~30% signal
 ```
+
+**Framework-dependent action:**
+
+- If your framework supports auto-compaction (e.g., Claude Code): trigger it now
+- If not: produce a session digest as a message summarizing completed work,
+  pending items, and active constraints, then continue
 
 ### 5. Compact → Session Decisions Pipeline
 
@@ -281,7 +260,6 @@ digest keeps the current context window lean for the next task.
 | ------------------------------------------- | ----------------------------------------------------------- |
 | `cat` on any file over 50 lines             | Wastes context on low-information content                   |
 | Reading a file "to get familiar"            | Familiarity comes from types and tests, not implementations |
-| Skipping Survey to start coding immediately | Produces code that doesn't fit the codebase                 |
 | Reading full test file bodies during Anchor | Test names are the spec; bodies are for the RED phase       |
 | Loading all directives for every task       | Use progressive disclosure — load only what applies         |
 | Starting a second task without compacting   | Context from task 1 rots and confuses task 2                |

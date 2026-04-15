@@ -4,34 +4,11 @@
 
 This directive applies after REFACTOR and before the final GATES run:
 
-```
--1. ORIENT                   → [CODEBASE_NAVIGATION](./CODEBASE_NAVIGATION.md)
- 0. Verify clean baseline     → AGENTS.md Step 0 (BASELINE)
- 1. Define types              → [TYPE_DRIVEN_DEVELOPMENT](./TYPE_DRIVEN_DEVELOPMENT.md)
- 2. Write failing test        → [TEST_DRIVEN_DEVELOPMENT](./TEST_DRIVEN_DEVELOPMENT.md)
- 3. Implement minimum code    → driven by failing tests
- 4. Refactor                  → clean up, all tests pass
- 5. **Verify**                → this file — demonstrate correctness with evidence
- 6. GATES + DOCS + COMMIT     → final quality gates
-```
+▎ This directive runs at Step 4.5 of the mandatory workflow. See AGENTS.md.
 
 **Do not run GATES until verification output is produced.** Verification
 catches issues that passing tests alone cannot: false positives, missing
 edge cases, wrong config placement, and incomplete documentation.
-
----
-
-## Why Verification Matters
-
-Passing tests prove the code works for tested inputs. They do NOT prove:
-
-- The rule catches what it should in real code (not just test fixtures)
-- The rule avoids false positives on valid patterns
-- The structured error message reads correctly in context
-- The rule is properly exported, configured, and documented
-
-Verification bridges the gap between "tests pass" and "rule is production-ready."
-Think of it as the agent showing its work, not just reporting a green checkmark.
 
 ---
 
@@ -193,20 +170,6 @@ block in the same PR section.
 | Skipping contract proof                      | Misconfigured rules pass tests but fail in users' editors |
 | Claiming verification without showing output | Evidence, not claims                                      |
 | Running GATES before verification            | Verification catches issues GATES misses                  |
-
----
-
-## Why This Matters for LLM Agents
-
-LLM agents tend to:
-
-1. **Implement the happy path** — forget edge cases and false positives
-2. **Skip wiring** — write the rule but forget to export or configure it
-3. **Generate generic messages** — "Unexpected pattern" instead of using code context
-4. **Skip docs** — forget `npm run update:eslint-docs`
-
-Verification forces the agent to confront each of these before declaring done.
-It transforms "I think it works" into "here's the evidence it works."
 
 ---
 

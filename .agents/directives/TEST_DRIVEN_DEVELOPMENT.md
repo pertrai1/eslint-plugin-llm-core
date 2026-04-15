@@ -2,15 +2,10 @@
 
 ## Prerequisite: Types Must Exist First
 
-This directive is step 2 of the implementation pipeline:
+▎ This directive runs at Step 2 of the mandatory workflow. See AGENTS.md.
 
-```
-1. Define types/interfaces     → [TYPE_DRIVEN_DEVELOPMENT](./TYPE_DRIVEN_DEVELOPMENT.md)
-2. Write tests against types   → this file (TDD)
-3. Implement minimum code      → driven by failing tests
-```
-
-**Do not write tests until types are defined and verified with `tsc --noEmit`.** Types constrain structure; tests constrain behavior. Together they force minimal, correct implementations.
+Prerequisite: Types must be defined and verified with `tsc --noEmit` first.
+See [TYPE_DRIVEN_DEVELOPMENT](./TYPE_DRIVEN_DEVELOPMENT.md).
 
 ---
 
@@ -177,159 +172,7 @@ All must pass. Fix failures before proceeding.
 
 ## Examples
 
-### Example 1: Implementing a Repository Method
-
-**Given types:**
-
-```typescript
-interface UserRepository {
-  findById(id: string): Promise<User | null>;
-}
-
-type User = { id: string; name: string; email: string };
-```
-
-**Cycle 1: Found User Case**
-
-```typescript
-// RED: Write failing test
-describe("UserRepository.findById", () => {
-  it("should return user when found", async () => {
-    const repo = createUserRepository({ db: mockDb });
-    mockDb.query.mockResolvedValue({
-      id: "123",
-      name: "Alice",
-      email: "alice@test.com",
-    });
-
-    const user = await repo.findById("123");
-
-    expect(user).toEqual({ id: "123", name: "Alice", email: "alice@test.com" });
-  });
-});
-
-// Run test: ❌ Fails (createUserRepository doesn't exist)
-```
-
-```typescript
-// GREEN: Minimum implementation
-export const createUserRepository = (deps: {
-  db: Database;
-}): UserRepository => {
-  return {
-    findById: async (id: string) => {
-      const row = await deps.db.query("SELECT * FROM users WHERE id = $1", [
-        id,
-      ]);
-      return row ? { id: row.id, name: row.name, email: row.email } : null;
-    },
-  };
-};
-
-// Run test: ✅ Passes
-// Run tsc: ✅ Passes
-```
-
-**Cycle 2: Not Found Case**
-
-```typescript
-// RED: Write failing test for next behavior
-it("should return null when user not found", async () => {
-  const repo = createUserRepository({ db: mockDb });
-  mockDb.query.mockResolvedValue(null);
-
-  const user = await repo.findById("nonexistent");
-
-  expect(user).toBeNull();
-});
-
-// Run test: ✅ Passes (accidentally!)
-// Problem: Test doesn't fail. Fix the test or confirm implementation is correct.
-```
-
-Wait — the test passes because our implementation already handles `null`. Good. Move to next behavior.
-
-**Cycle 3: Database Error Case**
-
-```typescript
-// RED: Write failing test
-it("should throw DatabaseError on query failure", async () => {
-  const repo = createUserRepository({ db: mockDb });
-  mockDb.query.mockRejectedValue(new Error("Connection lost"));
-
-  await expect(repo.findById("123")).rejects.toThrow(DatabaseError);
-});
-
-// Run test: ❌ Fails (throws Error, not DatabaseError)
-```
-
-```typescript
-// GREEN: Minimum implementation to pass
-export const createUserRepository = (deps: {
-  db: Database;
-}): UserRepository => {
-  return {
-    findById: async (id: string) => {
-      try {
-        const row = await deps.db.query("SELECT * FROM users WHERE id = $1", [
-          id,
-        ]);
-        return row ? { id: row.id, name: row.name, email: row.email } : null;
-      } catch (err) {
-        throw new DatabaseError("Query failed", { cause: err });
-      }
-    },
-  };
-};
-
-// Run test: ✅ Passes
-// Run tsc: ✅ Passes
-```
-
----
-
-### Example 2: What NOT To Do
-
-```typescript
-// ❌ WRONG: Writing multiple tests at once
-describe('UserRepository', () => {
-  it('should find by id', async () => { /* ... */ });
-  it('should find by email', async () => { /* ... */ });
-  it('should create user', async () => { /* ... */ });
-  it('should update user', async () => { /* ... */ });
-  it('should delete user', async () => { /* ... */ });
-});
-
-// Now implement all at once...
-export const createUserRepository = ... // 100 lines of code
-
-// Problem: Which test fails when something breaks? Hard to debug.
-```
-
-```typescript
-// ✅ RIGHT: One test, one cycle
-describe("UserRepository", () => {
-  it("should find by id", async () => {
-    /* ... */
-  });
-});
-// Implement findById only
-
-// Next cycle
-describe("UserRepository", () => {
-  it("should find by id", async () => {
-    /* ... */
-  });
-  it("should find by email", async () => {
-    /* ... */
-  });
-});
-// Implement findByEmail only
-
-// etc.
-```
-
----
+For a project-specific example, see Rule 7 (no retrofitting) above.
 
 ## TDD Applies to Fixes and Review Changes Too
 
@@ -344,38 +187,6 @@ the RED/GREEN cycle. The cycle is the same:
 The temptation to "just fix it" is strongest for small changes. That
 is exactly when discipline matters most — small changes have the
 highest ratio of assumption to verification.
-
----
-
-## Why This Matters for LLM Agents
-
-### The Agent Drift Problem
-
-Without TDD, LLM agents:
-
-1. **Over-implement** — Solve problems you didn't ask about
-2. **Over-abstract** — Build frameworks for simple features
-3. **Guess intent** — Add features they think you might want
-4. **Skip edge cases** — Or handle edge cases that don't exist
-5. **Lose focus** — Drift into unrelated improvements
-
-### TDD as a Constraint
-
-With strict TDD, the agent:
-
-1. **Implements exactly** what the test requires
-2. **Stops** when the test passes
-3. **Moves** to the next failing test
-4. **Cannot drift** — the test is the budget
-
-### The Numbers
-
-| Metric                         | Without TDD    | With TDD    |
-| ------------------------------ | -------------- | ----------- |
-| Lines of unnecessary code      | 30-50% extra   | <5% extra   |
-| Time to correct behavior       | 2-3 iterations | 1 iteration |
-| Bug rate (post-implementation) | 15-25%         | <5%         |
-| Code review iterations         | 3-5 rounds     | 1-2 rounds  |
 
 ---
 
@@ -397,7 +208,6 @@ If any fail, the cycle is incomplete. Fix before moving to next test.
 | ---------------------------------- | -------------------------------- |
 | `it.skip()`                        | Skipping tests defeats TDD       |
 | `// TODO: write test later`        | No test = no implementation      |
-| Implementing without test          | Violates core principle          |
 | Copy-pasting tests to pass quickly | Tests must reflect real behavior |
 | `expect(true).toBe(true)`          | Fake test, no constraint         |
 | Writing test after implementation  | That's not TDD                   |

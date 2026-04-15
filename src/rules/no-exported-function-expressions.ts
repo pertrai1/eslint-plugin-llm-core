@@ -1,4 +1,5 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds =
@@ -11,6 +12,11 @@ type FuncNode =
   | TSESTree.ArrowFunctionExpression
   | TSESTree.FunctionExpression
   | TSESTree.FunctionDeclaration;
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Use function declarations for all exports — 'export function foo()' not 'export const foo = () =>'",
+};
 
 export default createRule<[], MessageIds>({
   name: "no-exported-function-expressions",

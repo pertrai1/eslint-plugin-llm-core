@@ -1,7 +1,12 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noTypeAssertionAny";
+
+export const instruction: RuleInstruction = {
+  principle: "Never use type assertions to 'any'",
+};
 
 export default createRule<[], MessageIds>({
   name: "no-type-assertion-any",

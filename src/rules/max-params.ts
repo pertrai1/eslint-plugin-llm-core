@@ -1,4 +1,5 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "maxParams";
@@ -10,6 +11,13 @@ type Options = [
     maxInternal?: number;
   },
 ];
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Limit function parameters to {max} — use object parameter patterns when more are needed",
+  optionTemplate:
+    "Limit function parameters to {max} (constructors: {maxConstructor}) — use object parameter patterns",
+};
 
 export default createRule<Options, MessageIds>({
   name: "max-params",

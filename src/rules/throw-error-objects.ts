@@ -1,7 +1,12 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "throwErrorObjects";
+
+export const instruction: RuleInstruction = {
+  principle: "Always throw Error objects, never strings or plain objects",
+};
 
 export default createRule<[], MessageIds>({
   name: "throw-error-objects",

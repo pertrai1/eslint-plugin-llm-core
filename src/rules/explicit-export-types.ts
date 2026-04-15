@@ -1,7 +1,13 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "missingParamType" | "missingReturnType";
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Add explicit parameter and return type annotations on all exported functions",
+};
 
 export default createRule<[], MessageIds>({
   name: "explicit-export-types",

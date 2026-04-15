@@ -1,7 +1,13 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "missingBasePrefix" | "missingErrorSuffix";
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Use 'Base' prefix for abstract classes and 'Error' suffix for error classes",
+};
 
 export default createRule<[], MessageIds>({
   name: "naming-conventions",

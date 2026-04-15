@@ -1,7 +1,12 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noAnyInGeneric";
+
+export const instruction: RuleInstruction = {
+  principle: "Never use 'any' as a generic type argument",
+};
 
 export default createRule<[], MessageIds>({
   name: "no-any-in-generic",

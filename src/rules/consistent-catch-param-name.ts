@@ -1,4 +1,5 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "consistentCatchParamName" | "renameCatchParam";
@@ -8,6 +9,11 @@ type Options = [
     name?: string;
   },
 ];
+
+export const instruction: RuleInstruction = {
+  principle: "Name all catch parameters '{name}' consistently",
+  optionTemplate: "Name all catch parameters '{name}' consistently",
+};
 
 export default createRule<Options, MessageIds>({
   name: "consistent-catch-param-name",

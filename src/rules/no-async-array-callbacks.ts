@@ -1,7 +1,13 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noAsyncArrayCallback" | "noAsyncMapCallback";
+
+export const instruction: RuleInstruction = {
+  principle:
+    "Don't pass async callbacks to array methods that don't await results",
+};
 
 // Array methods where async callbacks are almost always a bug — the return
 // value of the callback is either ignored or used in a boolean/accumulator

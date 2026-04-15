@@ -1,5 +1,6 @@
 import path from "path";
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noMagicNumber";
@@ -14,6 +15,12 @@ type Options = [
     ignoreObjectProperties?: boolean;
   },
 ];
+
+export const instruction: RuleInstruction = {
+  principle: "Extract named constants for all magic numbers",
+  optionTemplate:
+    "Extract named constants for magic numbers (ignore: {ignore})",
+};
 
 const DEFAULT_IGNORE = [0, 1, -1, 2];
 

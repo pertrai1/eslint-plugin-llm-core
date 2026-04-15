@@ -16,9 +16,11 @@ describe("resolveActiveRules", () => {
     ESLintConstructor.mockReset();
     loadESLint.mockReset();
 
-    ESLintConstructor.mockImplementation(() => ({
-      calculateConfigForFile,
-    }));
+    ESLintConstructor.mockImplementation(function MockESLint() {
+      return {
+        calculateConfigForFile,
+      };
+    });
 
     loadESLint.mockResolvedValue(ESLintConstructor);
   });

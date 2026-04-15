@@ -20,7 +20,7 @@
     }
   },
   "bin": {
-    "generate-instructions": "./dist/cli/generate-instructions.js"
+    "llm-core-instructions": "./dist/cli/generate-instructions.js"
   },
   "files": [
     "dist",

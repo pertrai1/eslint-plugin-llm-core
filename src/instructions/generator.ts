@@ -13,7 +13,7 @@ export function generateMarkdown(rules: ResolvedRule[]): string {
   let content = `# Coding Guidelines
 
 Generated from eslint-plugin-llm-core configuration.
-Regenerate with: npx generate-instructions
+Regenerate with: npx llm-core-instructions
 `;
 
   if (allFilesRules.length > 0) {

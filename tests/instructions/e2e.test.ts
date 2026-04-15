@@ -83,7 +83,7 @@ describe("e2e: generateInstructions with recommended config", () => {
   it("generates the correct header", async () => {
     const { content } = await result;
     expect(content).toContain("# Coding Guidelines");
-    expect(content).toContain("Regenerate with: npx generate-instructions");
+    expect(content).toContain("Regenerate with: npx llm-core-instructions");
   });
 
   it("renders no-llm-artifacts rule (present in recommended)", async () => {
@@ -146,7 +146,7 @@ describe("e2e: generateInstructions with custom config", () => {
     expect(content).toBe(`# Coding Guidelines
 
 Generated from eslint-plugin-llm-core configuration.
-Regenerate with: npx generate-instructions
+Regenerate with: npx llm-core-instructions
 
 ## All Files
 

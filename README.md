@@ -228,7 +228,7 @@ Unlike static instruction files, generated instructions are:
 ### Usage
 
 ```bash
-npx generate-instructions
+npx llm-core-instructions
 ```
 
 This reads your `eslint.config.*`, resolves active `llm-core` rules, and generates `.agents/linting-rules.md` with behavioral guidelines for AI coding tools.

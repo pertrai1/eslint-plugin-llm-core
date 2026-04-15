@@ -7,3 +7,4 @@ evals/results/*.json
 evals/results/*.md
 .gitnexus/
 .claude/skills/gitnexus/
+.agents/skills/gitnexus/

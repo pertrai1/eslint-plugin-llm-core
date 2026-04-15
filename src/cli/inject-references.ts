@@ -67,8 +67,10 @@ export function injectReferences(cwd: string): string[] {
     try {
       const content = fs.readFileSync(fullPath, "utf-8");
       const updated = replaceOrAppendBlock(content, block);
-      fs.writeFileSync(fullPath, updated, "utf-8");
-      modified.push(target);
+      if (updated !== content) {
+        fs.writeFileSync(fullPath, updated, "utf-8");
+        modified.push(target);
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       process.stderr.write(

@@ -238,7 +238,7 @@ This reads your `eslint.config.*`, resolves active `llm-core` rules, and generat
 | Flag              | Description                                                                              |
 | ----------------- | ---------------------------------------------------------------------------------------- |
 | `--config <path>` | Specify ESLint config file path (default: auto-detect)                                   |
-| `--dry-run`       | Print generated content to stdout without writing files                                  |
+| `--dry-run`       | Print generated content to stdout; skips file generation and injection                   |
 | `--no-inject`     | Generate `.agents/linting-rules.md` only, skip appending references to instruction files |
 
 **Example output:**
@@ -276,6 +276,32 @@ result.activeRules; // Resolved rules with options and derived scope
 result.allFilesRules; // Rules applying to all files
 result.typescriptRules; // TypeScript-only rules
 ```
+
+## Agent Skills
+
+Beyond ESLint rules, this plugin ships **agent skills** — markdown instruction files that LLM agents can load when performing specific tasks. Skills complement the lint rules by catching patterns that require judgment rather than pattern matching.
+
+### Available Skills
+
+| Skill                                    | Description                                                                                                                    |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| [test-reviewer](skills/test-reviewer.md) | Detects tests that duplicate production logic, use shallow assertions, skip edge cases, or assert on mocks instead of behavior |
+
+### Usage
+
+Copy the skill file into your agent's skill directory:
+
+```bash
+# Claude Code
+cp node_modules/eslint-plugin-llm-core/skills/test-reviewer.md .claude/skills/
+
+# Cursor
+cp node_modules/eslint-plugin-llm-core/skills/test-reviewer.md .cursor/skills/
+
+# Or wherever your agent tool looks for skills
+```
+
+The skill is a standalone markdown file with no dependencies. Adapt it to your project's testing conventions as needed.
 
 ## Contributing
 

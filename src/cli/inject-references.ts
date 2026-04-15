@@ -21,7 +21,10 @@ export function findInstructionFiles(cwd: string): string[] {
 }
 
 export function computeRelativePath(targetFile: string): string {
-  return path.relative(path.dirname(targetFile), lintingRulesPath);
+  return path
+    .relative(path.dirname(targetFile), lintingRulesPath)
+    .split(path.sep)
+    .join("/");
 }
 
 export function buildInjectionBlock(relativePath: string): string {

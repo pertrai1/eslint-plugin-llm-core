@@ -63,59 +63,46 @@ docs/ERRORS.md
 Single file, not per-error files. Errors are cheap to scan in bulk and the file
 stays small (entries get retired as they're automated away).
 
-### Structure
+### Structure of an Entry
 
-````markdown
-# Common Errors & Solutions
+Each entry in `docs/ERRORS.md` contains these fields:
 
-Last Updated: YYYY-MM-DD
-Total Errors Documented: N
+- **Error: [Short descriptive name]** — the pattern, not the agent
+- **Frequency**: N occurrences — triggers automation at 5+
+- **Severity**: High | Medium | Low — production impact
+- **Last Occurrence**: YYYY-MM-DD — recency signal
+- **Symptom**: What you see when the error manifests
+- **Bad Pattern**: The actual mistake (concrete code, not abstract description)
+- **Correct Pattern**: The right way (also concrete code)
+- **Prevention**: Actionable steps (e.g., "Enable X rule", "Check Y before Z")
 
----
+Example entry:
 
-## Error: [Short descriptive name]
+    ## Error: Missing await on Promises
 
-**Frequency**: N occurrences
-**Severity**: High | Medium | Low
-**Last Occurrence**: YYYY-MM-DD
+    **Frequency**: 12 occurrences | **Severity**: High | **Last Occurrence**: 2026-01-20
 
-**Symptom**:
+    **Symptom**: UnhandledPromiseRejectionWarning; function returns Promise instead of value
 
-- What you see when this error manifests
+    **Bad Pattern**: `const user = getUserById(id); console.log(user.email)`
 
-**Bad Pattern**:
+    **Correct Pattern**: `const user = await getUserById(id); console.log(user.email)`
 
-```typescript
-// The mistake
-```
-````
+    **Prevention**: 1. Enable @typescript-eslint/no-floating-promises 2. Add pre-commit hook
 
-**Correct Pattern**:
-
-```typescript
-// The right way
-```
-
-**Prevention**:
-
-1. Concrete step to prevent recurrence
-2. Another step (e.g., "Enable X rule", "Check Y before Z")
-
----
-
-````
+    ---
 
 ### Field Definitions
 
-| Field | Purpose |
-|-------|---------|
-| **Frequency** | Times this error has occurred. Triggers automation at 5+. |
-| **Severity** | How bad it is when it happens. High = production impact. |
-| **Last Occurrence** | Recency signal. Helps prioritize during monthly review. |
-| **Symptom** | How to recognize the error (for the agent and humans). |
-| **Bad Pattern** | The actual mistake. Concrete code, not abstract description. |
-| **Correct Pattern** | The right way. Also concrete code. |
-| **Prevention** | Actionable steps. Not "be more careful" — specific guards. |
+| Field               | Purpose                                                      |
+| ------------------- | ------------------------------------------------------------ |
+| **Frequency**       | Times this error has occurred. Triggers automation at 5+.    |
+| **Severity**        | How bad it is when it happens. High = production impact.     |
+| **Last Occurrence** | Recency signal. Helps prioritize during monthly review.      |
+| **Symptom**         | How to recognize the error (for the agent and humans).       |
+| **Bad Pattern**     | The actual mistake. Concrete code, not abstract description. |
+| **Correct Pattern** | The right way. Also concrete code.                           |
+| **Prevention**      | Actionable steps. Not "be more careful" — specific guards.   |
 
 ---
 
@@ -129,7 +116,7 @@ Do not load the entire file. Use progressive disclosure:
 ```bash
 # Load only errors relevant to your task domain
 grep -A 20 "## Error:" docs/ERRORS.md | grep -B 2 -A 18 "async\|promise\|null\|<your-domain-keyword>"
-````
+```
 
 **Before implementation starts** (after ORIENT, before TYPES), the agent
 should have relevant error patterns in context. This is the "don't do these
@@ -139,7 +126,8 @@ things" layer that complements the "do it this way" layer from types and tests.
 
 ## Monthly Review Process
 
-Errors that recur become automation opportunities. Each month:
+Each month, the first agent session after the 1st should check the review date
+in `docs/ERRORS.md`. If the last review is 30+ days old, run the review:
 
 1. **Sort by frequency** — highest-count errors first
 2. **Errors at 5+ occurrences**: Automate the prevention
@@ -157,12 +145,10 @@ Errors that recur become automation opportunities. Each month:
 
 When an error is fully automated (ESLint rule exists, CI catches it), mark it:
 
-```markdown
-## Error: [name] (RETIRED)
+    ## Error: [name] (RETIRED)
 
-**Retired**: YYYY-MM-DD
-**Automated by**: `no-floating-promise` rule (v1.2.0)
-```
+    **Retired**: YYYY-MM-DD
+    **Automated by**: `no-floating-promise` rule (v1.2.0)
 
 Retired entries stay in the file for reference but are skipped during the
 Anchor phase.
@@ -211,14 +197,15 @@ write it during compacting while the details are fresh.
 
 ## Quick Reference
 
-| Question           | Answer                                                             |
-| ------------------ | ------------------------------------------------------------------ |
-| When to write?     | After a mistake is corrected, if it could recur in a fresh session |
-| When NOT to write? | One-off, already-automated, or self-corrected before commit        |
-| Where?             | `docs/ERRORS.md`                                                   |
-| When to read?      | Anchor phase — load relevant entries before implementation         |
-| When to automate?  | 5+ occurrences → ESLint rule, type guard, or CI check              |
-| When to retire?    | Prevention is automated, no recurrence in 30+ days                 |
+| Question                     | Answer                                                             |
+| ---------------------------- | ------------------------------------------------------------------ |
+| When to write?               | After a mistake is corrected, if it could recur in a fresh session |
+| When NOT to write?           | One-off, already-automated, or self-corrected before commit        |
+| Where?                       | `docs/ERRORS.md`                                                   |
+| When to read?                | Anchor phase — load relevant entries before implementation         |
+| When to automate?            | 5+ occurrences → ESLint rule, type guard, or CI check              |
+| When to retire?              | Prevention is automated, no recurrence in 30+ days                 |
+| Who owns the monthly review? | First agent session after the 1st of each month                    |
 
 ---
 

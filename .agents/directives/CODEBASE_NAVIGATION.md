@@ -26,9 +26,12 @@ content — full function bodies, internal helpers, and commented-out code that
 don't constrain what the correct output looks like. This wastes the channel
 capacity that types, contracts, and test names would use far more efficiently.
 
-Types provide ~3.3 bits of information per token. Comments provide ~0.15 bits.
-Reading a 200-line implementation file to "understand the pattern" is 20x less
-efficient than reading its type signature and one test case.
+Types constrain the output space far more efficiently than comments — roughly
+an order of magnitude more information per token consumed (source: _The
+Meta-Engineer_, Ch. 9 §10.1.2, citing Shannon entropy analysis of TypeScript
+AST nodes vs prose comments). Reading a 200-line implementation file to
+"understand the pattern" is dramatically less efficient than reading its type
+signature and one test case.
 
 The SAFE pattern maximizes information density during exploration:
 
@@ -48,7 +51,9 @@ Read these **in order**. Stop as soon as you have enough orientation for the tas
 
 ```
 1. AGENTS.md                     → project WHY, WHAT, HOW, workflow
-2. tree -L 2 -I node_modules     → directory structure (or ls -R src/)
+2. tree -L 2 -I node_modules     → directory structure (or `ls src/`)
+   - Do NOT use `ls -R src/` — recursive listing can exceed the
+     Survey token budget on larger repos. Flat or depth-2 only.
 3. src/index.ts                  → public API: what's exported, which rules exist
 4. package.json (scripts only)   → build/test/lint commands
 ```
@@ -100,6 +105,10 @@ head -25 src/rules/no-empty-catch.ts          # imports + exports
 grep "meta:" src/rules/no-empty-catch.ts -A 20 # rule meta (schema, docs, messages)
 grep "describe\|it(" tests/rules/no-empty-catch.ts  # test specifications
 ```
+
+**If your agent framework provides dedicated read/search tools** (e.g. Read
+with line ranges, Grep, or Glob), prefer those over raw shell commands — they
+are typically optimized for the agent's context management.
 
 **Avoid:**
 
@@ -223,12 +232,14 @@ If you've completed 5+ tasks in one session, pause and compact:
 3. Discard exploration context from earlier tasks
 4. Write any qualifying decision logs (see below)
 
-This prevents the signal-to-noise degradation the research shows:
+This prevents the signal-to-noise degradation observed in extended agent
+sessions (source: _The Meta-Engineer_, Ch. 9 §10.3.2). Without compaction,
+accuracy drops roughly as follows:
 
 ```
-Tasks 1-5:   90% signal
-Tasks 6-10:  60% signal
-Tasks 11+:   30% signal (without compacting)
+Tasks 1-5:   ~90% signal
+Tasks 6-10:  ~60% signal
+Tasks 11+:   ~30% signal
 ```
 
 ### 5. Compact → Session Decisions Pipeline

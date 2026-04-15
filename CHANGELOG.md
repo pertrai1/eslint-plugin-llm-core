@@ -1,5 +1,16 @@
 # eslint-plugin-llm-core
 
+## 0.14.0
+
+### Minor Changes
+
+- [#115](https://github.com/pertrai1/eslint-plugin-llm-core/pull/115) [`13dfa68`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/13dfa6895004f68bbe48c80ee664e0e912134ef9) Thanks [@pertrai1](https://github.com/pertrai1)! - Add `max-complexity` rule — enforce maximum cyclomatic complexity per function with teaching-oriented messages
+  - Matches ESLint's built-in `complexity` rule (classic variant) counting semantics
+  - Covers all 13 branching node types: `if`, loops, `catch`, ternary, logical expressions, non-default switch cases, default parameters, logical assignment operators, optional chaining
+  - Per-function boundary: complexity resets at each code path boundary (functions, class field initializers, static blocks)
+  - Registered in `complexity` and `recommended` configs
+  - Replaces ESLint's core `complexity` rule — remove it from your config if you previously used it alongside this plugin
+
 ## 0.13.0
 
 ### Minor Changes

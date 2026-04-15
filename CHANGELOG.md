@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.15.0
+
+### Minor Changes
+
+- [#121](https://github.com/pertrai1/eslint-plugin-llm-core/pull/121) [`f343ff0`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/f343ff040d33c0089688c95ad92239f37f564150) Thanks [@pertrai1](https://github.com/pertrai1)! - Add generated instructions from active ESLint config — CLI, programmatic API, and rule metadata
+
 ## 0.14.0
 
 ### Minor Changes

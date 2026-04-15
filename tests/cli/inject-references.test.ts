@@ -117,6 +117,21 @@ Existing content
     expect(second).toBe(first);
   });
 
+  it("replaceOrAppendBlock appends when only orphaned end marker is present", () => {
+    const content = `# Title
+
+${injectionBlockEnd}
+
+Some content
+`;
+    const block = buildInjectionBlock(".agents/linting-rules.md");
+    const result = replaceOrAppendBlock(content, block);
+
+    expect(result).toContain(injectionBlockStart);
+    expect(result).toContain("# Title");
+    expect(result).toContain("Some content");
+  });
+
   it("findInstructionFiles returns empty array when no instruction files exist", () => {
     const emptyDir = fs.mkdtempSync(path.join(os.tmpdir(), "llm-core-empty-"));
     try {
@@ -218,6 +233,27 @@ describe("injectReferences integration", () => {
     } finally {
       fs.chmodSync(path.join(warnDir, "AGENTS.md"), 0o644);
       fs.rmSync(warnDir, { recursive: true, force: true });
+    }
+  });
+
+  it("returns empty on re-run when content is unchanged", () => {
+    const idempotentDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), "llm-core-idempotent-"),
+    );
+    try {
+      fs.writeFileSync(
+        path.join(idempotentDir, "AGENTS.md"),
+        "# Agents\n",
+        "utf-8",
+      );
+
+      const first = injectReferences(idempotentDir);
+      expect(first).toEqual(["AGENTS.md"]);
+
+      const second = injectReferences(idempotentDir);
+      expect(second).toEqual([]);
+    } finally {
+      fs.rmSync(idempotentDir, { recursive: true, force: true });
     }
   });
 });

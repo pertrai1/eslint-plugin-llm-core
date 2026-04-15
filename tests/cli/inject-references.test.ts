@@ -54,6 +54,20 @@ describe("inject-references", () => {
     );
   });
 
+  it("computeRelativePath normalizes to forward slashes (win32 regression)", () => {
+    const result = path.win32.relative(
+      path.win32.dirname(".github\\copilot-instructions.md"),
+      ".agents\\linting-rules.md",
+    );
+    expect(result).toContain("\\");
+    expect(computeRelativePath(".github/copilot-instructions.md")).toBe(
+      "../.agents/linting-rules.md",
+    );
+    expect(
+      computeRelativePath(".github/copilot-instructions.md"),
+    ).not.toContain("\\");
+  });
+
   it("buildInjectionBlock produces the delimited reference block", () => {
     expect(buildInjectionBlock("../.agents/linting-rules.md"))
       .toBe(`<!-- llm-core-instructions:start -->

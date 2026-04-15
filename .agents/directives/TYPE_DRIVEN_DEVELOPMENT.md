@@ -136,10 +136,6 @@ Once confirmed, I'll implement against these types.
 
 ---
 
-## Quick Reference.
-
----
-
 ## Quick Reference
 
 | Step | Action               | Command                                                   |

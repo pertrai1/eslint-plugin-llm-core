@@ -204,13 +204,14 @@ If any fail, the cycle is incomplete. Fix before moving to next test.
 
 ## Forbidden Patterns
 
-| Pattern                            | Why Forbidden                    |
-| ---------------------------------- | -------------------------------- |
-| `it.skip()`                        | Skipping tests defeats TDD       |
-| `// TODO: write test later`        | No test = no implementation      |
-| Copy-pasting tests to pass quickly | Tests must reflect real behavior |
-| `expect(true).toBe(true)`          | Fake test, no constraint         |
-| Writing test after implementation  | That's not TDD                   |
+| Pattern                             | Why Forbidden                          |
+| ----------------------------------- | -------------------------------------- |
+| `it.skip()`                         | Skipping tests defeats TDD             |
+| `// TODO: write test later`         | No test = no implementation            |
+| Implementing without a failing test | RED must precede GREEN — no exceptions |
+| Copy-pasting tests to pass quickly  | Tests must reflect real behavior       |
+| `expect(true).toBe(true)`           | Fake test, no constraint               |
+| Writing test after implementation   | That's not TDD                         |
 
 ---
 

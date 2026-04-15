@@ -2,11 +2,6 @@
 
 ## MANDATORY: Document Repeated Mistakes in ERRORS.md
 
-LLM agents are stateless. Without persistent error memory, they will re-make
-the same mistakes across sessions — the same wrong assumptions, the same
-incorrect patterns, the same missed edge cases. This directive breaks that
-loop.
-
 ---
 
 ## When to Write an Error Entry
@@ -75,18 +70,6 @@ Example entry:
 
     ---
 
-### Field Definitions
-
-| Field               | Purpose                                                      |
-| ------------------- | ------------------------------------------------------------ |
-| **Frequency**       | Times this error has occurred. Triggers automation at 5+.    |
-| **Severity**        | How bad it is when it happens. High = production impact.     |
-| **Last Occurrence** | Recency signal. Helps prioritize during monthly review.      |
-| **Symptom**         | How to recognize the error (for the agent and humans).       |
-| **Bad Pattern**     | The actual mistake. Concrete code, not abstract description. |
-| **Correct Pattern** | The right way. Also concrete code.                           |
-| **Prevention**      | Actionable steps. Not "be more careful" — specific guards.   |
-
 ---
 
 ## When to Read ERRORS.md
@@ -94,12 +77,8 @@ Example entry:
 **During the Anchor phase of CODEBASE_NAVIGATION**, after loading types and
 test names, load relevant error entries for the domain you're working in.
 
-Do not load the entire file. Use progressive disclosure:
-
-```bash
-# Load only errors relevant to your task domain
-grep -A 20 "## Error:" docs/ERRORS.md | grep -B 2 -A 18 "async\|promise\|null\|<your-domain-keyword>"
-```
+Do not load the entire file. Use progressive disclosure — grep for
+`## Error:` headings, then read the relevant entry by line range.
 
 **Before implementation starts** (after ORIENT, before TYPES), the agent
 should have relevant error patterns in context. This is the "don't do these

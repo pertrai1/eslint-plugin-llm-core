@@ -311,5 +311,26 @@ ruleTester.run("max-complexity", rule, {
         },
       ],
     },
+    {
+      code: `class Example {
+        #privateMethod(step) {
+          if (step === 1) return 1;
+          if (step === 2) return 2;
+          if (step === 3) return 3;
+          return 4;
+        }
+      }`,
+      options: [{ max: 2 }],
+      errors: [
+        {
+          messageId: "maxComplexity" as const,
+          data: {
+            name: "#privateMethod",
+            count: "4",
+            max: "2",
+          },
+        },
+      ],
+    },
   ],
 });

@@ -6,5 +6,6 @@ coverage/
 evals/results/*.json
 evals/results/*.md
 .gitnexus/
+.claude/worktrees/
 .claude/skills/gitnexus/
 .agents/skills/gitnexus/

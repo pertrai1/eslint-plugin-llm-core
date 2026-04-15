@@ -56,16 +56,23 @@ Run the compiled rule against representative code. Show:
 # Build first
 npm run build
 
-# Run the rule against a test file
+# Write a temporary test file with the triggering code
 echo '<triggering code>' > /tmp/verify-rule.ts
-npx eslint /tmp/verify-rule.ts --no-config-lookup --rule 'llm-core/rule-name: error' --rulesdir dist/
 
+# Run ESLint with the plugin loaded from dist/
+# Use a minimal flat config that imports the built plugin:
+npx eslint /tmp/verify-rule.ts \
+  --config <(echo 'import p from "./dist/index.js"; export default [...p.configs.all];')
+
+# For the clean-pass case, write valid code and re-run
 echo '<valid code that should NOT trigger>' > /tmp/verify-rule.ts
-npx eslint /tmp/verify-rule.ts --no-config-lookup --rule 'llm-core/rule-name: error' --rulesdir dist/
+npx eslint /tmp/verify-rule.ts \
+  --config <(echo 'import p from "./dist/index.js"; export default [...p.configs.all];')
 ```
 
-If the rule cannot be tested this way (e.g., requires specific config), describe
-why and show test output that proves detection and clean-pass behavior instead.
+If inline config is not practical, create a temporary `eslint.verify.mjs` in the
+project root, run the check, then delete it. Alternatively, show test output that
+proves detection and clean-pass behavior using vitest verbose reporter.
 
 #### 2. Test Coverage Proof
 

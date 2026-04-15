@@ -44,11 +44,11 @@ The PR template at `.github/PULL_REQUEST_TEMPLATE.md` has required sections for 
 
 If a PR resolves a tracked GitHub issue, include `Closes #<number>`, `Fixes #<number>`, or `Resolves #<number>` in the PR description. If no issue exists, no issue reference is required.
 
-### 2. Verification (Required for new rules and bug fixes)
+### 2. Verification (Required for all code changes)
 
-When the PR adds or modifies a rule, include a `## Verification` section in the PR body following the protocol in [`.agents/directives/VERIFICATION.md`](../../.agents/directives/VERIFICATION.md). This section provides structured evidence (detection proof, test coverage, contract proof, docs proof) that the reviewer can scan in 30 seconds.
+Include a `## Verification` section in the PR body following the protocol in `.agents/directives/VERIFICATION.md`. For new rules and bug fixes, this means detection proof, test coverage, contract proof, and docs proof. For other code changes (CLI features, refactors, config), demonstrate correctness with evidence — test output, manual verification, or behavioral proof.
 
-For docs-only or chore changes, omit the verification section — the checklist and GATES output are sufficient.
+Docs-only changes (no `src/` modifications) may omit the verification section.
 
 ### 3. Checklist
 

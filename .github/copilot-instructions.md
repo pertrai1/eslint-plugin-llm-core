@@ -1,8 +1,16 @@
 # Copilot Instructions for eslint-plugin-llm-core
 
+## What This Project Is
+
+A framework-agnostic ESLint plugin (TypeScript, strict mode) that helps LLM agents self-correct. Rules use `@typescript-eslint/utils` and the visitor pattern over AST nodes.
+
 ## STOP — Read Before Writing Any Code
 
 You MUST commit after every step. Do NOT batch work into a single commit.
+
+### BASELINE (before starting work)
+
+Run `tsc --noEmit && npm test && npm run build`. If any fails, stop and report before proceeding.
 
 ### The Commit Cadence (non-negotiable)
 
@@ -34,9 +42,9 @@ feat: no-foo handles arrow functions
 
 If you produce a single commit like `feat: add no-foo rule` with everything inside, the PR will fail CI.
 
-## What This Project Is
+### VERIFY (before GATES, after implementation)
 
-A framework-agnostic ESLint plugin (TypeScript, strict mode) that helps LLM agents self-correct. Rules use `@typescript-eslint/utils` and the visitor pattern over AST nodes.
+Before running `npm test && npm run lint && npm run build`, produce a verification summary following `.agents/directives/VERIFICATION.md`.
 
 ## Commands
 

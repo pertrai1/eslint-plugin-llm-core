@@ -231,14 +231,15 @@ Unlike static instruction files, generated instructions are:
 npx llm-core-instructions
 ```
 
-This reads your `eslint.config.*`, resolves active `llm-core` rules, and generates `.agents/linting-rules.md` with behavioral guidelines for AI coding tools.
+This reads your `eslint.config.*`, resolves active `llm-core` rules, and generates `.agents/linting-rules.md` with behavioral guidelines for AI coding tools. It also appends a reference to the generated file into any existing agent instruction files (`AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`) so agent tools discover it automatically. Re-running replaces the reference in-place — no duplicates.
 
 **Flags:**
 
-| Flag              | Description                                             |
-| ----------------- | ------------------------------------------------------- |
-| `--config <path>` | Specify ESLint config file path (default: auto-detect)  |
-| `--dry-run`       | Print generated content to stdout without writing files |
+| Flag              | Description                                                                              |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| `--config <path>` | Specify ESLint config file path (default: auto-detect)                                   |
+| `--dry-run`       | Print generated content to stdout; skips file generation and injection                   |
+| `--no-inject`     | Generate `.agents/linting-rules.md` only, skip appending references to instruction files |
 
 **Example output:**
 
@@ -311,7 +312,7 @@ npm run test
 npm run lint
 ```
 
-See [CLAUDE.md](CLAUDE.md) for architecture details and how to add new rules.
+See [AGENTS.md](AGENTS.md) for architecture details and how to add new rules.
 
 ## Roadmap
 

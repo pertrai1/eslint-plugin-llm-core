@@ -39,7 +39,7 @@ mistake, every time.
 | 2    | RED          | Write ONE failing test                   | Test fails                                                                                               |
 | 3    | GREEN        | Write minimum code to pass               | New test passes, all existing tests still pass, `tsc --noEmit` passes                                    |
 | 4    | REFACTOR     | Clean up if needed                       | All tests still pass                                                                                     |
-| 4.5  | **VERIFY**   | **Produce verification summary**         | **[VERIFICATION](.agents/directives/VERIFICATION.md) protocol output**                                   |
+| 4.5  | **VERIFY**   | **Produce verification summary**         | **See [`.agents/directives/VERIFICATION.md`](.agents/directives/VERIFICATION.md) for protocol**          |
 | 5    | GATES        | Run quality gates                        | `npm test && npm run lint && npm run build`                                                              |
 | 5.5  | DOCS         | Regenerate rule docs (if rules changed)  | `npm run update:eslint-docs`, then commit                                                                |
 | 6    | COMMIT       | Atomic commit                            | One behavior per commit                                                                                  |

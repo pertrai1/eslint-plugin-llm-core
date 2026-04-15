@@ -4,9 +4,13 @@
 
 ## Verification
 
-<!-- Required for new rules and bug fixes. See .agents/directives/VERIFICATION.md for protocol. -->
+<!-- Required for all code changes. See .agents/directives/VERIFICATION.md for protocol. -->
 
-<!-- Remove this section for docs-only or chore changes where GATES output is sufficient. -->
+<!-- For new rules and bug fixes: include Detection, Tests, Contract, and Docs proof. -->
+
+<!-- For other code changes (CLI features, refactors, config): demonstrate correctness with evidence. -->
+
+<!-- Docs-only changes (no src/ modifications) may omit this section. -->
 
 <!-- ### Detection -->
 <!-- ✅ Hit: [code that triggers the error] → [error message summary] -->

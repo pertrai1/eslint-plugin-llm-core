@@ -23,3 +23,7 @@ export function findInstructionFiles(cwd: string): string[] {
 export function computeRelativePath(targetFile: string): string {
   return path.relative(path.dirname(targetFile), lintingRulesPath);
 }
+
+export function buildInjectionBlock(relativePath: string): string {
+  return `${injectionBlockStart}\nSee [\`.agents/linting-rules.md\`](${relativePath}) for coding guidelines derived from your ESLint config.\nRegenerate with: \`npx llm-core-instructions\`\n${injectionBlockEnd}`;
+}

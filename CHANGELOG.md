@@ -1,5 +1,15 @@
 # eslint-plugin-llm-core
 
+## 0.16.0
+
+### Minor Changes
+
+- [#126](https://github.com/pertrai1/eslint-plugin-llm-core/pull/126) [`cec5510`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/cec5510e875b4fec2bff0a9eaa0781eb7084c26a) Thanks [@pertrai1](https://github.com/pertrai1)! - Add automatic injection of linting-rules.md references into agent instruction files
+
+  After generating `.agents/linting-rules.md`, the CLI now appends a reference block
+  into any existing instruction files (AGENTS.md, CLAUDE.md, .github/copilot-instructions.md).
+  Re-running replaces the block in-place — no duplicates. Use `--no-inject` to skip injection.
+
 ## 0.15.0
 
 ### Minor Changes

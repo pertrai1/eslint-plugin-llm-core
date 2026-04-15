@@ -374,5 +374,43 @@ ruleTester.run("max-complexity", rule, {
         },
       ],
     },
+    {
+      code: `export default function(step) {
+        if (step === 1) return 1;
+        if (step === 2) return 2;
+        if (step === 3) return 3;
+        return 4;
+      }`,
+      options: [{ max: 2 }],
+      errors: [
+        {
+          messageId: "maxComplexity" as const,
+          data: {
+            name: "default export",
+            count: "4",
+            max: "2",
+          },
+        },
+      ],
+    },
+    {
+      code: `export default (step) => {
+        if (step === 1) return 1;
+        if (step === 2) return 2;
+        if (step === 3) return 3;
+        return 4;
+      }`,
+      options: [{ max: 2 }],
+      errors: [
+        {
+          messageId: "maxComplexity" as const,
+          data: {
+            name: "default export",
+            count: "4",
+            max: "2",
+          },
+        },
+      ],
+    },
   ],
 });

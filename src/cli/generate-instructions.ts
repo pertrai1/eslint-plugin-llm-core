@@ -33,7 +33,10 @@ async function main(): Promise<void> {
   console.log(`Generated ${outputPath}`);
 }
 
-main().catch((error: Error) => {
-  console.error("Error:", error.message);
+main().catch((error: unknown) => {
+  console.error(
+    "Error:",
+    error instanceof Error ? error.message : String(error),
+  );
   process.exit(1);
 });

@@ -112,5 +112,4 @@ export default createRule<Options, MessageIds>({
 
 export const instruction: RuleInstruction = {
   principle: "Name all catch parameters '{name}' consistently",
-  optionTemplate: "Name all catch parameters '{name}' consistently",
 };

@@ -102,6 +102,7 @@ export function interpolateInstruction(
 export async function resolveActiveRules(
   configPath?: string,
 ): Promise<ResolvedRule[]> {
+  // ESLint types do not expose the flat-config overload; cast is safe at runtime
   const loadFlatESLint = loadESLint as unknown as (options: {
     useFlatConfig: boolean;
   }) => Promise<FlatESLint>;

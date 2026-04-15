@@ -184,7 +184,7 @@ sed -n '45,80p' src/rules/rule.ts             # specific section
 cat src/rules/rule.ts                         # entire 200-line file
 ```
 
-### 2. Use grep Before cat
+### 2. Use grep Before cat (or ast-grep for precision)
 
 Before reading any file, grep for what you need. If grep answers your
 question, don't read the file.
@@ -193,6 +193,16 @@ question, don't read the file.
 grep "export.*function\|export.*const\|export type" src/rules/rule.ts
 grep "createRule" src/rules/rule.ts
 grep -n "message:" src/rules/rule.ts
+```
+
+If you have [ast-grep](https://ast-grep.github.io/) available, prefer it over
+regex grep for structural queries — it matches AST nodes, not strings, so it
+won't false-positive on commented-out code, string literals, or nested scopes:
+
+```bash
+# ast-grep equivalents (more precise, same purpose)
+sg -p 'export function $NAME($$$ARGS) { $$$ }' --lang ts src/rules/rule.ts
+sg -p 'export const $NAME = $$VALUE' --lang ts src/rules/rule.ts
 ```
 
 ### 3. Summarize Between Tasks

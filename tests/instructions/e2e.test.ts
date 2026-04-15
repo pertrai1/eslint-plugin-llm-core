@@ -222,4 +222,116 @@ describe("e2e: CLI generate-instructions", () => {
     expect(overwritten).toContain("# Coding Guidelines");
     expect(overwritten).toContain("under 30 lines");
   });
+
+  it("injects reference into existing AGENTS.md by default", async () => {
+    const injectDir = path.join(fixturesDir, "__tmp_inject_test__");
+    fs.mkdirSync(injectDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(injectDir, "AGENTS.md"),
+      "# Agents\n\nExisting content\n",
+      "utf-8",
+    );
+
+    try {
+      const { stdout, exitCode } = await runCli(
+        ["--config", customConfig],
+        injectDir,
+      );
+      expect(exitCode).toBe(0);
+      expect(stdout).toContain("Injected reference into AGENTS.md");
+
+      const agentsContent = fs.readFileSync(
+        path.join(injectDir, "AGENTS.md"),
+        "utf-8",
+      );
+      expect(agentsContent).toContain("<!-- llm-core-instructions:start -->");
+      expect(agentsContent).toContain("<!-- llm-core-instructions:end -->");
+      expect(agentsContent).toContain(".agents/linting-rules.md");
+      expect(agentsContent).toContain("# Agents");
+      expect(agentsContent).toContain("Existing content");
+    } finally {
+      fs.rmSync(injectDir, { recursive: true, force: true });
+    }
+  });
+
+  it("--no-inject skips injection", async () => {
+    const noInjectDir = path.join(fixturesDir, "__tmp_no_inject_test__");
+    fs.mkdirSync(noInjectDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(noInjectDir, "CLAUDE.md"),
+      "# Claude\n",
+      "utf-8",
+    );
+
+    try {
+      const { stdout, exitCode } = await runCli(
+        ["--config", customConfig, "--no-inject"],
+        noInjectDir,
+      );
+      expect(exitCode).toBe(0);
+      expect(stdout).not.toContain("Injected reference");
+
+      const claudeContent = fs.readFileSync(
+        path.join(noInjectDir, "CLAUDE.md"),
+        "utf-8",
+      );
+      expect(claudeContent).toBe("# Claude\n");
+    } finally {
+      fs.rmSync(noInjectDir, { recursive: true, force: true });
+    }
+  });
+
+  it("--dry-run writes nothing to disk (no generated file, no injection)", async () => {
+    const dryRunDir = path.join(fixturesDir, "__tmp_dryrun_test__");
+    fs.mkdirSync(dryRunDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dryRunDir, "AGENTS.md"),
+      "# Original\n",
+      "utf-8",
+    );
+
+    try {
+      const { stdout, exitCode } = await runCli(
+        ["--config", customConfig, "--dry-run"],
+        dryRunDir,
+      );
+      expect(exitCode).toBe(0);
+      expect(stdout).toContain("# Coding Guidelines");
+
+      expect(
+        fs.existsSync(path.join(dryRunDir, ".agents", "linting-rules.md")),
+      ).toBe(false);
+
+      const agentsContent = fs.readFileSync(
+        path.join(dryRunDir, "AGENTS.md"),
+        "utf-8",
+      );
+      expect(agentsContent).toBe("# Original\n");
+    } finally {
+      fs.rmSync(dryRunDir, { recursive: true, force: true });
+    }
+  });
+
+  it("--dry-run --no-inject behaves the same as --dry-run", async () => {
+    const bothDir = path.join(fixturesDir, "__tmp_both_test__");
+    fs.mkdirSync(bothDir, { recursive: true });
+    fs.writeFileSync(path.join(bothDir, "CLAUDE.md"), "# Original\n", "utf-8");
+
+    try {
+      const { stdout, exitCode } = await runCli(
+        ["--config", customConfig, "--dry-run", "--no-inject"],
+        bothDir,
+      );
+      expect(exitCode).toBe(0);
+      expect(stdout).toContain("# Coding Guidelines");
+
+      const claudeContent = fs.readFileSync(
+        path.join(bothDir, "CLAUDE.md"),
+        "utf-8",
+      );
+      expect(claudeContent).toBe("# Original\n");
+    } finally {
+      fs.rmSync(bothDir, { recursive: true, force: true });
+    }
+  });
 });

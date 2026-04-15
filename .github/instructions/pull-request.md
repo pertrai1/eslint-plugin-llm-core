@@ -44,7 +44,13 @@ The PR template at `.github/PULL_REQUEST_TEMPLATE.md` has required sections for 
 
 If a PR resolves a tracked GitHub issue, include `Closes #<number>`, `Fixes #<number>`, or `Resolves #<number>` in the PR description. If no issue exists, no issue reference is required.
 
-### 2. Checklist
+### 2. Verification (Required for new rules and bug fixes)
+
+When the PR adds or modifies a rule, include a `## Verification` section in the PR body following the protocol in [`.agents/directives/VERIFICATION.md`](../../.agents/directives/VERIFICATION.md). This section provides structured evidence (detection proof, test coverage, contract proof, docs proof) that the reviewer can scan in 30 seconds.
+
+For docs-only or chore changes, omit the verification section — the checklist and GATES output are sufficient.
+
+### 3. Checklist
 
 Every box must be checked. If a checklist item doesn't apply, check it and note "(N/A)" next to it.
 
@@ -58,7 +64,7 @@ Every box must be checked. If a checklist item doesn't apply, check it and note 
 - [x] Rule added to `recommendedRules` in `src/index.ts` (if applicable)
 ```
 
-### 3. Agent Disclosure
+### 4. Agent Disclosure
 
 If you are an AI agent, you MUST complete this section:
 
@@ -66,6 +72,6 @@ If you are an AI agent, you MUST complete this section:
 - **Instruction files loaded:** — Check every file you actually received and processed
 - **Instruction files NOT loaded:** — Explain any gaps
 
-### 4. Commit History
+### 5. Commit History
 
 CI enforces that PRs with `feat:` commits must include at least one `test:` commit. Follow the commit cadence in `copilot-instructions.md` (test-first ordering is expected by convention).

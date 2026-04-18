@@ -88,6 +88,18 @@ Commit messages are enforced by commitlint via a git hook.
 4. Run `npm run update:eslint-docs` if you added or changed rules
 5. Open a PR against `main`
 
+## Working with AI Coding Agents
+
+If you are prompting an AI coding agent for non-trivial work, do not rely on
+generic requests like "clean this up" or "make it better." State the problem,
+success criteria, constraints, and boundaries that actually shape the change.
+
+Use these repo docs:
+
+- [AGENTS.md](AGENTS.md) for mandatory agent workflow
+- [docs/guides/prompting-ai-coding-agents.md](docs/guides/prompting-ai-coding-agents.md) for a human-facing prompt and review guide
+- [docs/guides/agent-task-framing.md](docs/guides/agent-task-framing.md) for the repo-specific intake checklist agents should follow on ambiguous or cross-cutting tasks
+
 ## Versioning
 
 This project uses [Changesets](https://github.com/changesets/changesets) for versioning. You don't need to create a changeset — maintainers will handle that when merging.

@@ -2,7 +2,7 @@
 
 📝 Disallow .sort() without a compare function, which coerces elements to strings and produces incorrect numeric ordering.
 
-💼 This rule is enabled in the following configs: 🌐 `all`, 🏆 `best-practices`, ✅ `recommended`.
+💼 This rule is enabled in the 🌐 `all` config.
 
 <!-- end auto-generated rule header -->
 

@@ -76,6 +76,7 @@ Read and follow every directive before implementing. They govern **how** you wor
 | ----------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | Codebase Navigation     | SAFE exploration before implementation      | [`.agents/directives/CODEBASE_NAVIGATION.md`](.agents/directives/CODEBASE_NAVIGATION.md)         |
 | Error Memory            | Persistent memory for repeated mistakes     | [`.agents/directives/ERROR_MEMORY.md`](.agents/directives/ERROR_MEMORY.md)                       |
+| Task Framing            | Intake checklist for non-trivial work       | [`.agents/directives/TASK_FRAMING.md`](.agents/directives/TASK_FRAMING.md)                       |
 | Type-First Development  | Types before implementation                 | [`.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md`](.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md) |
 | Test-Driven Development | RED/GREEN/REFACTOR for all code changes     | [`.agents/directives/TEST_DRIVEN_DEVELOPMENT.md`](.agents/directives/TEST_DRIVEN_DEVELOPMENT.md) |
 | Verification Protocol   | Evidence of correctness before GATES        | [`.agents/directives/VERIFICATION.md`](.agents/directives/VERIFICATION.md)                       |
@@ -88,6 +89,14 @@ Load the relevant skill before performing any task it covers.
 | Skill         | When                                 | File                                                 |
 | ------------- | ------------------------------------ | ---------------------------------------------------- |
 | Test Reviewer | Before writing or reviewing any test | [`skills/test-reviewer.md`](skills/test-reviewer.md) |
+
+## Task Framing (Mandatory for Non-Trivial Work)
+
+Before implementing a non-trivial, ambiguous, or cross-cutting task, load and
+follow [`.agents/directives/TASK_FRAMING.md`](.agents/directives/TASK_FRAMING.md).
+This directive defines the minimum framing checklist, when a proposal must
+precede implementation, and which supporting docs are supplemental rather than
+binding.
 
 ## Rule Scope
 

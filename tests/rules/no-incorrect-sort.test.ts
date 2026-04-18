@@ -30,6 +30,10 @@ ruleTester.run("no-incorrect-sort", rule, {
     "items?.sort((a, b) => a - b);",
     // Sort on result of another expression with comparator
     "getItems().sort((a, b) => a.name.localeCompare(b.name));",
+    // TypedArray.sort() uses numeric comparison by default — not a false positive
+    "new Int32Array([10, 2, 1]).sort();",
+    "new Float64Array(data).sort();",
+    "new Uint8Array(bytes).sort();",
   ],
 
   invalid: [
@@ -61,6 +65,11 @@ ruleTester.run("no-incorrect-sort", rule, {
     // .sort() with undefined as argument (not a valid comparator)
     {
       code: "arr.sort(undefined);",
+      errors: [{ messageId: "noIncorrectSort" }],
+    },
+    // .sort(void 0) is semantically identical to .sort(undefined)
+    {
+      code: "arr.sort(void 0);",
       errors: [{ messageId: "noIncorrectSort" }],
     },
   ],

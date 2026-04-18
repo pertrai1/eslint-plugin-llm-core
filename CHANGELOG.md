@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.17.0
+
+### Minor Changes
+
+- [`6f65d6d`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/6f65d6d6d9b6f75dcb3b74dc2d2d1ffb57d30167) Thanks [@pertrai1](https://github.com/pertrai1)! - Add `no-incorrect-sort` rule — detects `.sort()` without a compare function, which silently produces incorrect numeric ordering by coercing elements to strings. Framework-agnostic, included in `all` and `best-practices` configs.
+
 ## 0.16.0
 
 ### Minor Changes

@@ -33,6 +33,7 @@ const typescriptRules: TSESLint.FlatConfig.Rules = {
 const bestPracticesRules: TSESLint.FlatConfig.Rules = {
   "llm-core/no-async-array-callbacks": "error",
   "llm-core/no-empty-catch": "error",
+  "llm-core/no-incorrect-sort": "error",
   "llm-core/no-magic-numbers": "error",
   "llm-core/no-swallowed-errors": "error",
   "llm-core/structured-logging": "error",

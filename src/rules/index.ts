@@ -12,6 +12,7 @@ export { default as "no-async-array-callbacks" } from "./no-async-array-callback
 export { default as "no-commented-out-code" } from "./no-commented-out-code";
 export { default as "no-empty-catch" } from "./no-empty-catch";
 export { default as "no-exported-function-expressions" } from "./no-exported-function-expressions";
+export { default as "no-incorrect-sort" } from "./no-incorrect-sort";
 export { default as "no-inline-disable" } from "./no-inline-disable";
 export { default as "no-llm-artifacts" } from "./no-llm-artifacts";
 export { default as "no-magic-numbers" } from "./no-magic-numbers";

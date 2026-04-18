@@ -31,5 +31,12 @@ items.sort((a, b) => a.name.localeCompare(b.name)); // object property
 This rule operates on static AST analysis without type information. It:
 
 - **Skips TypedArray receivers** — `new Int32Array([...]).sort()` is correct because `%TypedArray%.prototype.sort` uses numeric comparison by default.
-- **Does not track variable types** — `const buffer = new Float64Array(data); buffer.sort();` will be flagged because the receiver is a plain identifier, not a `new` expression. Use `// eslint-disable-next-line llm-core/no-incorrect-sort` for these cases.
+- **Does not track variable types** — `const buffer = new Float64Array(data); buffer.sort();` will be flagged because the receiver is a plain identifier, not a `new` expression. For files with known TypedArray variables, disable the rule at the config level:
+  ```js
+  // eslint.config.mjs
+  export default [
+    { ignores: ["src/buffers/*.ts"] },
+    // or: { files: ["src/buffers/*.ts"], rules: { "llm-core/no-incorrect-sort": "off" } },
+  ];
+  ```
 - **May flag custom APIs** — Methods named `.sort()` on query builders, ORM cursors, or RxJS observables have no relation to `Array.prototype.sort`. Disable the rule in those scopes.

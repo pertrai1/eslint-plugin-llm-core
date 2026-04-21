@@ -28,6 +28,12 @@ ruleTester.run("no-floating-promise", rule, {
     // Explicit fire-and-forget
     `async function saveData() {}
      void saveData();`,
+
+    // Promise.all awaited
+    `async function run() { await Promise.all([p1, p2]); }`,
+
+    // Promise.resolve returned
+    `function run() { return Promise.resolve(42); }`,
   ],
 
   invalid: [
@@ -35,6 +41,18 @@ ruleTester.run("no-floating-promise", rule, {
     {
       code: `async function saveData() {}
              saveData();`,
+      errors: [{ messageId: "noFloatingPromise" as const }],
+    },
+
+    // Promise.all at statement position
+    {
+      code: `Promise.all([p1, p2]);`,
+      errors: [{ messageId: "noFloatingPromise" as const }],
+    },
+
+    // Promise.resolve at statement position
+    {
+      code: `Promise.resolve(42);`,
       errors: [{ messageId: "noFloatingPromise" as const }],
     },
   ],

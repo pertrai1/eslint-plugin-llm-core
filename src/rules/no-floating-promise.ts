@@ -31,6 +31,15 @@ export default createRule<[], MessageIds>({
   },
   defaultOptions: [],
   create(context) {
+    const PROMISE_FACTORY_METHODS = new Set([
+      "all",
+      "allSettled",
+      "race",
+      "any",
+      "resolve",
+      "reject",
+    ]);
+
     function isAsyncFunctionReference(callee: TSESTree.Expression): boolean {
       if (callee.type !== AST_NODE_TYPES.Identifier) return false;
       const scope = context.sourceCode.getScope(callee);
@@ -60,11 +69,27 @@ export default createRule<[], MessageIds>({
       });
     }
 
+    function isPromiseFactoryCall(callee: TSESTree.Expression): boolean {
+      if (callee.type !== AST_NODE_TYPES.MemberExpression) return false;
+      if (
+        callee.object.type !== AST_NODE_TYPES.Identifier ||
+        callee.object.name !== "Promise"
+      ) {
+        return false;
+      }
+      if (callee.property.type !== AST_NODE_TYPES.Identifier) return false;
+      return PROMISE_FACTORY_METHODS.has(callee.property.name);
+    }
+
     return {
       ExpressionStatement(node: TSESTree.ExpressionStatement) {
         const expr = node.expression;
         if (expr.type !== AST_NODE_TYPES.CallExpression) return;
-        if (!isAsyncFunctionReference(expr.callee as TSESTree.Expression)) {
+        const callee = expr.callee as TSESTree.Expression;
+        if (
+          !isAsyncFunctionReference(callee) &&
+          !isPromiseFactoryCall(callee)
+        ) {
           return;
         }
         context.report({

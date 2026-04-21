@@ -81,6 +81,15 @@ export default createRule<[], MessageIds>({
       return PROMISE_FACTORY_METHODS.has(callee.property.name);
     }
 
+    function isFloatingThenChain(call: TSESTree.CallExpression): boolean {
+      const callee = call.callee;
+      if (callee.type !== AST_NODE_TYPES.MemberExpression) return false;
+      if (callee.property.type !== AST_NODE_TYPES.Identifier) return false;
+      if (callee.property.name !== "then") return false;
+      // .then(fulfilled, rejected) handles both paths — not floating
+      return call.arguments.length < 2;
+    }
+
     return {
       ExpressionStatement(node: TSESTree.ExpressionStatement) {
         const expr = node.expression;
@@ -88,7 +97,8 @@ export default createRule<[], MessageIds>({
         const callee = expr.callee as TSESTree.Expression;
         if (
           !isAsyncFunctionReference(callee) &&
-          !isPromiseFactoryCall(callee)
+          !isPromiseFactoryCall(callee) &&
+          !isFloatingThenChain(expr)
         ) {
           return;
         }

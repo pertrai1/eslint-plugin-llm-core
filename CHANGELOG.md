@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.18.0
+
+### Minor Changes
+
+- [#139](https://github.com/pertrai1/eslint-plugin-llm-core/pull/139) [`49cc649`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/49cc649ba1aecf8a2e13c8f787d9a461720ca3f0) Thanks [@pertrai1](https://github.com/pertrai1)! - Add `no-floating-promise` rule — flags Promise-returning expressions discarded at statement position. Detects three AST-only patterns without requiring TypeScript type information: calls to same-file `async function` references, `Promise.all/allSettled/race/any/resolve/reject` at statement position, and `.then(handler)` chains with fewer than two arguments. Respects `await`, `return`, `void`, variable assignment, `.catch()`, and two-argument `.then()` as handled outcomes. Included in `recommended` and `best-practices` configs.
+
 ## 0.17.0
 
 ### Minor Changes

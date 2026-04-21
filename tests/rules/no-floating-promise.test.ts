@@ -34,6 +34,15 @@ ruleTester.run("no-floating-promise", rule, {
 
     // Promise.resolve returned
     `function run() { return Promise.resolve(42); }`,
+
+    // .catch() at top consumes rejection
+    `fetchData().catch((error) => logger.error(error));`,
+
+    // .then() with two args handles both paths
+    `fetchData().then(handle, onError);`,
+
+    // Chain ends with .catch()
+    `fetchData().then(handle).catch((error) => logger.error(error));`,
   ],
 
   invalid: [
@@ -53,6 +62,18 @@ ruleTester.run("no-floating-promise", rule, {
     // Promise.resolve at statement position
     {
       code: `Promise.resolve(42);`,
+      errors: [{ messageId: "noFloatingPromise" as const }],
+    },
+
+    // .then() chain at statement position without error handler
+    {
+      code: `fetchData().then((data) => process(data));`,
+      errors: [{ messageId: "noFloatingPromise" as const }],
+    },
+
+    // .then() chain with a single argument on a chained Promise
+    {
+      code: `Promise.resolve(1).then((n) => console.log(n));`,
       errors: [{ messageId: "noFloatingPromise" as const }],
     },
   ],

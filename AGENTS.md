@@ -37,7 +37,9 @@ mistake, every time.
 **Load [`.agents/directives/adaptive-routing.md`](.agents/directives/adaptive-routing.md) first.**
 It selects the lightest safe workflow, required directives/skills, and whether
 [`.agents/directives/context-handoff.md`](.agents/directives/context-handoff.md)
-is needed. Do not load every directive by default.
+is needed. After routing, briefly state the selected path and directive/skill
+files being used; one sentence is enough for tiny low-risk edits. Do not load
+every directive by default.
 
 **Code changes follow one of these routed sequences:**
 

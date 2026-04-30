@@ -29,7 +29,9 @@ intent, risk level, and touched surfaces.
 
 ## Router Output
 
-Before major edits, output a short route decision:
+After routing, briefly display the active workflow path and directive/skill files
+being used so reviewers can verify the agent loaded the expected guidance. Before
+major edits, output a short route decision:
 
 ```md
 ## Workflow Route
@@ -116,9 +118,9 @@ Required directives:
 
 Required skills:
 
-- `.agents/.agents/skills/self-audit/SKILL.md` after REFACTOR for Full Path work
-- `.agents/.agents/skills/test-reviewer/SKILL.md` when tests are added or substantially changed
-- `.agents/.agents/skills/spec-reviewer/SKILL.md` when a written spec exists
+- `.agents/skills/self-audit/SKILL.md` after REFACTOR for Full Path work
+- `.agents/skills/test-reviewer/SKILL.md` when tests are added or substantially changed
+- `.agents/skills/spec-reviewer/SKILL.md` when a written spec exists
 
 ### Debugging Path
 
@@ -132,7 +134,7 @@ Use for:
 
 Required:
 
-- `.agents/.agents/skills/systematic-debugging/SKILL.md`
+- `.agents/skills/systematic-debugging/SKILL.md`
 - reproduce the failure before changing code
 - add or identify a failing regression test when behavior changed
 - use `.agents/directives/test-driven-development.md` for the fix when production behavior changes
@@ -153,7 +155,7 @@ Add this path whenever the task touches:
 Required:
 
 - `.agents/directives/architecture-boundaries.md`
-- `.agents/.agents/skills/architecture-boundary-reviewer/SKILL.md` before merge/review
+- `.agents/skills/architecture-boundary-reviewer/SKILL.md` before merge/review
 - boundary proof in `.agents/directives/verification.md`
 - compact changed dependency-edge evidence with `.agents/directives/context-handoff.md` before boundary review or session transfer
 
@@ -163,10 +165,10 @@ Use when the user asks to review a PR, branch, diff, or local changes.
 
 Required skills depend on changed surfaces:
 
-- `.agents/.agents/skills/test-reviewer/SKILL.md` for tests
-- `.agents/.agents/skills/spec-reviewer/SKILL.md` for spec-backed work
-- `.agents/.agents/skills/architecture-boundary-reviewer/SKILL.md` for imports/exports/packages/shared code
-- `.agents/.agents/skills/codebase-health-reviewer/SKILL.md` for TypeScript/JavaScript refactors, cleanup, shared utilities, or Fallow-relevant changes
+- `.agents/skills/test-reviewer/SKILL.md` for tests
+- `.agents/skills/spec-reviewer/SKILL.md` for spec-backed work
+- `.agents/skills/architecture-boundary-reviewer/SKILL.md` for imports/exports/packages/shared code
+- `.agents/skills/codebase-health-reviewer/SKILL.md` for TypeScript/JavaScript refactors, cleanup, shared utilities, or Fallow-relevant changes
 
 Do not edit code during Review Path unless the user asks for fixes. Use `.agents/directives/context-handoff.md` for compact PR/review handoffs when review findings will be fixed later or transferred to another session.
 

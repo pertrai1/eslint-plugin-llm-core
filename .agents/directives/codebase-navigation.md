@@ -1,14 +1,24 @@
+---
+name: codebase-navigation
+description: Guides progressive codebase orientation with the SAFE pattern before implementation, review, or unfamiliar work.
+version: 1.0.0
+triggers:
+  - orientation
+  - unfamiliar-codebase
+  - multi-step-work
+routing:
+  load: conditional
+---
+
 # Codebase Navigation Directive
 
-## Prerequisite: Before Step 0 (BASELINE)
+**When to load:** Load this directive for unfamiliar codebases or new multi-task sessions unless adaptive routing determines the task is purely conversational, docs-only, or the agent is already oriented.
 
 This directive governs how the agent explores and reads the codebase before
-starting any implementation work. It applies to every task — new rules, bug
-fixes, refactors, and docs changes.
+starting repo-based implementation or review work. Adaptive routing may skip it
+for purely conversational, docs-only, or already-oriented tasks.
 
-▎ This directive runs at Step -1 of the mandatory workflow. See AGENTS.md.
-
-**Do not skip ORIENT.** Starting work without surveying the codebase produces
+**Do not skip orientation.** Starting work without surveying the codebase produces
 code that doesn't fit existing patterns, duplicates logic, or breaks imports.
 
 ---
@@ -21,12 +31,15 @@ code that doesn't fit existing patterns, duplicates logic, or breaks imports.
 Read these **in order**. Stop as soon as you have enough orientation for the task.
 
 ```
-1. AGENTS.md                     → project WHY, WHAT, HOW, workflow
-2. tree -L 2 -I node_modules     → directory structure (or `ls src/`)
-   - Do NOT use `ls -R src/` — recursive listing can exceed the
-     Survey token budget on larger repos. Flat or depth-2 only.
-3. src/index.ts                  → public API: what's exported, which rules exist
-4. package.json (scripts only)   → build/test/lint commands
+1. Project-level instructions (AGENTS.md, CLAUDE.md, or equivalent)
+   → project WHY, WHAT, HOW, workflow
+2. tree -L 2 -I node_modules (or equivalent)
+   → directory structure
+   - Do NOT recurse deeply — flat or depth-2 only.
+     Deep listings exceed the Survey token budget on larger repos.
+3. The project's entry point — main export file, router, or public API surface
+   → what's exported, what's public
+4. Build/test/lint commands (package.json scripts, Makefile, or equivalent)
 ```
 
 **Do NOT read at this stage:**
@@ -34,7 +47,7 @@ Read these **in order**. Stop as soon as you have enough orientation for the tas
 - Full implementation files
 - Test file bodies
 - Long config files
-- node_modules
+- Dependency directories (node_modules, vendor, etc.)
 
 **What you should know after Survey:**
 
@@ -53,28 +66,28 @@ Anchor on **types and contracts**, not implementations.
 
 ```
 1. Type definitions for the area you're working in
-   - src/rules/*.ts type imports (just the imports, first ~20 lines)
-   - types.ts or co-located type definitions
+   - Type imports in the relevant source files (just the imports, first ~20 lines)
+   - Co-located type definitions or dedicated types files
 
 2. Test file NAMES for the area (not bodies)
-   - grep "describe\|it(" tests/rules/area.ts | head -30
+   - grep "describe\|it(" tests/path/to/area-test.ts | head -30
    - Test names are specifications — they tell you what behavior exists
 
 3. ONE reference file showing the existing pattern
-   - Pick the most similar rule to what you're implementing
-   - Read its exports and meta object only (skip full body)
+   - Pick the most similar existing file to what you're working on
+   - Read its exports and public interface only (skip full body)
 
 4. Applicable directives and scoped instructions
-   - Load any .agents/directives/ and .github/instructions/ that apply
+   - Load any project-level directives or scoped instructions that apply
 ```
 
 **Prefer:**
 
 ```bash
 # High-information, low-token reads
-head -25 src/rules/no-empty-catch.ts          # imports + exports
-grep "meta:" src/rules/no-empty-catch.ts -A 20 # rule meta (schema, docs, messages)
-grep "describe\|it(" tests/rules/no-empty-catch.ts  # test specifications
+head -25 path/to/representative-file.ts          # imports + exports
+grep "key-pattern" path/to/representative-file.ts -A 20  # relevant metadata
+grep "describe\|it(" tests/path/to/test-file.ts  # test specifications
 ```
 
 **If your agent framework provides dedicated read/search tools** (e.g. Read
@@ -85,8 +98,8 @@ are typically optimized for the agent's context management.
 
 ```bash
 # Low-information, high-token reads
-cat src/rules/no-empty-catch.ts               # entire file — wastes context
-cat tests/rules/no-empty-catch.ts             # entire test file — wastes context
+cat path/to/source-file.ts               # entire file — wastes context
+cat tests/path/to/test-file.ts           # entire test file — wastes context
 ```
 
 ---
@@ -103,7 +116,7 @@ Only now read the specific files you'll modify or that your changes depend on.
    grep -rl "from.*my-module" src/ | head -10
 
 2. Find what the target file imports:
-   head -30 src/rules/my-rule.ts  # just the import block
+   head -30 path/to/target-file.ts  # just the import block
 
 3. Read the specific functions/types you need to change or extend
    - Use line-offset reads, not cat
@@ -116,15 +129,22 @@ Only now read the specific files you'll modify or that your changes depend on.
 - Duplicating logic that already exists elsewhere
 - Missing required changes to consumer code
 
-**If the task is a new rule**, you typically need:
+### Optional tool-assisted architecture check
 
+If the task may change imports, exports, packages, services, shared code, or
+folder boundaries, load `.agents/directives/architecture-boundaries.md` before Execute.
+
+For TypeScript/JavaScript projects with Fallow available, use targeted checks
+when they answer boundary questions faster than manual search:
+
+```bash
+npx fallow list --boundaries
+npx fallow dead-code --boundary-violations
+npx fallow dead-code --circular-deps
 ```
-src/rules/your-new-rule.ts      → doesn't exist yet (you'll create it)
-tests/rules/your-new-rule.ts    → doesn't exist yet
-src/index.ts                    → add export + config entry
-docs/rules/your-new-rule.md     → generated by npm run update:eslint-docs
-.github/instructions/rule-implementation.md  → pattern to follow
-```
+
+If GitNexus is available, use graph context to identify dependents, clusters,
+services, and execution flows before making cross-cutting changes.
 
 ---
 
@@ -133,7 +153,7 @@ docs/rules/your-new-rule.md     → generated by npm run update:eslint-docs
 **Goal:** Begin the standard implementation workflow with high-information context.
 
 By this point entropy is reduced enough that first-try correctness should be
-70-85%. Proceed with the mandatory workflow (Light Path or Full Path) in AGENTS.md.
+70-85%. Proceed with your project's implementation workflow.
 
 ---
 
@@ -145,33 +165,26 @@ These rules prevent context rot during long sessions.
 
 ```bash
 # Good — reads what you need
-head -30 src/rules/rule.ts                    # imports + signature
-sed -n '45,80p' src/rules/rule.ts             # specific section
+head -30 path/to/file.ts                    # imports + signature
+sed -n '45,80p' path/to/file.ts             # specific section
 
 # Bad — floods context
-cat src/rules/rule.ts                         # entire 200-line file
+cat path/to/file.ts                         # entire 200-line file
 ```
 
-### 2. Use grep Before cat (or ast-grep for precision)
+### 2. Use grep Before cat
 
 Before reading any file, grep for what you need. If grep answers your
 question, don't read the file.
 
 ```bash
-grep "export.*function\|export.*const\|export type" src/rules/rule.ts
-grep "createRule" src/rules/rule.ts
-grep -n "message:" src/rules/rule.ts
+grep "export.*function\|export.*const\|export type" path/to/file.ts
+grep -n "key-pattern:" path/to/file.ts
 ```
 
-If you have [ast-grep](https://ast-grep.github.io/) available, prefer it over
-regex grep for structural queries — it matches AST nodes, not strings, so it
-won't false-positive on commented-out code, string literals, or nested scopes:
-
-```bash
-# ast-grep equivalents (more precise, same purpose)
-sg -p 'export function $NAME($$$ARGS) { $$$ }' --lang ts src/rules/rule.ts
-sg -p 'export const $NAME = $$VALUE' --lang ts src/rules/rule.ts
-```
+If your project uses AST-aware search tools (e.g., ast-grep), prefer those
+over regex for structural queries — they match AST nodes, not strings, so they
+won't false-positive on commented-out code, string literals, or nested scopes.
 
 ### 3. Summarize Between Tasks
 
@@ -218,7 +231,7 @@ Compacting produces two outputs with different audiences:
 
 **Decision log** (for _future_ sessions and contributors):
 
-- Written via [SESSION_DECISIONS.md](./SESSION_DECISIONS.md)
+- Written following session-decisions guidance
 - Only when durable decisions were made (architectural, convention, policy)
 - Stored in `docs/decisions/YYYY-MM-DD-<topic>.md`
 - Future agents scan frontmatter to find relevant context without reading everything
@@ -259,10 +272,10 @@ digest keeps the current context window lean for the next task.
 
 | Phase       | Read                                         | Budget       | Know After              |
 | ----------- | -------------------------------------------- | ------------ | ----------------------- |
-| **Survey**  | AGENTS.md, tree, exports, scripts            | ~2K tokens   | Where things live       |
+| **Survey**  | Project instructions, tree, exports, scripts | ~2K tokens   | Where things live       |
 | **Anchor**  | Types, test names, one reference, directives | ~3K tokens   | What correct looks like |
 | **Filter**  | Specific files task touches, dependents      | ~2-5K tokens | What to change          |
-| **Execute** | Follow mandatory workflow                    | Per-step     | Correct implementation  |
+| **Execute** | Follow project implementation workflow       | Per-step     | Correct implementation  |
 
 ---
 

@@ -1,21 +1,53 @@
+---
+name: test-driven-development
+description: Defines RED/GREEN/REFACTOR expectations for behavior-changing implementation work and bug fixes.
+version: 1.0.0
+triggers:
+  - behavior-change
+  - new-feature
+  - bug-fix
+  - refactor-with-behavior
+routing:
+  load: conditional
+---
+
 # Test Driven Development Directive
 
-## Prerequisite: Types Must Exist First
+## When to Use
 
-▎ This directive runs at Step 2 of the mandatory workflow. See AGENTS.md.
+Use TDD by default for behavior-changing code:
 
-Prerequisite: Types must be defined and verified with `tsc --noEmit` first.
-See [TYPE_DRIVEN_DEVELOPMENT](./TYPE_DRIVEN_DEVELOPMENT.md).
+- New features
+- Bug fixes
+- Refactors that intentionally preserve or alter behavior
+- Edge-case patches
+- Review changes that affect runtime behavior
+
+TDD is not required for purely mechanical or non-behavioral work selected by
+`.agents/directives/adaptive-routing.md`, such as docs-only edits, formatting-only
+changes, generated files, metadata-only updates, or mechanical renames with no
+behavior/API change. Those tasks still need the relevant quality gates.
+
+If you are unsure whether a change affects behavior, choose TDD or ask one
+concise clarifying question.
 
 ---
 
-## ⚠️ MANDATORY: Strict RED/GREEN TDD
+## ⚠️ DEFAULT: Strict RED/GREEN TDD for Behavior Changes
 
-After types are defined, you MUST follow strict Test-Driven Development. This is non-negotiable.
+For behavior-changing work, follow strict Test-Driven Development. Do not skip
+RED because the change seems obvious.
+
+**Requirements:**
+
+- One behavior per test
+- Clear descriptive name ("and" in name? Split it)
+- Real code, not mocks (unless truly unavoidable)
+- Name describes behavior, not implementation
 
 ### The Cycle
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │                                                     │
 │  ┌─────────┐      ┌─────────┐      ┌─────────┐     │
@@ -37,13 +69,13 @@ After types are defined, you MUST follow strict Test-Driven Development. This is
 
 ### Rule 1: No Implementation Without a Failing Test
 
-Before writing ANY implementation code:
+Before writing behavior-changing implementation code:
 
 1. Write a test that describes ONE behavior
 2. Run the test — it MUST fail (RED)
 3. Only then write implementation
 
-```
+```text
 ❌ WRONG: Implement first, test later
 ✅ RIGHT: Test fails first, then implement
 ```
@@ -84,9 +116,7 @@ If the test doesn't require it, don't implement it. YAGNI (You Aren't Gonna Need
 
 After making a test pass, verify the implementation still satisfies the type contract:
 
-```bash
-npx tsc --noEmit
-```
+Run the project's type-check command (for TypeScript projects, `tsc --noEmit`).
 
 If types fail, the implementation is wrong. Fix before continuing.
 
@@ -135,37 +165,34 @@ failure.
 
 ### Step-by-Step Process
 
-```
-1. Types are defined (from [TYPE_DRIVEN_DEVELOPMENT](./TYPE_DRIVEN_DEVELOPMENT.md))
+```text
+1. Pick ONE method/behavior to implement
 
-2. Pick ONE method/behavior to implement
-
-3. RED Phase:
+2. RED Phase:
    - Write a test for that behavior
    - Run test: MUST fail
    - If it passes, the test is wrong — fix it
 
-4. GREEN Phase:
+3. GREEN Phase:
    - Write minimum code to make test pass
    - Run all tests: MUST pass (new test passes, no regressions)
    - Run type check: MUST pass
 
-5. REFACTOR Phase (skip only if code is already clean):
+4. REFACTOR Phase (skip only if code is already clean):
    - Clean up implementation
+   - Remove duplication
+   - Improve readability
+   - Extract helpers
+   - Simplify expressions
    - Run all tests: MUST still pass
    - Run type check: MUST still pass
 
-6. GATES — Run full quality gates before committing:
-```
+5. GATES — Run the project's full quality-gate command suite (test, lint, build/type-check). The specific commands depend on the project.
+   All must pass. Fix failures before proceeding.
 
-npm test && npm run lint && npm run build
+6. Commit AFTER GATES, not after GREEN
 
-```
-All must pass. Fix failures before proceeding.
-
-7. Commit AFTER GATES, not after GREEN
-
-8. Return to step 2 for next behavior
+7. Return to step 1 for next behavior
 ```
 
 ---
@@ -194,9 +221,7 @@ highest ratio of assumption to verification.
 
 After each RED/GREEN/REFACTOR cycle, ALL of these must pass:
 
-```bash
-npm test && npm run lint && npm run build
-```
+Run the project's full quality-gate command suite (test, lint, build/type-check). The specific commands depend on the project.
 
 If any fail, the cycle is incomplete. Fix before moving to next test.
 
@@ -232,16 +257,38 @@ Small commits = easy to review, easy to revert, easy to understand.
 
 ---
 
+## Verification Checklist
+
+Before marking work complete:
+
+- [ ] Every behavior-changing function/method has a test
+- [ ] Watched each test fail before implementing
+- [ ] Each test failed for expected reason (feature missing, not typo)
+- [ ] Wrote minimal code to pass each test
+- [ ] All tests pass
+- [ ] Output pristine (no errors, warnings)
+- [ ] Tests use real code (mocks only if unavoidable)
+- [ ] Edge cases and errors covered
+
+Can't check all boxes for behavior-changing work? You skipped TDD. Start over.
+
 ## Quick Reference
 
-| Phase    | Action                                      | Must Be                         |
-| -------- | ------------------------------------------- | ------------------------------- |
-| RED      | Write test                                  | Failing                         |
-| GREEN    | Write code                                  | Minimum to pass, no regressions |
-| REFACTOR | Clean up                                    | All tests still pass            |
-| GATES    | `npm test && npm run lint && npm run build` | All pass                        |
-| COMMIT   | Atomic commit                               | One behavior per commit         |
+| Phase    | Action                                        | Must Be                         |
+| -------- | --------------------------------------------- | ------------------------------- |
+| RED      | Write test                                    | Failing                         |
+| GREEN    | Write code                                    | Minimum to pass, no regressions |
+| REFACTOR | Clean up                                      | All tests still pass            |
+| GATES    | Run project quality gates (test, lint, build) | All pass                        |
+| COMMIT   | Atomic commit                                 | One behavior per commit         |
 
 ---
 
-_This directive is mandatory for all code generation tasks after type definitions are complete._
+## Final Rule
+
+```text
+Behavior-changing production code → test exists and failed first
+Otherwise → not TDD
+```
+
+No exceptions for behavior-changing work without the user's explicit permission.

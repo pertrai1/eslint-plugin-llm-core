@@ -204,7 +204,7 @@ block in the same PR section.
 
 ## Quality Gate Feedback
 
-Run the project-native gates selected by `.agents/directives/ADAPTIVE_ROUTING.md`.
+Run the project-native gates selected by `.agents/directives/adaptive-routing.md`.
 Treat test, lint, type-check, build, static-analysis, and review-bot output as
 implementation feedback, not ceremony.
 

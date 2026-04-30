@@ -34,9 +34,9 @@ mistake, every time.
 **NEVER commit directly to `main`.** Work on a feature branch (`feat/rule-name`,
 `fix/bug-description`, `docs/update-topic`). No exceptions.
 
-**Load [`.agents/directives/ADAPTIVE_ROUTING.md`](.agents/directives/ADAPTIVE_ROUTING.md) first.**
+**Load [`.agents/directives/adaptive-routing.md`](.agents/directives/adaptive-routing.md) first.**
 It selects the lightest safe workflow, required directives/skills, and whether
-[`.agents/directives/CONTEXT_HANDOFF.md`](.agents/directives/CONTEXT_HANDOFF.md)
+[`.agents/directives/context-handoff.md`](.agents/directives/context-handoff.md)
 is needed. Do not load every directive by default.
 
 **Code changes follow one of these routed sequences:**
@@ -68,17 +68,17 @@ No skipping steps:
 
 | Step | Phase          | Action                                          | Verify                                                                                                                                                         |
 | ---- | -------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| -1   | **ORIENT**     | **Navigate codebase safely**                    | See [`.agents/directives/CODEBASE_NAVIGATION.md`](.agents/directives/CODEBASE_NAVIGATION.md) (SAFE pattern)                                                    |
-| -0.5 | **BOUNDARIES** | **Classify touched files and dependency edges** | See [`.agents/directives/ARCHITECTURE_BOUNDARIES.md`](.agents/directives/ARCHITECTURE_BOUNDARIES.md) when imports/exports/packages/shared utilities may change |
+| -1   | **ORIENT**     | **Navigate codebase safely**                    | See [`.agents/directives/codebase-navigation.md`](.agents/directives/codebase-navigation.md) (SAFE pattern)                                                    |
+| -0.5 | **BOUNDARIES** | **Classify touched files and dependency edges** | See [`.agents/directives/architecture-boundaries.md`](.agents/directives/architecture-boundaries.md) when imports/exports/packages/shared utilities may change |
 | 0    | **BASELINE**   | **Verify starting state is clean**              | `npm run build && npm run test && npm run lint` when practical; surface pre-existing failures before proceeding                                                |
 | 1    | TYPES          | Define types/contracts first                    | `npm run build` or `npx tsc --noEmit` passes                                                                                                                   |
 | 2    | RED            | Write ONE failing test                          | Targeted test fails for the intended reason                                                                                                                    |
 | 3    | GREEN          | Write minimum code to pass                      | Targeted test passes, existing tests still pass, type-check passes                                                                                             |
 | 4    | REFACTOR       | Clean up if needed                              | Tests and type-check still pass                                                                                                                                |
 | 4.5  | **SELF-AUDIT** | **Triage weakest assumptions and anomalies**    | See [`.agents/skills/self-audit/SKILL.md`](.agents/skills/self-audit/SKILL.md)                                                                                 |
-| 4.75 | **VERIFY**     | **Produce verification summary**                | See [`.agents/directives/VERIFICATION.md`](.agents/directives/VERIFICATION.md)                                                                                 |
+| 4.75 | **VERIFY**     | **Produce verification summary**                | See [`.agents/directives/verification.md`](.agents/directives/verification.md)                                                                                 |
 | 5    | GATES          | Run quality gates                               | `npm run test && npm run lint && npm run build`                                                                                                                |
-| 5.5  | DOCS/HANDOFF   | Regenerate docs and compact context when routed | `npm run update:eslint-docs` if rules changed; see [`.agents/directives/CONTEXT_HANDOFF.md`](.agents/directives/CONTEXT_HANDOFF.md)                            |
+| 5.5  | DOCS/HANDOFF   | Regenerate docs and compact context when routed | `npm run update:eslint-docs` if rules changed; see [`.agents/directives/context-handoff.md`](.agents/directives/context-handoff.md)                            |
 | 6    | COMMIT         | Atomic commit                                   | One behavior per commit                                                                                                                                        |
 
 Steps 2–6 repeat for each behavior. Do not batch unrelated rule behaviors.
@@ -94,18 +94,18 @@ They govern **how** you work. Do not load unrelated directives just to satisfy c
 
 | Directive                        | What it governs                                                                    | File                                                                                                               |
 | -------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Adaptive Routing                 | Selects workflow path and required directives/skills                               | [`.agents/directives/ADAPTIVE_ROUTING.md`](.agents/directives/ADAPTIVE_ROUTING.md)                                 |
-| Codebase Navigation              | SAFE exploration before implementation, review, or unfamiliar work                 | [`.agents/directives/CODEBASE_NAVIGATION.md`](.agents/directives/CODEBASE_NAVIGATION.md)                           |
-| Architecture Boundaries          | Preserve dependency DAG, public APIs, imports/exports, and package boundaries      | [`.agents/directives/ARCHITECTURE_BOUNDARIES.md`](.agents/directives/ARCHITECTURE_BOUNDARIES.md)                   |
-| Exploration Mode                 | Pre-implementation investigation stance                                            | [`.agents/directives/EXPLORATION_MODE.md`](.agents/directives/EXPLORATION_MODE.md)                                 |
-| Task Framing                     | Intake checklist for non-trivial, ambiguous, high-risk, or cross-cutting work      | [`.agents/directives/TASK_FRAMING.md`](.agents/directives/TASK_FRAMING.md)                                         |
-| Specification-Driven Development | Written specs before larger rule/API changes where build-and-see would risk rework | [`.agents/directives/SPECIFICATION_DRIVEN_DEVELOPMENT.md`](.agents/directives/SPECIFICATION_DRIVEN_DEVELOPMENT.md) |
-| Type-First Development           | Types/contracts before implementation                                              | [`.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md`](.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md)                   |
-| Test-Driven Development          | RED/GREEN/REFACTOR for behavior-changing implementation and fixes                  | [`.agents/directives/TEST_DRIVEN_DEVELOPMENT.md`](.agents/directives/TEST_DRIVEN_DEVELOPMENT.md)                   |
-| Verification Protocol            | Evidence of correctness before GATES and PRs                                       | [`.agents/directives/VERIFICATION.md`](.agents/directives/VERIFICATION.md)                                         |
-| Error Memory                     | Persistent memory for repeated mistakes                                            | [`.agents/directives/ERROR_MEMORY.md`](.agents/directives/ERROR_MEMORY.md)                                         |
-| Context Handoff                  | Compact current task state at phase/session boundaries                             | [`.agents/directives/CONTEXT_HANDOFF.md`](.agents/directives/CONTEXT_HANDOFF.md)                                   |
-| Session Decisions                | Durable decision capture for repo policy/workflow changes                          | [`.agents/directives/SESSION_DECISIONS.md`](.agents/directives/SESSION_DECISIONS.md)                               |
+| Adaptive Routing                 | Selects workflow path and required directives/skills                               | [`.agents/directives/adaptive-routing.md`](.agents/directives/adaptive-routing.md)                                 |
+| Codebase Navigation              | SAFE exploration before implementation, review, or unfamiliar work                 | [`.agents/directives/codebase-navigation.md`](.agents/directives/codebase-navigation.md)                           |
+| Architecture Boundaries          | Preserve dependency DAG, public APIs, imports/exports, and package boundaries      | [`.agents/directives/architecture-boundaries.md`](.agents/directives/architecture-boundaries.md)                   |
+| Exploration Mode                 | Pre-implementation investigation stance                                            | [`.agents/directives/exploration-mode.md`](.agents/directives/exploration-mode.md)                                 |
+| Task Framing                     | Intake checklist for non-trivial, ambiguous, high-risk, or cross-cutting work      | [`.agents/directives/task-framing.md`](.agents/directives/task-framing.md)                                         |
+| Specification-Driven Development | Written specs before larger rule/API changes where build-and-see would risk rework | [`.agents/directives/specification-driven-development.md`](.agents/directives/specification-driven-development.md) |
+| Type-First Development           | Types/contracts before implementation                                              | [`.agents/directives/type-driven-development.md`](.agents/directives/type-driven-development.md)                   |
+| Test-Driven Development          | RED/GREEN/REFACTOR for behavior-changing implementation and fixes                  | [`.agents/directives/test-driven-development.md`](.agents/directives/test-driven-development.md)                   |
+| Verification Protocol            | Evidence of correctness before GATES and PRs                                       | [`.agents/directives/verification.md`](.agents/directives/verification.md)                                         |
+| Error Memory                     | Persistent memory for repeated mistakes                                            | [`.agents/directives/error-memory.md`](.agents/directives/error-memory.md)                                         |
+| Context Handoff                  | Compact current task state at phase/session boundaries                             | [`.agents/directives/context-handoff.md`](.agents/directives/context-handoff.md)                                   |
+| Session Decisions                | Durable decision capture for repo policy/workflow changes                          | [`.agents/directives/session-decisions.md`](.agents/directives/session-decisions.md)                               |
 
 ## Skills (Mandatory When Routed)
 
@@ -124,7 +124,7 @@ Load the relevant skill selected by adaptive routing before performing any task 
 ## Task Framing (Mandatory for Non-Trivial Work)
 
 Before implementing a non-trivial, ambiguous, high-risk, or cross-cutting task,
-load and follow [`.agents/directives/TASK_FRAMING.md`](.agents/directives/TASK_FRAMING.md).
+load and follow [`.agents/directives/task-framing.md`](.agents/directives/task-framing.md).
 This directive defines the minimum framing checklist, when a proposal must
 precede implementation, and which supporting docs are supplemental rather than binding.
 

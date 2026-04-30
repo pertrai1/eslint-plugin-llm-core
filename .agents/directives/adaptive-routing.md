@@ -63,7 +63,7 @@ full block.
    Light Path gates.
 5. **Prefer evidence over ritual.** Do not emit boilerplate sections with no
    information. Show the proof that matches the selected path.
-6. **Compact context at boundaries.** Use `.agents/directives/CONTEXT_HANDOFF.md` when
+6. **Compact context at boundaries.** Use `.agents/directives/context-handoff.md` when
    switching major phases, handing work to another session/agent, or continuing
    long-running work where stale context could drift.
 7. **Ask only when necessary.** If classification is uncertain and affects safety
@@ -107,12 +107,12 @@ Use for normal implementation work:
 
 Required directives:
 
-- `.agents/directives/CODEBASE_NAVIGATION.md`
-- `.agents/directives/TASK_FRAMING.md` when non-trivial, ambiguous, high-risk, or cross-cutting
-- `.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md` for typed projects or public contracts
-- `.agents/directives/TEST_DRIVEN_DEVELOPMENT.md` for behavior-changing code
-- `.agents/directives/VERIFICATION.md`
-- `.agents/directives/CONTEXT_HANDOFF.md` when switching major phases or handing off work
+- `.agents/directives/codebase-navigation.md`
+- `.agents/directives/task-framing.md` when non-trivial, ambiguous, high-risk, or cross-cutting
+- `.agents/directives/type-driven-development.md` for typed projects or public contracts
+- `.agents/directives/test-driven-development.md` for behavior-changing code
+- `.agents/directives/verification.md`
+- `.agents/directives/context-handoff.md` when switching major phases or handing off work
 
 Required skills:
 
@@ -135,9 +135,9 @@ Required:
 - `.agents/.agents/skills/systematic-debugging/SKILL.md`
 - reproduce the failure before changing code
 - add or identify a failing regression test when behavior changed
-- use `.agents/directives/TEST_DRIVEN_DEVELOPMENT.md` for the fix when production behavior changes
-- use `.agents/directives/VERIFICATION.md` for fix proof and no-regression evidence
-- use `.agents/directives/CONTEXT_HANDOFF.md` after reproduction, before a risky fix, or before resuming in a new session
+- use `.agents/directives/test-driven-development.md` for the fix when production behavior changes
+- use `.agents/directives/verification.md` for fix proof and no-regression evidence
+- use `.agents/directives/context-handoff.md` after reproduction, before a risky fix, or before resuming in a new session
 
 ### Boundary Path
 
@@ -152,10 +152,10 @@ Add this path whenever the task touches:
 
 Required:
 
-- `.agents/directives/ARCHITECTURE_BOUNDARIES.md`
+- `.agents/directives/architecture-boundaries.md`
 - `.agents/.agents/skills/architecture-boundary-reviewer/SKILL.md` before merge/review
-- boundary proof in `.agents/directives/VERIFICATION.md`
-- compact changed dependency-edge evidence with `.agents/directives/CONTEXT_HANDOFF.md` before boundary review or session transfer
+- boundary proof in `.agents/directives/verification.md`
+- compact changed dependency-edge evidence with `.agents/directives/context-handoff.md` before boundary review or session transfer
 
 ### Review Path
 
@@ -168,7 +168,7 @@ Required skills depend on changed surfaces:
 - `.agents/.agents/skills/architecture-boundary-reviewer/SKILL.md` for imports/exports/packages/shared code
 - `.agents/.agents/skills/codebase-health-reviewer/SKILL.md` for TypeScript/JavaScript refactors, cleanup, shared utilities, or Fallow-relevant changes
 
-Do not edit code during Review Path unless the user asks for fixes. Use `.agents/directives/CONTEXT_HANDOFF.md` for compact PR/review handoffs when review findings will be fixed later or transferred to another session.
+Do not edit code during Review Path unless the user asks for fixes. Use `.agents/directives/context-handoff.md` for compact PR/review handoffs when review findings will be fixed later or transferred to another session.
 
 ### Exploration Path
 
@@ -177,11 +177,11 @@ think through an approach.
 
 Required:
 
-- `.agents/directives/EXPLORATION_MODE.md`
-- `.agents/directives/CODEBASE_NAVIGATION.md` when repo context is needed
+- `.agents/directives/exploration-mode.md`
+- `.agents/directives/codebase-navigation.md` when repo context is needed
 
 Do not edit files during Exploration Path unless the user explicitly switches to
-implementation. Use `.agents/directives/CONTEXT_HANDOFF.md` when exploration produces decisions, constraints, or risks that an implementation session should inherit.
+implementation. Use `.agents/directives/context-handoff.md` when exploration produces decisions, constraints, or risks that an implementation session should inherit.
 
 ### Policy Path
 
@@ -195,11 +195,11 @@ Use for changes to:
 
 Required:
 
-- `.agents/directives/TASK_FRAMING.md`
+- `.agents/directives/task-framing.md`
 - proposal before major edits when tradeoffs exist
-- `.agents/directives/SESSION_DECISIONS.md` if the accepted change establishes or changes durable policy
-- `.agents/directives/VERIFICATION.md` before PR
-- `.agents/directives/CONTEXT_HANDOFF.md` for multi-phase directive/workflow changes or new-session handoff
+- `.agents/directives/session-decisions.md` if the accepted change establishes or changes durable policy
+- `.agents/directives/verification.md` before PR
+- `.agents/directives/context-handoff.md` for multi-phase directive/workflow changes or new-session handoff
 
 ---
 

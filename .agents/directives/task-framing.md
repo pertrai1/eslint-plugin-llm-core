@@ -20,7 +20,7 @@ It applies when the task is non-trivial, ambiguous, high-risk, or cross-cutting.
 'Non-trivial' typically means anything beyond a single-file typo fix or a
 docs-only wording change.
 
-Load this directive when selected by `.agents/directives/ADAPTIVE_ROUTING.md` before a
+Load this directive when selected by `.agents/directives/adaptive-routing.md` before a
 non-trivial, ambiguous, high-risk, or cross-cutting task — including new
 features, cross-cutting refactors, and anything affecting repo-wide conventions.
 

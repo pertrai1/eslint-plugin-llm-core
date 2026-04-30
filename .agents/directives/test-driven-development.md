@@ -24,7 +24,7 @@ Use TDD by default for behavior-changing code:
 - Review changes that affect runtime behavior
 
 TDD is not required for purely mechanical or non-behavioral work selected by
-`.agents/directives/ADAPTIVE_ROUTING.md`, such as docs-only edits, formatting-only
+`.agents/directives/adaptive-routing.md`, such as docs-only edits, formatting-only
 changes, generated files, metadata-only updates, or mechanical renames with no
 behavior/API change. Those tasks still need the relevant quality gates.
 

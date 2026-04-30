@@ -132,7 +132,7 @@ Only now read the specific files you'll modify or that your changes depend on.
 ### Optional tool-assisted architecture check
 
 If the task may change imports, exports, packages, services, shared code, or
-folder boundaries, load `.agents/directives/ARCHITECTURE_BOUNDARIES.md` before Execute.
+folder boundaries, load `.agents/directives/architecture-boundaries.md` before Execute.
 
 For TypeScript/JavaScript projects with Fallow available, use targeted checks
 when they answer boundary questions faster than manual search:

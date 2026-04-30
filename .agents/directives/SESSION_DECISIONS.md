@@ -1,4 +1,19 @@
+---
+name: session-decisions
+description: Captures durable decisions for repo policy, architecture, workflow, and cross-cutting conventions.
+version: 1.0.0
+triggers:
+  - policy-change
+  - architecture-decision
+  - workflow-change
+  - cross-cutting-convention
+routing:
+  load: conditional
+---
+
 # Session Decisions Directive
+
+**When to load:** Load this directive when making changes that affect repo policy, architecture, contributor workflow, or cross-cutting conventions.
 
 ## MANDATORY: Capture Durable Decisions at Task Completion
 
@@ -48,8 +63,8 @@ boundary, an authoring convention, or a cross-cutting policy.
 
 ## When to Read Existing Decision Logs
 
-Before changing repo policy, contributor workflow, architecture, rule-authoring
-conventions, lint-message format, or any other cross-cutting behavior:
+Before changing repo policy, contributor workflow, architecture, or any
+cross-cutting code or documentation convention:
 
 1. Scan the frontmatter in `docs/decisions/*.md`
 2. Filter for entries with `status: active`
@@ -116,7 +131,7 @@ supersedes: []
 Keep frontmatter short and operational. If a field does not help an agent decide
 whether to read the file, it does not belong here.
 
-`SESSION_DECISIONS.md` is the canonical source for the retrieval workflow and
+This directive is the canonical source for the retrieval workflow and
 frontmatter schema. Other docs should link here instead of duplicating the full
 rules.
 
@@ -124,8 +139,9 @@ rules.
 
 ## Template
 
-Copy [`docs/decisions/TEMPLATE.md`](../../docs/decisions/TEMPLATE.md), fill in
-every section. Delete placeholder text. Do not leave `[brackets]` in the output.
+Copy the decision log template from `templates/decision-log.md` (or
+`docs/decisions/TEMPLATE.md` in your project), fill in every section. Delete
+placeholder text. Do not leave `[brackets]` in the output.
 
 ### Required Sections
 
@@ -137,7 +153,15 @@ Every decision log MUST contain all five sections:
 | **Context**               | 2–4 sentences on the problem, constraints, and why this was a real choice.                |
 | **Decision**              | One paragraph. Specific reasoning — name the properties that made this option preferable. |
 | **Rejected Alternatives** | At least one entry. Name the alternative and the specific reason it was disqualified.     |
-| **Consequences**          | Easier / Harder / Watch for — what this decision makes true going forward.                |
+| **Consequences**          | Easier / Harder / Watch for / **Unlearn** — what this decision makes true going forward.  |
+
+**The Unlearn entry in Consequences:** After writing Easier / Harder / Watch for,
+ask: _"What assumption worked for this task that should NOT be carried forward
+as a default?"_ If the answer is "none," skip it. If an assumption was valid
+here but context-dependent (e.g., "we denormalized because reads dominate — but
+that won't hold if writes increase"), name it. Future sessions encountering
+this decision log should verify the Unlearn entry still holds before inheriting
+the approach.
 
 ---
 
@@ -161,4 +185,4 @@ Every decision log MUST contain all five sections:
 | Is the reasoning obvious from the diff, and would a future agent avoid re-deciding it anyway? | If yes → skip the log                                               |
 | Before making a cross-cutting change, what do I do first?                                     | Scan decision-log frontmatter and read only matching active entries |
 | Where does the file go?                                                                       | `docs/decisions/YYYY-MM-DD-<topic>.md`                              |
-| What template?                                                                                | [`docs/decisions/TEMPLATE.md`](../../docs/decisions/TEMPLATE.md)    |
+| What template?                                                                                | Use the decision log template from `templates/decision-log.md`      |

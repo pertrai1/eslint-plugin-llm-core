@@ -1,20 +1,37 @@
+---
+name: task-framing
+description: Frames non-trivial, ambiguous, high-risk, or cross-cutting tasks before substantial edits.
+version: 1.0.0
+triggers:
+  - non-trivial-task
+  - ambiguous-task
+  - high-risk-task
+  - cross-cutting-change
+routing:
+  load: conditional
+---
+
 # Task Framing Directive
 
 ## Prerequisite: Before Major Edits on Non-Trivial Work
 
 This directive governs how the agent frames a task before substantial edits.
 It applies when the task is non-trivial, ambiguous, high-risk, or cross-cutting.
-In this repo, "non-trivial" usually means anything beyond a single-file typo
-fix or a docs-only wording change.
+'Non-trivial' typically means anything beyond a single-file typo fix or a
+docs-only wording change.
 
-▎ This directive runs before implementation when the task needs more than a
-simple local fix. See AGENTS.md.
-
-Do not treat ordinary docs as binding instruction sources unless AGENTS.md,
-another directive, or the user explicitly points to them.
+Load this directive when selected by `.agents/directives/ADAPTIVE_ROUTING.md` before a
+non-trivial, ambiguous, high-risk, or cross-cutting task — including new
+features, cross-cutting refactors, and anything affecting repo-wide conventions.
 
 Do not optimize for agreement. Optimize for accuracy, uncertainty clarity, and
 identifying weak assumptions.
+
+**Anti-Righting-Reflex:** When the user presents a specific approach, do not
+correct or counter it before understanding it. Ask _"What led you to this
+approach?"_ first. Their reasoning may contain constraints you don't have.
+Only after understanding the why, surface concerns — framed as questions,
+not corrections.
 
 ---
 
@@ -34,7 +51,10 @@ Before major edits, establish:
 6. **Failure modes** — identify the main edge cases, regressions, or break
    points before substantial edits
 7. **Alternatives** — when multiple plausible approaches exist, state the one
-   chosen and why the others were rejected
+   chosen and why the others were rejected. **If the choice looks binary
+   (A or B), find at least one third option before deciding.** Binary framing
+   usually means the decision space hasn't been fully explored. The third
+   option doesn't need to win — it needs to be real enough to consider.
 8. **Evidence plan** — which repo artifacts or official docs will validate the
    approach? Prefer repo evidence first: directives, active decision logs,
    types, tests, and existing patterns; use official external docs when runtime
@@ -73,35 +93,11 @@ confident answer.
 
 Prefer evidence in this order:
 
-1. `AGENTS.md`
-2. Applicable files in `.agents/directives/`
-3. Matching scoped instructions in `.github/instructions/`
+1. Project-level instructions (e.g., AGENTS.md, CLAUDE.md, or equivalent)
+2. Applicable directive files
+3. Scoped instructions for the area you're working in
 4. Active decision logs in `docs/decisions/`
 5. Types, tests, and existing code patterns in the touched area
 6. Official external docs when behavior depends on a library, runtime, or spec
 
 This order prevents generic advice from overriding repo-specific conventions.
-
-## Repo-Specific Triggers
-
-Load this directive explicitly when work touches:
-
-- `AGENTS.md`
-- `.agents/directives/**`
-- `.github/instructions/**`
-- `docs/decisions/**`
-- `src/index.ts`
-- published-output fields in `package.json`
-- contributor workflow or repo policy
-- rule message format or rule authoring conventions
-
-These areas create durable conventions. Small wording changes can have repo-wide
-effects.
-
-## Supplemental References
-
-- Human-facing prompt guide: [`../../docs/guides/prompting-ai-coding-agents.md`](../../docs/guides/prompting-ai-coding-agents.md)
-- Repo framing reference: [`../../docs/guides/agent-task-framing.md`](../../docs/guides/agent-task-framing.md)
-
-The docs above are supporting material. This directive is the binding workflow
-rule.

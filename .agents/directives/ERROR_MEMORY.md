@@ -1,4 +1,18 @@
+---
+name: error-memory
+description: Captures repeated mistakes in durable error memory only when recurrence and prevention criteria are met.
+version: 1.0.0
+triggers:
+  - repeated-mistakes
+  - error-memory
+  - post-task-learning
+routing:
+  load: conditional
+---
+
 # Error Memory Directive
+
+**When to load:** Load this directive when setting up a new project or when writing to the error memory file for the first time in a session.
 
 ## MANDATORY: Document Repeated Mistakes in ERRORS.md
 
@@ -24,7 +38,7 @@ If yes, write the entry. If no (obvious bug, one-off slip), skip it.
 
 Do NOT write an error entry for:
 
-- Mistakes already caught by existing ESLint rules or CI checks
+- Mistakes already caught by existing linter rules or CI checks
 - One-off typos or copy-paste errors
 - Mistakes mandated by unclear requirements (the requirements were the problem)
 - Anything a type checker would catch on its own
@@ -66,7 +80,7 @@ Example entry:
 
     **Correct Pattern**: `const user = await getUserById(id); console.log(user.email)`
 
-    **Prevention**: 1. Enable @typescript-eslint/no-floating-promises 2. Add pre-commit hook
+    **Prevention**: 1. Enable appropriate linter rules (e.g., @typescript-eslint/no-floating-promises for TypeScript projects) 2. Add pre-commit hook
 
     ---
 
@@ -74,15 +88,16 @@ Example entry:
 
 ## When to Read ERRORS.md
 
-**During the Anchor phase of CODEBASE_NAVIGATION**, after loading types and
-test names, load relevant error entries for the domain you're working in.
+During the codebase survey/orientation phase, after loading types and test
+names, load relevant error entries for the domain you're working in.
 
 Do not load the entire file. Use progressive disclosure — grep for
 `## Error:` headings, then read the relevant entry by line range.
 
-**Before implementation starts** (after ORIENT, before TYPES), the agent
-should have relevant error patterns in context. This is the "don't do these
-things" layer that complements the "do it this way" layer from types and tests.
+**Before implementation starts** (after initial orientation, before
+implementation), the agent should have relevant error patterns in context.
+This is the "don't do these things" layer that complements the "do it this
+way" layer from types and tests.
 
 ---
 
@@ -93,7 +108,7 @@ in `docs/ERRORS.md`. If the last review is 30+ days old, run the review:
 
 1. **Sort by frequency** — highest-count errors first
 2. **Errors at 5+ occurrences**: Automate the prevention
-   - Can an ESLint rule catch it? → Create one (this is our product)
+   - Can a linter rule catch it? → Create or enable one
    - Can a type guard catch it? → Add one
    - Can CI catch it? → Add a check
 3. **Errors at 1-2 occurrences with no recurrence in 30+ days**: Consider
@@ -105,30 +120,32 @@ in `docs/ERRORS.md`. If the last review is 30+ days old, run the review:
 
 ### Retirement
 
-When an error is fully automated (ESLint rule exists, CI catches it), mark it:
+When an error is fully automated (a linter rule exists, CI catches it, or a
+type guard prevents it), mark it:
 
     ## Error: [name] (RETIRED)
 
     **Retired**: YYYY-MM-DD
     **Automated by**: `no-floating-promise` rule (v1.2.0)
 
-Retired entries stay in the file for reference but are skipped during the
-Anchor phase.
+Retired entries stay in the file for reference but are skipped during codebase
+orientation.
 
 ---
 
 ## Connection to Other Directives
 
 ```
-CODEBASE_NAVIGATION.md          ← loads error entries during Anchor phase
-SESSION_DECISIONS.md            ← captures why choices were made (not mistakes)
-VERIFICATION.md                 ← catches errors before merge (not memory)
-ERRORS.md (this directive)      ← remembers mistakes to prevent recurrence
+codebase-navigation guidance   ← loads error entries during survey phase
+session-decisions              ← captures why choices were made (not mistakes)
+verification                   ← catches errors before merge (not memory)
+error memory (this directive)  ← remembers mistakes to prevent recurrence
 ```
 
 ### Compacting Pipeline Integration
 
-During the compact step (every 5+ tasks per CODEBASE_NAVIGATION.md), check:
+During the compact step (every 5+ tasks, per codebase-navigation guidance),
+check:
 
 ```
 Compacting checklist (extended):

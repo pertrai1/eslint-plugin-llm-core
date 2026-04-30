@@ -1,4 +1,19 @@
+---
+name: type-driven-development
+description: Requires type and contract definition before implementation in typed projects or public API work.
+version: 1.0.0
+triggers:
+  - types
+  - public-api
+  - typed-project
+  - service-boundary
+routing:
+  load: conditional
+---
+
 # Type-First Development Directive
+
+**When to load:** Load this directive before defining types for a new feature, module, or service boundary.
 
 ## ⚠️ MANDATORY: Type-First Development
 
@@ -12,9 +27,9 @@ Before implementing ANY function, class, or module:
 
 1. **Check** — Do types/interfaces already exist for what you're building?
 2. **Define** — If not, create type definitions FIRST in a `types.ts` file
-3. **Verify** — Run `tsc --noEmit` to ensure types compile
+3. **Verify** — Run the project's type-check command (for TypeScript projects, `tsc --noEmit`) to ensure types compile
 4. **Confirm** — If introducing new type contracts with 5+ types or complex generics, ask the user to confirm the contract is correct
-5. **Hand off** — Types are done. Proceed to [TEST_DRIVEN_DEVELOPMENT](./TEST_DRIVEN_DEVELOPMENT.md) for the RED/GREEN/REFACTOR cycle
+5. **Hand off** — Types are done. Proceed to the test-driven development cycle (RED/GREEN/REFACTOR)
 
 ### What This Means in Practice
 
@@ -55,7 +70,7 @@ export type ProcessedOrder = {
 
 export function processOrder(order: Order): ProcessedOrder;
 
-// Implementation comes later via TDD (see TEST_DRIVEN_DEVELOPMENT.md)
+// Implementation comes later via test-driven development
 // Shown here for completeness only:
 export function processOrder(order: Order): ProcessedOrder {
   return {
@@ -89,7 +104,7 @@ type FindUserResult =
   | { success: true; user: User }
   | { success: false; error: "not-found" | "access-denied" };
 
-function findUser(id: string): Promise<FindUserResult>;
+function findUser(id: string): Promise[FindUserResult];
 
 // For internal helpers, `| null` is acceptable when the meaning is unambiguous:
 function describeKind(node: Expression): string | null;
@@ -110,14 +125,15 @@ function describeKind(node: Expression): string | null;
 Before types are considered complete:
 
 ```bash
-# Must pass type checking
+# Must pass the project's type check
+# For TypeScript projects, example:
 npx tsc --noEmit
 ```
 
 After implementation (via TDD), all gates must pass:
 
-```bash
-npm test && npm run lint && npm run build
+```text
+Run the project's full quality-gate command suite (test, lint, build/type-check)
 ```
 
 If any fail, the implementation is incomplete.
@@ -138,13 +154,13 @@ Once confirmed, I'll implement against these types.
 
 ## Quick Reference
 
-| Step | Action               | Command                                                   |
-| ---- | -------------------- | --------------------------------------------------------- |
-| 1    | Define types         | Create/edit `types.ts`                                    |
-| 2    | Verify types         | `npx tsc --noEmit`                                        |
-| 3    | Confirm (if complex) | Present types to user                                     |
-| 4    | Hand off to TDD      | → [TEST_DRIVEN_DEVELOPMENT](./TEST_DRIVEN_DEVELOPMENT.md) |
+| Step | Action               | Command                                                                   |
+| ---- | -------------------- | ------------------------------------------------------------------------- |
+| 1    | Define types         | Create/edit the project's type definitions file (for example, `types.ts`) |
+| 2    | Verify types         | Run the project's type-check command (for TypeScript, `npx tsc --noEmit`) |
+| 3    | Confirm (if complex) | Present types to user                                                     |
+| 4    | Hand off to TDD      | Proceed to the test-driven development cycle (RED/GREEN/REFACTOR)         |
 
 ---
 
-_After types are verified, proceed to [TEST_DRIVEN_DEVELOPMENT](./TEST_DRIVEN_DEVELOPMENT.md). Do not implement without tests._
+_After types are verified, proceed to test-driven development. Do not implement without tests._

@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.18.1
+
+### Patch Changes
+
+- [#150](https://github.com/pertrai1/eslint-plugin-llm-core/pull/150) [`7ffaea8`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/7ffaea8eb1ca9019a6607f455c7571ef9e2ae9ae) Thanks [@pertrai1](https://github.com/pertrai1)! - Preserve JavaScript-only and TypeScript-only instruction scopes when rule options differ by file type.
+
 ## 0.18.0
 
 ### Minor Changes

@@ -6,6 +6,9 @@ function renderRuleList(rules: ResolvedRule[]): string {
 
 export function generateMarkdown(rules: ResolvedRule[]): string {
   const allFilesRules = rules.filter((rule) => rule.scope === "all");
+  const javascriptRules = rules.filter(
+    (rule) => rule.scope === "javascript-only",
+  );
   const typescriptRules = rules.filter(
     (rule) => rule.scope === "typescript-only",
   );
@@ -21,6 +24,14 @@ Regenerate with: npx llm-core-instructions
 ## All Files
 
 ${renderRuleList(allFilesRules)}
+`;
+  }
+
+  if (javascriptRules.length > 0) {
+    content += `
+## JavaScript Files Only
+
+${renderRuleList(javascriptRules)}
 `;
   }
 

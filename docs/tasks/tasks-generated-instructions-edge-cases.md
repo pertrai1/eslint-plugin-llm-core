@@ -19,18 +19,18 @@ GitHub Issue: https://github.com/pertrai1/eslint-plugin-llm-core/issues/122
   - [x] 1.3 Identify how the resolver currently represents `js`, `ts`, and `all` scopes.
   - [x] 1.4 Identify how rule options are currently normalized, compared, and interpolated into instruction text.
 
-- [ ] 2.0 Add RED coverage for dual-scope option drift
-  - [ ] 2.1 Add one failing regression test for a rule enabled in JavaScript with `{ max: 50 }` and TypeScript with `{ max: 30 }`.
-  - [ ] 2.2 Assert the generated output emits separate JavaScript and TypeScript instructions.
-  - [ ] 2.3 Assert each split instruction interpolates the option value from its own scope.
-  - [ ] 2.4 Run the targeted test and confirm it fails for the missing split-scope behavior.
+- [x] 2.0 Add RED coverage for dual-scope option drift
+  - [x] 2.1 Add one failing regression test for a rule enabled in JavaScript with `{ max: 50 }` and TypeScript with `{ max: 30 }`.
+  - [x] 2.2 Assert the generated output emits separate JavaScript and TypeScript instructions.
+  - [x] 2.3 Assert each split instruction interpolates the option value from its own scope.
+  - [x] 2.4 Run the targeted test and confirm it fails for the missing split-scope behavior.
 
-- [ ] 3.0 Implement dual-scope split behavior
-  - [ ] 3.1 Compare merged JavaScript and TypeScript rule options for each active rule.
-  - [ ] 3.2 Keep one `all` instruction when both scopes have equivalent options.
-  - [ ] 3.3 Emit separate JavaScript and TypeScript instructions when both scopes are active but options differ.
-  - [ ] 3.4 Ensure interpolation uses the option set for the instruction's emitted scope.
-  - [ ] 3.5 Run the targeted regression test and confirm it passes.
+- [x] 3.0 Implement dual-scope split behavior
+  - [x] 3.1 Compare merged JavaScript and TypeScript rule options for each active rule.
+  - [x] 3.2 Keep one `all` instruction when both scopes have equivalent options.
+  - [x] 3.3 Emit separate JavaScript and TypeScript instructions when both scopes are active but options differ.
+  - [x] 3.4 Ensure interpolation uses the option set for the instruction's emitted scope.
+  - [x] 3.5 Run the targeted regression test and confirm it passes.
 
 - [ ] 4.0 Add RED coverage for expanded virtual file sampling
   - [ ] 4.1 Add one failing regression test proving `.tsx`-only configuration is included in TypeScript instructions.

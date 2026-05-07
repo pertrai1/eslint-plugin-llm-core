@@ -146,4 +146,36 @@ describe("resolveActiveRules", () => {
       },
     ]);
   });
+
+  it("emits separate JavaScript and TypeScript instructions when shared rule options differ", async () => {
+    calculateConfigForFile
+      .mockResolvedValueOnce({
+        rules: {
+          "llm-core/max-function-length": ["error", { max: 50 }],
+        },
+      })
+      .mockResolvedValueOnce({
+        rules: {
+          "llm-core/max-function-length": ["error", { max: 30 }],
+        },
+      });
+
+    const { resolveActiveRules } =
+      await import("../../src/instructions/config-resolver");
+
+    await expect(resolveActiveRules()).resolves.toEqual([
+      {
+        name: "max-function-length",
+        instruction:
+          "Keep functions under 50 lines — extract helpers when they grow",
+        scope: "javascript-only",
+      },
+      {
+        name: "max-function-length",
+        instruction:
+          "Keep functions under 30 lines — extract helpers when they grow",
+        scope: "typescript-only",
+      },
+    ]);
+  });
 });

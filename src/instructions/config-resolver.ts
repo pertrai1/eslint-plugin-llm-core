@@ -47,6 +47,32 @@ function isEnabledSeverity(value: unknown): boolean {
   return value === "warn" || value === "error" || value === 1 || value === 2;
 }
 
+function normalizeOptionValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(normalizeOptionValue);
+  }
+
+  if (isPlainObject(value)) {
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [key, normalizeOptionValue(value[key])]),
+    );
+  }
+
+  return value;
+}
+
+function areOptionsEqual(
+  left: Record<string, unknown>,
+  right: Record<string, unknown>,
+): boolean {
+  return (
+    JSON.stringify(normalizeOptionValue(left)) ===
+    JSON.stringify(normalizeOptionValue(right))
+  );
+}
+
 function resolveLintRuleConfig(
   ruleName: string,
   ruleConfig: unknown,
@@ -130,7 +156,7 @@ export async function resolveActiveRules(
 
   return [...ruleNames]
     .filter((ruleName) => ruleName in ruleInstructions)
-    .map((ruleName) => {
+    .flatMap((ruleName): ResolvedRule[] => {
       const jsRule = resolveLintRuleConfig(
         ruleName,
         jsRules[`llm-core/${ruleName}`],
@@ -143,21 +169,48 @@ export async function resolveActiveRules(
       const enabledInTs = tsRule.enabled;
 
       if (!enabledInJs && !enabledInTs) {
-        return null;
+        return [];
+      }
+
+      const instruction = ruleInstructions[ruleName];
+
+      if (
+        enabledInJs &&
+        enabledInTs &&
+        !areOptionsEqual(jsRule.options, tsRule.options)
+      ) {
+        return [
+          {
+            name: ruleName,
+            instruction: interpolateInstruction(instruction, jsRule.options),
+            scope: "javascript-only",
+          },
+          {
+            name: ruleName,
+            instruction: interpolateInstruction(instruction, tsRule.options),
+            scope: "typescript-only",
+          },
+        ];
       }
 
       const scope = enabledInTs && !enabledInJs ? "typescript-only" : "all";
       const options = enabledInJs ? jsRule.options : tsRule.options;
 
-      return {
-        name: ruleName,
-        instruction: interpolateInstruction(
-          ruleInstructions[ruleName],
-          options,
-        ),
-        scope,
-      } satisfies ResolvedRule;
+      return [
+        {
+          name: ruleName,
+          instruction: interpolateInstruction(instruction, options),
+          scope,
+        },
+      ];
     })
-    .filter((rule): rule is ResolvedRule => rule !== null)
-    .sort((left, right) => left.name.localeCompare(right.name));
+    .sort((left, right) => {
+      const nameComparison = left.name.localeCompare(right.name);
+
+      if (nameComparison !== 0) {
+        return nameComparison;
+      }
+
+      return left.scope.localeCompare(right.scope);
+    });
 }

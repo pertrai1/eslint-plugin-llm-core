@@ -9,3 +9,4 @@ evals/results/*.md
 .claude/worktrees/
 .claude/skills/gitnexus/
 .agents/skills/gitnexus/
+.internal/

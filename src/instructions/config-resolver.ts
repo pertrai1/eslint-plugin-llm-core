@@ -8,6 +8,22 @@ type ResolvedLintRule = {
   options: Record<string, unknown>;
 };
 
+type SampleScope = "javascript" | "typescript";
+
+type VirtualFileSample = {
+  fileName: string;
+  scope: SampleScope;
+};
+
+const VIRTUAL_FILE_SAMPLES: VirtualFileSample[] = [
+  { fileName: "__virtual__.js", scope: "javascript" },
+  { fileName: "__virtual__.jsx", scope: "javascript" },
+  { fileName: "__virtual__.mjs", scope: "javascript" },
+  { fileName: "__virtual__.cjs", scope: "javascript" },
+  { fileName: "__virtual__.ts", scope: "typescript" },
+  { fileName: "__virtual__.tsx", scope: "typescript" },
+];
+
 type FlatESLint = new (options?: { overrideConfigFile?: string }) => {
   calculateConfigForFile(
     filePath: string,
@@ -47,6 +63,32 @@ function isEnabledSeverity(value: unknown): boolean {
   return value === "warn" || value === "error" || value === 1 || value === 2;
 }
 
+function normalizeOptionValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(normalizeOptionValue);
+  }
+
+  if (isPlainObject(value)) {
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [key, normalizeOptionValue(value[key])]),
+    );
+  }
+
+  return value;
+}
+
+function areOptionsEqual(
+  left: Record<string, unknown>,
+  right: Record<string, unknown>,
+): boolean {
+  return (
+    JSON.stringify(normalizeOptionValue(left)) ===
+    JSON.stringify(normalizeOptionValue(right))
+  );
+}
+
 function resolveLintRuleConfig(
   ruleName: string,
   ruleConfig: unknown,
@@ -68,6 +110,24 @@ function resolveLintRuleConfig(
     enabled: isEnabledSeverity(ruleConfig),
     options: { ...defaultOptions },
   };
+}
+
+function resolveFirstEnabledRuleConfig(
+  ruleName: string,
+  ruleConfigs: unknown[],
+): ResolvedLintRule {
+  // Known limitation: when extensions within the same scope configure different
+  // options, the first enabled extension wins. The public model currently groups
+  // only by JavaScript vs TypeScript scope, not by individual extension.
+  for (const ruleConfig of ruleConfigs) {
+    const resolvedRule = resolveLintRuleConfig(ruleName, ruleConfig);
+
+    if (resolvedRule.enabled) {
+      return resolvedRule;
+    }
+  }
+
+  return resolveLintRuleConfig(ruleName, undefined);
 }
 
 export function interpolateInstruction(
@@ -112,52 +172,89 @@ export async function resolveActiveRules(
     : new ESLint({});
   const cwd = process.cwd();
 
-  const jsConfig = await eslint.calculateConfigForFile(
-    path.join(cwd, "__virtual__.js"),
-  );
-  const tsConfig = await eslint.calculateConfigForFile(
-    path.join(cwd, "__virtual__.ts"),
-  );
+  const sampledConfigs = await Promise.all(
+    VIRTUAL_FILE_SAMPLES.map(async (sample) => {
+      const config = await eslint.calculateConfigForFile(
+        path.join(cwd, sample.fileName),
+      );
 
-  const jsRules = (jsConfig.rules ?? {}) as Record<string, unknown>;
-  const tsRules = (tsConfig.rules ?? {}) as Record<string, unknown>;
+      return {
+        scope: sample.scope,
+        rules: (config?.rules ?? {}) as Record<string, unknown>,
+      };
+    }),
+  );
+  const jsRuleConfigs = sampledConfigs
+    .filter((config) => config.scope === "javascript")
+    .map((config) => config.rules);
+  const tsRuleConfigs = sampledConfigs
+    .filter((config) => config.scope === "typescript")
+    .map((config) => config.rules);
 
   const ruleNames = new Set(
-    [...Object.keys(jsRules), ...Object.keys(tsRules)]
+    sampledConfigs
+      .flatMap((config) => Object.keys(config.rules))
       .filter((ruleName) => ruleName.startsWith("llm-core/"))
       .map((ruleName) => ruleName.replace(/^llm-core\//, "")),
   );
 
   return [...ruleNames]
     .filter((ruleName) => ruleName in ruleInstructions)
-    .map((ruleName) => {
-      const jsRule = resolveLintRuleConfig(
+    .flatMap((ruleName): ResolvedRule[] => {
+      const jsRule = resolveFirstEnabledRuleConfig(
         ruleName,
-        jsRules[`llm-core/${ruleName}`],
+        jsRuleConfigs.map((rules) => rules[`llm-core/${ruleName}`]),
       );
-      const tsRule = resolveLintRuleConfig(
+      const tsRule = resolveFirstEnabledRuleConfig(
         ruleName,
-        tsRules[`llm-core/${ruleName}`],
+        tsRuleConfigs.map((rules) => rules[`llm-core/${ruleName}`]),
       );
       const enabledInJs = jsRule.enabled;
       const enabledInTs = tsRule.enabled;
 
       if (!enabledInJs && !enabledInTs) {
-        return null;
+        return [];
+      }
+
+      const instruction = ruleInstructions[ruleName];
+
+      if (
+        enabledInJs &&
+        enabledInTs &&
+        !areOptionsEqual(jsRule.options, tsRule.options)
+      ) {
+        return [
+          {
+            name: ruleName,
+            instruction: interpolateInstruction(instruction, jsRule.options),
+            scope: "javascript-only",
+          },
+          {
+            name: ruleName,
+            instruction: interpolateInstruction(instruction, tsRule.options),
+            scope: "typescript-only",
+          },
+        ];
       }
 
       const scope = enabledInTs && !enabledInJs ? "typescript-only" : "all";
       const options = enabledInJs ? jsRule.options : tsRule.options;
 
-      return {
-        name: ruleName,
-        instruction: interpolateInstruction(
-          ruleInstructions[ruleName],
-          options,
-        ),
-        scope,
-      } satisfies ResolvedRule;
+      return [
+        {
+          name: ruleName,
+          instruction: interpolateInstruction(instruction, options),
+          scope,
+        },
+      ];
     })
-    .filter((rule): rule is ResolvedRule => rule !== null)
-    .sort((left, right) => left.name.localeCompare(right.name));
+    .sort((left, right) => {
+      const nameComparison = left.name.localeCompare(right.name);
+
+      if (nameComparison !== 0) {
+        return nameComparison;
+      }
+
+      return left.scope.localeCompare(right.scope);
+    });
 }

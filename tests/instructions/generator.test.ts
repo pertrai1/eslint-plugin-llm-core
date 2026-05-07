@@ -15,6 +15,12 @@ const typescriptRule: ResolvedRule = {
   scope: "typescript-only",
 };
 
+const javascriptRule: ResolvedRule = {
+  name: "max-function-length",
+  instruction: "Keep functions under 50 lines — extract helpers when they grow",
+  scope: "javascript-only",
+};
+
 describe("generateMarkdown", () => {
   it("renders all-files and TypeScript-only rule sections", () => {
     expect(generateMarkdown([allFilesRule, typescriptRule])).toBe(
@@ -46,6 +52,25 @@ Regenerate with: npx llm-core-instructions
 ## All Files
 
 - Keep functions under 50 lines — extract helpers when they grow
+`.trimStart(),
+    );
+  });
+
+  it("renders JavaScript-only rule sections", () => {
+    expect(generateMarkdown([javascriptRule, typescriptRule])).toBe(
+      `
+# Coding Guidelines
+
+Generated from eslint-plugin-llm-core configuration.
+Regenerate with: npx llm-core-instructions
+
+## JavaScript Files Only
+
+- Keep functions under 50 lines — extract helpers when they grow
+
+## TypeScript Files Only
+
+- Add explicit parameter and return type annotations on all exported functions
 `.trimStart(),
     );
   });

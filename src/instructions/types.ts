@@ -13,13 +13,14 @@ export interface RuleInstruction {
 export interface ResolvedRule {
   name: string;
   instruction: string;
-  scope: "all" | "typescript-only";
+  scope: "all" | "javascript-only" | "typescript-only";
 }
 
 export interface GenerateInstructionsResult {
   content: string;
   activeRules: ResolvedRule[];
   allFilesRules: ResolvedRule[];
+  javascriptRules: ResolvedRule[];
   typescriptRules: ResolvedRule[];
 }
 

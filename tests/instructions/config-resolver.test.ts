@@ -5,6 +5,23 @@ const calculateConfigForFile = vi.hoisted(() => vi.fn());
 const ESLintConstructor = vi.hoisted(() => vi.fn());
 const loadESLint = vi.hoisted(() => vi.fn());
 
+type RuleConfigMap = Record<string, unknown>;
+
+function mockVirtualFileConfigs(configs: {
+  js?: RuleConfigMap;
+  jsx?: RuleConfigMap;
+  mjs?: RuleConfigMap;
+  cjs?: RuleConfigMap;
+  ts?: RuleConfigMap;
+  tsx?: RuleConfigMap;
+}): void {
+  for (const extension of ["js", "jsx", "mjs", "cjs", "ts", "tsx"] as const) {
+    calculateConfigForFile.mockResolvedValueOnce({
+      rules: configs[extension] ?? {},
+    });
+  }
+}
+
 vi.mock("eslint", () => ({
   loadESLint,
 }));
@@ -26,19 +43,16 @@ describe("resolveActiveRules", () => {
   });
 
   it("resolves active rules from JavaScript and TypeScript configs", async () => {
-    calculateConfigForFile
-      .mockResolvedValueOnce({
-        rules: {
-          "llm-core/max-function-length": ["error", { max: 40 }],
-          "llm-core/explicit-export-types": "off",
-        },
-      })
-      .mockResolvedValueOnce({
-        rules: {
-          "llm-core/max-function-length": ["warn", { max: 40 }],
-          "llm-core/explicit-export-types": "error",
-        },
-      });
+    mockVirtualFileConfigs({
+      js: {
+        "llm-core/max-function-length": ["error", { max: 40 }],
+        "llm-core/explicit-export-types": "off",
+      },
+      ts: {
+        "llm-core/max-function-length": ["warn", { max: 40 }],
+        "llm-core/explicit-export-types": "error",
+      },
+    });
 
     const { resolveActiveRules } =
       await import("../../src/instructions/config-resolver");
@@ -70,22 +84,35 @@ describe("resolveActiveRules", () => {
     );
     expect(calculateConfigForFile).toHaveBeenNthCalledWith(
       2,
+      path.join(process.cwd(), "__virtual__.jsx"),
+    );
+    expect(calculateConfigForFile).toHaveBeenNthCalledWith(
+      3,
+      path.join(process.cwd(), "__virtual__.mjs"),
+    );
+    expect(calculateConfigForFile).toHaveBeenNthCalledWith(
+      4,
+      path.join(process.cwd(), "__virtual__.cjs"),
+    );
+    expect(calculateConfigForFile).toHaveBeenNthCalledWith(
+      5,
       path.join(process.cwd(), "__virtual__.ts"),
+    );
+    expect(calculateConfigForFile).toHaveBeenNthCalledWith(
+      6,
+      path.join(process.cwd(), "__virtual__.tsx"),
     );
   });
 
   it("excludes rules that are turned off", async () => {
-    calculateConfigForFile
-      .mockResolvedValueOnce({
-        rules: {
-          "llm-core/max-function-length": "off",
-        },
-      })
-      .mockResolvedValueOnce({
-        rules: {
-          "llm-core/max-function-length": "off",
-        },
-      });
+    mockVirtualFileConfigs({
+      js: {
+        "llm-core/max-function-length": "off",
+      },
+      ts: {
+        "llm-core/max-function-length": "off",
+      },
+    });
 
     const { resolveActiveRules } =
       await import("../../src/instructions/config-resolver");
@@ -94,13 +121,11 @@ describe("resolveActiveRules", () => {
   });
 
   it("treats rules enabled only for JavaScript files as applying to all files", async () => {
-    calculateConfigForFile
-      .mockResolvedValueOnce({
-        rules: {
-          "llm-core/no-empty-catch": "warn",
-        },
-      })
-      .mockResolvedValueOnce({ rules: {} });
+    mockVirtualFileConfigs({
+      js: {
+        "llm-core/no-empty-catch": "warn",
+      },
+    });
 
     const { resolveActiveRules } =
       await import("../../src/instructions/config-resolver");
@@ -116,17 +141,15 @@ describe("resolveActiveRules", () => {
   });
 
   it("interpolates option values from resolved rule configuration", async () => {
-    calculateConfigForFile
-      .mockResolvedValueOnce({
-        rules: {
-          "llm-core/max-params": [
-            "error",
-            { max: 3, maxConstructor: 5, maxInternal: 4 },
-          ],
-          "llm-core/no-magic-numbers": ["warn", { ignore: [5, 10] }],
-        },
-      })
-      .mockResolvedValueOnce({ rules: {} });
+    mockVirtualFileConfigs({
+      js: {
+        "llm-core/max-params": [
+          "error",
+          { max: 3, maxConstructor: 5, maxInternal: 4 },
+        ],
+        "llm-core/no-magic-numbers": ["warn", { ignore: [5, 10] }],
+      },
+    });
 
     const { resolveActiveRules } =
       await import("../../src/instructions/config-resolver");
@@ -148,17 +171,14 @@ describe("resolveActiveRules", () => {
   });
 
   it("emits separate JavaScript and TypeScript instructions when shared rule options differ", async () => {
-    calculateConfigForFile
-      .mockResolvedValueOnce({
-        rules: {
-          "llm-core/max-function-length": ["error", { max: 50 }],
-        },
-      })
-      .mockResolvedValueOnce({
-        rules: {
-          "llm-core/max-function-length": ["error", { max: 30 }],
-        },
-      });
+    mockVirtualFileConfigs({
+      js: {
+        "llm-core/max-function-length": ["error", { max: 50 }],
+      },
+      ts: {
+        "llm-core/max-function-length": ["error", { max: 30 }],
+      },
+    });
 
     const { resolveActiveRules } =
       await import("../../src/instructions/config-resolver");
@@ -177,5 +197,80 @@ describe("resolveActiveRules", () => {
         scope: "typescript-only",
       },
     ]);
+  });
+
+  it("includes rules configured only for TSX files in TypeScript instructions", async () => {
+    mockVirtualFileConfigs({
+      tsx: {
+        "llm-core/explicit-export-types": "error",
+      },
+    });
+
+    const { resolveActiveRules } =
+      await import("../../src/instructions/config-resolver");
+
+    await expect(resolveActiveRules()).resolves.toEqual([
+      {
+        name: "explicit-export-types",
+        instruction:
+          "Add explicit parameter and return type annotations on all exported functions",
+        scope: "typescript-only",
+      },
+    ]);
+
+    expect(calculateConfigForFile).toHaveBeenNthCalledWith(
+      6,
+      path.join(process.cwd(), "__virtual__.tsx"),
+    );
+  });
+
+  it("includes rules configured only for JSX, MJS, and CJS files in JavaScript instructions", async () => {
+    mockVirtualFileConfigs({
+      jsx: {
+        "llm-core/max-function-length": ["error", { max: 45 }],
+      },
+      mjs: {
+        "llm-core/no-empty-catch": "warn",
+      },
+      cjs: {
+        "llm-core/no-magic-numbers": ["error", { ignore: [0] }],
+      },
+    });
+
+    const { resolveActiveRules } =
+      await import("../../src/instructions/config-resolver");
+
+    await expect(resolveActiveRules()).resolves.toEqual([
+      {
+        name: "max-function-length",
+        instruction:
+          "Keep functions under 45 lines — extract helpers when they grow",
+        scope: "all",
+      },
+      {
+        name: "no-empty-catch",
+        instruction:
+          "Never leave catch blocks empty — handle, rethrow, or log the error",
+        scope: "all",
+      },
+      {
+        name: "no-magic-numbers",
+        instruction: "Extract named constants for magic numbers (ignore: 0)",
+        scope: "all",
+      },
+    ]);
+
+    expect(calculateConfigForFile).toHaveBeenNthCalledWith(
+      2,
+      path.join(process.cwd(), "__virtual__.jsx"),
+    );
+    expect(calculateConfigForFile).toHaveBeenNthCalledWith(
+      3,
+      path.join(process.cwd(), "__virtual__.mjs"),
+    );
+    expect(calculateConfigForFile).toHaveBeenNthCalledWith(
+      4,
+      path.join(process.cwd(), "__virtual__.cjs"),
+    );
   });
 });

@@ -8,6 +8,22 @@ type ResolvedLintRule = {
   options: Record<string, unknown>;
 };
 
+type SampleScope = "javascript" | "typescript";
+
+type VirtualFileSample = {
+  fileName: string;
+  scope: SampleScope;
+};
+
+const VIRTUAL_FILE_SAMPLES: VirtualFileSample[] = [
+  { fileName: "__virtual__.js", scope: "javascript" },
+  { fileName: "__virtual__.jsx", scope: "javascript" },
+  { fileName: "__virtual__.mjs", scope: "javascript" },
+  { fileName: "__virtual__.cjs", scope: "javascript" },
+  { fileName: "__virtual__.ts", scope: "typescript" },
+  { fileName: "__virtual__.tsx", scope: "typescript" },
+];
+
 type FlatESLint = new (options?: { overrideConfigFile?: string }) => {
   calculateConfigForFile(
     filePath: string,
@@ -96,6 +112,21 @@ function resolveLintRuleConfig(
   };
 }
 
+function resolveFirstEnabledRuleConfig(
+  ruleName: string,
+  ruleConfigs: unknown[],
+): ResolvedLintRule {
+  for (const ruleConfig of ruleConfigs) {
+    const resolvedRule = resolveLintRuleConfig(ruleName, ruleConfig);
+
+    if (resolvedRule.enabled) {
+      return resolvedRule;
+    }
+  }
+
+  return resolveLintRuleConfig(ruleName, undefined);
+}
+
 export function interpolateInstruction(
   instruction: RuleInstruction,
   options: Record<string, unknown>,
@@ -138,18 +169,28 @@ export async function resolveActiveRules(
     : new ESLint({});
   const cwd = process.cwd();
 
-  const jsConfig = await eslint.calculateConfigForFile(
-    path.join(cwd, "__virtual__.js"),
-  );
-  const tsConfig = await eslint.calculateConfigForFile(
-    path.join(cwd, "__virtual__.ts"),
-  );
+  const sampledConfigs = await Promise.all(
+    VIRTUAL_FILE_SAMPLES.map(async (sample) => {
+      const config = await eslint.calculateConfigForFile(
+        path.join(cwd, sample.fileName),
+      );
 
-  const jsRules = (jsConfig.rules ?? {}) as Record<string, unknown>;
-  const tsRules = (tsConfig.rules ?? {}) as Record<string, unknown>;
+      return {
+        scope: sample.scope,
+        rules: (config.rules ?? {}) as Record<string, unknown>,
+      };
+    }),
+  );
+  const jsRuleConfigs = sampledConfigs
+    .filter((config) => config.scope === "javascript")
+    .map((config) => config.rules);
+  const tsRuleConfigs = sampledConfigs
+    .filter((config) => config.scope === "typescript")
+    .map((config) => config.rules);
 
   const ruleNames = new Set(
-    [...Object.keys(jsRules), ...Object.keys(tsRules)]
+    sampledConfigs
+      .flatMap((config) => Object.keys(config.rules))
       .filter((ruleName) => ruleName.startsWith("llm-core/"))
       .map((ruleName) => ruleName.replace(/^llm-core\//, "")),
   );
@@ -157,13 +198,13 @@ export async function resolveActiveRules(
   return [...ruleNames]
     .filter((ruleName) => ruleName in ruleInstructions)
     .flatMap((ruleName): ResolvedRule[] => {
-      const jsRule = resolveLintRuleConfig(
+      const jsRule = resolveFirstEnabledRuleConfig(
         ruleName,
-        jsRules[`llm-core/${ruleName}`],
+        jsRuleConfigs.map((rules) => rules[`llm-core/${ruleName}`]),
       );
-      const tsRule = resolveLintRuleConfig(
+      const tsRule = resolveFirstEnabledRuleConfig(
         ruleName,
-        tsRules[`llm-core/${ruleName}`],
+        tsRuleConfigs.map((rules) => rules[`llm-core/${ruleName}`]),
       );
       const enabledInJs = jsRule.enabled;
       const enabledInTs = tsRule.enabled;

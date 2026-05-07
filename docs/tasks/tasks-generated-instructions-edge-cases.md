@@ -32,20 +32,20 @@ GitHub Issue: https://github.com/pertrai1/eslint-plugin-llm-core/issues/122
   - [x] 3.4 Ensure interpolation uses the option set for the instruction's emitted scope.
   - [x] 3.5 Run the targeted regression test and confirm it passes.
 
-- [ ] 4.0 Add RED coverage for expanded virtual file sampling
-  - [ ] 4.1 Add one failing regression test proving `.tsx`-only configuration is included in TypeScript instructions.
-  - [ ] 4.2 Add one failing regression test proving `.jsx`-only configuration is included in JavaScript instructions.
-  - [ ] 4.3 Add coverage for `.mjs` and `.cjs` JavaScript sampling, either as focused cases or a table-driven variant with concrete expected output.
-  - [ ] 4.4 Run the targeted tests and confirm they fail because unsupported extensions are not sampled.
+- [x] 4.0 Add RED coverage for expanded virtual file sampling
+  - [x] 4.1 Add one failing regression test proving `.tsx`-only configuration is included in TypeScript instructions.
+  - [x] 4.2 Add one failing regression test proving `.jsx`-only configuration is included in JavaScript instructions.
+  - [x] 4.3 Add coverage for `.mjs` and `.cjs` JavaScript sampling, either as focused cases or a table-driven variant with concrete expected output.
+  - [x] 4.4 Run the targeted tests and confirm they fail because unsupported extensions are not sampled.
 
-- [ ] 5.0 Implement expanded extension sampling
-  - [ ] 5.1 Define the explicit virtual file sample set: `__virtual__.js`, `__virtual__.jsx`, `__virtual__.mjs`, `__virtual__.cjs`, `__virtual__.ts`, and `__virtual__.tsx`.
-  - [ ] 5.2 Merge `.js`, `.jsx`, `.mjs`, and `.cjs` results into the JavaScript scope.
-  - [ ] 5.3 Merge `.ts` and `.tsx` results into the TypeScript scope.
-  - [ ] 5.4 Deduplicate equivalent rules/options within the same broad scope.
-  - [ ] 5.5 Use a deterministic rule when multiple extensions in the same broad scope define the same rule with different options.
-  - [ ] 5.6 Document the same-scope option-conflict limitation in code only if the implementation would otherwise be unclear.
-  - [ ] 5.7 Run the targeted extension-sampling tests and confirm they pass.
+- [x] 5.0 Implement expanded extension sampling
+  - [x] 5.1 Define the explicit virtual file sample set: `__virtual__.js`, `__virtual__.jsx`, `__virtual__.mjs`, `__virtual__.cjs`, `__virtual__.ts`, and `__virtual__.tsx`.
+  - [x] 5.2 Merge `.js`, `.jsx`, `.mjs`, and `.cjs` results into the JavaScript scope.
+  - [x] 5.3 Merge `.ts` and `.tsx` results into the TypeScript scope.
+  - [x] 5.4 Deduplicate equivalent rules/options within the same broad scope.
+  - [x] 5.5 Use a deterministic rule when multiple extensions in the same broad scope define the same rule with different options.
+  - [x] 5.6 Document the same-scope option-conflict limitation in code only if the implementation would otherwise be unclear.
+  - [x] 5.7 Run the targeted extension-sampling tests and confirm they pass.
 
 - [ ] 6.0 Verify existing behavior and test quality
   - [ ] 6.1 Confirm existing `.js`-only and `.ts`-only behavior still passes.

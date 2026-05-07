@@ -276,6 +276,7 @@ const result = await generateInstructions({
 result.content; // The generated markdown string
 result.activeRules; // Resolved rules with options and derived scope
 result.allFilesRules; // Rules applying to all files
+result.javascriptRules; // JavaScript-only rules
 result.typescriptRules; // TypeScript-only rules
 ```
 

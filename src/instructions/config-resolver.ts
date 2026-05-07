@@ -116,6 +116,9 @@ function resolveFirstEnabledRuleConfig(
   ruleName: string,
   ruleConfigs: unknown[],
 ): ResolvedLintRule {
+  // Known limitation: when extensions within the same scope configure different
+  // options, the first enabled extension wins. The public model currently groups
+  // only by JavaScript vs TypeScript scope, not by individual extension.
   for (const ruleConfig of ruleConfigs) {
     const resolvedRule = resolveLintRuleConfig(ruleName, ruleConfig);
 

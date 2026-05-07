@@ -1,81 +1,113 @@
-# Rule: Generating a Product Requirements Document (PRD)
+# Rule: Generating a Task List from a PRD
 
 ## Goal
 
-To guide an AI assistant in creating a detailed Product Requirements Document (PRD) in Markdown format, based on an initial user prompt. The PRD should be clear, actionable, and suitable for a junior developer to understand and implement the feature.
+To guide an AI assistant in creating a detailed implementation task list in Markdown format from an existing Product Requirements Document (PRD). The task list should be explicit, ordered, and suitable for a junior developer to execute without guessing at scope.
 
 ## Process
 
-1.  **Receive Initial Prompt:** The user provides a brief description or request for a new feature or functionality.
-2.  **Ask Clarifying Questions:** Before writing the PRD, the AI _must_ ask only the most essential clarifying questions needed to write a clear PRD. Limit questions to 3-5 critical gaps in understanding. The goal is to understand the "what" and "why" of the feature, not necessarily the "how" (which the developer will figure out). Make sure to provide options in letter/number lists so I can respond easily with my selections.
-3.  **Generate PRD:** Based on the initial prompt and the user's answers to the clarifying questions, generate a PRD using the structure outlined below.
-4.  **Save PRD:** Save the generated document as `prd-[feature-name].md` inside the `/tasks` directory.
+1. **Receive PRD Reference:** The user provides or identifies an existing PRD file in `/tasks` named `prd-[feature-name].md`.
+2. **Parse the PRD:** Read the PRD and extract the feature overview, goals, user stories, functional requirements, non-goals, technical considerations, success metrics, and open questions.
+3. **Ask Clarifying Questions:** If the PRD leaves material implementation ambiguity, ask only the 3-5 most important clarifying questions before generating tasks. Provide A/B/C/D options where possible so the user can respond quickly.
+4. **Generate High-Level Tasks:** Create 4-8 high-level tasks mapped to PRD sections or requirement numbers. Each task should represent a meaningful implementation milestone.
+5. **Confirm Task Direction:** Present the high-level tasks and ask the user to confirm which tasks should be expanded.
+6. **Expand Selected Tasks:** Break confirmed tasks into numbered sub-tasks with acceptance criteria, dependencies, and rough estimates.
+7. **Save Task List:** Save the generated document as `tasks-prd-[feature-name].md` inside the `/tasks` directory.
 
 ## Clarifying Questions (Guidelines)
 
-Ask only the most critical questions needed to write a clear PRD. Focus on areas where the initial prompt is ambiguous or missing essential context. Common areas that may need clarification:
+Ask questions only when the answer is not reasonably inferable from the PRD and would materially change the task plan. Common areas that may need clarification:
 
-- **Problem/Goal:** If unclear - "What problem does this feature solve for the user?"
-- **Core Functionality:** If vague - "What are the key actions a user should be able to perform?"
-- **Scope/Boundaries:** If broad - "Are there any specific things this feature _should not_ do?"
-- **Success Criteria:** If unstated - "How will we know when this feature is successfully implemented?"
-
-**Important:** Only ask questions when the answer isn't reasonably inferable from the initial prompt. Prioritize questions that would significantly impact the PRD's clarity.
+- **Priority:** If requirements compete, ask which outcome matters most.
+- **Scope:** If a requirement could be implemented at multiple depths, ask where to draw the line.
+- **Dependencies:** If the PRD names integrations or systems without details, ask which dependency should be used.
+- **Acceptance:** If success criteria are vague, ask what observable behavior proves completion.
+- **Sequencing:** If multiple delivery paths are possible, ask whether the user wants a minimal slice first or a complete implementation pass.
 
 ### Formatting Requirements
 
-- **Number all questions** (1, 2, 3, etc.)
-- **List options for each question as A, B, C, D, etc.** for easy reference
-- Make it simple for the user to respond with selections like "1A, 2C, 3B"
+- **Number all questions** (1, 2, 3, etc.).
+- **List options for each question as A, B, C, D, etc.** when practical.
+- Make it simple for the user to respond with selections like `1A, 2C, 3B`.
 
-### Example Format
+### Example Clarifying Questions
 
+```text
+1. Which implementation path should be prioritized?
+   A. Smallest working vertical slice
+   B. Complete backend behavior first
+   C. Complete UI behavior first
+   D. Test infrastructure first
+
+2. What level of test coverage is expected for this feature?
+   A. Unit tests only
+   B. Unit and integration tests
+   C. End-to-end coverage for the primary workflow
+   D. Follow existing adjacent coverage only
+
+3. How should unresolved PRD questions be handled?
+   A. Block task generation until answered
+   B. Include them as explicit assumptions
+   C. Turn them into discovery tasks
+   D. Exclude them from the first implementation pass
 ```
-1. What is the primary goal of this feature?
-   A. Improve user onboarding experience
-   B. Increase user retention
-   C. Reduce support burden
-   D. Generate additional revenue
 
-2. Who is the target user for this feature?
-   A. New users only
-   B. Existing users only
-   C. All users
-   D. Admin users only
+## Task List Structure
 
-3. What is the expected timeline for this feature?
-   A. Urgent (1-2 weeks)
-   B. High priority (3-4 weeks)
-   C. Standard (1-2 months)
-   D. Future consideration (3+ months)
+The generated task list should include the following sections:
+
+1. **Source PRD:** The input PRD filename and feature name.
+2. **Summary:** A brief description of the implementation goal.
+3. **Assumptions:** Any decisions made because the PRD did not specify details.
+4. **High-Level Tasks:** 4-8 numbered tasks, each mapped to one or more PRD sections or requirement numbers.
+5. **Sub-Tasks:** Numbered sub-tasks nested under each confirmed high-level task.
+6. **Acceptance Criteria:** Observable completion checks for each high-level task.
+7. **Dependencies:** Internal modules, external services, docs, or decisions needed before or during implementation.
+8. **Estimates:** Rough effort labels such as Small, Medium, or Large.
+9. **Out of Scope:** PRD items or implementation ideas intentionally excluded from this task list.
+
+### Example Task Format
+
+```markdown
+1. Add persisted session loading
+   - PRD mapping: Functional Requirements 1, 3
+   - Estimate: Medium
+   - Dependencies: Existing session storage module
+   - Acceptance criteria:
+     - Given a saved session exists, the CLI resumes it when the user passes `--resume`.
+     - Given no saved session exists, the CLI starts normally and reports no resume error.
+   - Sub-tasks:
+     1.1. Add a session lookup function to the persistence layer.
+     1.2. Wire the lookup into CLI startup.
+     1.3. Add tests for existing-session and missing-session paths.
 ```
 
-## PRD Structure
+## Naming Conventions
 
-The generated PRD should include the following sections:
+- **Input PRD pattern:** `/tasks/prd-[feature-name].md`
+- **Output task list pattern:** `/tasks/tasks-prd-[feature-name].md`
+- Preserve the PRD feature slug in the task-list filename.
 
-1.  **Introduction/Overview:** Briefly describe the feature and the problem it solves. State the goal.
-2.  **Goals:** List the specific, measurable objectives for this feature.
-3.  **User Stories:** Detail the user narratives describing feature usage and benefits.
-4.  **Functional Requirements:** List the specific functionalities the feature must have. Use clear, concise language (e.g., "The system must allow users to upload a profile picture."). Number these requirements.
-5.  **Non-Goals (Out of Scope):** Clearly state what this feature will _not_ include to manage scope.
-6.  **Design Considerations (Optional):** Link to mockups, describe UI/UX requirements, or mention relevant components/styles if applicable.
-7.  **Technical Considerations (Optional):** Mention any known technical constraints, dependencies, or suggestions (e.g., "Should integrate with the existing Auth module").
-8.  **Success Metrics:** How will the success of this feature be measured? (e.g., "Increase user engagement by 10%", "Reduce support tickets related to X").
-9.  **Open Questions:** List any remaining questions or areas needing further clarification.
+## What Not to Include
+
+- Do not include implementation code.
+- Do not invent requirements that are not present in the PRD or confirmed by the user.
+- Do not expand speculative future work unless it is explicitly marked out of scope or deferred.
+- Do not skip acceptance criteria for tasks that change behavior.
 
 ## Target Audience
 
-Assume the primary reader of the PRD is a **junior developer**. Therefore, requirements should be explicit, unambiguous, and avoid jargon where possible. Provide enough detail for them to understand the feature's purpose and core logic.
+Assume the primary reader is a **junior developer**. Tasks should be concrete, sequenced, and written with enough context to start implementation without rereading the entire PRD for every step.
 
 ## Output
 
 - **Format:** Markdown (`.md`)
 - **Location:** `/tasks/`
-- **Filename:** `prd-[feature-name].md`
+- **Filename:** `tasks-prd-[feature-name].md`
 
-## Final instructions
+## Final Instructions
 
-1. Do NOT start implementing the PRD
-2. Make sure to ask the user clarifying questions
-3. Take the user's answers to the clarifying questions and improve the PRD
+1. Do NOT start implementing the tasks.
+2. Make sure every high-level task maps back to the source PRD.
+3. Ask clarifying questions before task generation when ambiguity would change scope, sequencing, or acceptance criteria.
+4. Save the final task list using the `tasks-prd-[feature-name].md` filename pattern.

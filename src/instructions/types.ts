@@ -20,6 +20,7 @@ export interface GenerateInstructionsResult {
   content: string;
   activeRules: ResolvedRule[];
   allFilesRules: ResolvedRule[];
+  javascriptRules: ResolvedRule[];
   typescriptRules: ResolvedRule[];
 }
 

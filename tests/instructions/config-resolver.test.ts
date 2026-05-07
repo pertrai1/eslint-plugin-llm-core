@@ -15,11 +15,13 @@ function mockVirtualFileConfigs(configs: {
   ts?: RuleConfigMap;
   tsx?: RuleConfigMap;
 }): void {
-  for (const extension of ["js", "jsx", "mjs", "cjs", "ts", "tsx"] as const) {
-    calculateConfigForFile.mockResolvedValueOnce({
+  calculateConfigForFile.mockImplementation(async (filePath: string) => {
+    const extension = path.extname(filePath).slice(1) as keyof typeof configs;
+
+    return {
       rules: configs[extension] ?? {},
-    });
-  }
+    };
+  });
 }
 
 vi.mock("eslint", () => ({

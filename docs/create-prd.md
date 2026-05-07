@@ -30,7 +30,7 @@ Ask only the most critical questions needed to write a clear PRD. Focus on areas
 
 ### Example Format
 
-```
+```text
 1. What is the primary goal of this feature?
    A. Improve user onboarding experience
    B. Increase user retention

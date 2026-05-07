@@ -11,9 +11,18 @@ export async function generateInstructions(
   const activeRules = await resolveActiveRules(options?.configPath);
   const content = generateMarkdown(activeRules);
   const allFilesRules = activeRules.filter((rule) => rule.scope === "all");
+  const javascriptRules = activeRules.filter(
+    (rule) => rule.scope === "javascript-only",
+  );
   const typescriptRules = activeRules.filter(
     (rule) => rule.scope === "typescript-only",
   );
 
-  return { content, activeRules, allFilesRules, typescriptRules };
+  return {
+    content,
+    activeRules,
+    allFilesRules,
+    javascriptRules,
+    typescriptRules,
+  };
 }

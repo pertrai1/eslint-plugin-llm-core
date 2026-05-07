@@ -47,21 +47,21 @@ GitHub Issue: https://github.com/pertrai1/eslint-plugin-llm-core/issues/122
   - [x] 5.6 Document the same-scope option-conflict limitation in code only if the implementation would otherwise be unclear.
   - [x] 5.7 Run the targeted extension-sampling tests and confirm they pass.
 
-- [ ] 6.0 Verify existing behavior and test quality
-  - [ ] 6.1 Confirm existing `.js`-only and `.ts`-only behavior still passes.
-  - [ ] 6.2 Confirm equivalent JavaScript and TypeScript options still produce one `all` instruction.
-  - [ ] 6.3 Review new tests for concrete expected output and no production-logic mirroring.
-  - [ ] 6.4 Run the generated-instructions test file or targeted test suite.
+- [x] 6.0 Verify existing behavior and test quality
+  - [x] 6.1 Confirm existing `.js`-only and `.ts`-only behavior still passes.
+  - [x] 6.2 Confirm equivalent JavaScript and TypeScript options still produce one `all` instruction.
+  - [x] 6.3 Review new tests for concrete expected output and no production-logic mirroring.
+  - [x] 6.4 Run the generated-instructions test file or targeted test suite.
 
-- [ ] 7.0 Run final quality gates
-  - [ ] 7.1 Run `npm run test`.
-  - [ ] 7.2 Run `npm run lint`.
-  - [ ] 7.3 Run `npm run build`.
-  - [ ] 7.4 Run `npm run update:eslint-docs` only if the implementation changes generated rule docs.
-  - [ ] 7.5 Capture a verification summary showing the previously failing cases now pass and no regressions were introduced.
+- [x] 7.0 Run final quality gates
+  - [x] 7.1 Run `npm run test`.
+  - [x] 7.2 Run `npm run lint`.
+  - [x] 7.3 Run `npm run build`.
+  - [x] 7.4 Run `npm run update:eslint-docs` only if the implementation changes generated rule docs.
+  - [x] 7.5 Capture a verification summary showing the previously failing cases now pass and no regressions were introduced.
 
-- [ ] 8.0 Prepare review artifacts
-  - [ ] 8.1 Include the PRD and task list in the implementation context.
-  - [ ] 8.2 Link GitHub Issue #122 in the PR body.
-  - [ ] 8.3 Include a concise debugging summary explaining the root cause and fix.
-  - [ ] 8.4 Include verification commands and results in the PR body.
+- [x] 8.0 Prepare review artifacts
+  - [x] 8.1 Include the PRD and task list in the implementation context.
+  - [x] 8.2 Link GitHub Issue #122 in the PR body.
+  - [x] 8.3 Include a concise debugging summary explaining the root cause and fix.
+  - [x] 8.4 Include verification commands and results in the PR body.

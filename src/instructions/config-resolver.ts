@@ -177,7 +177,7 @@ export async function resolveActiveRules(
 
       return {
         scope: sample.scope,
-        rules: (config.rules ?? {}) as Record<string, unknown>,
+        rules: (config?.rules ?? {}) as Record<string, unknown>,
       };
     }),
   );

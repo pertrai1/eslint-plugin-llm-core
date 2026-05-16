@@ -8,4 +8,18 @@ describe("plugin configs", () => {
       plugin.configs["best-practices"],
     );
   });
+
+  it("registers prefer-nullish-coalescing in rule exports and style configs", () => {
+    expect(plugin.rules["prefer-nullish-coalescing"]).toBeDefined();
+
+    const styleConfig = plugin.configs.style[0];
+    const recommendedConfig = plugin.configs.recommended[0];
+
+    expect(styleConfig.rules?.["llm-core/prefer-nullish-coalescing"]).toBe(
+      "error",
+    );
+    expect(
+      recommendedConfig.rules?.["llm-core/prefer-nullish-coalescing"],
+    ).toBe("error");
+  });
 });

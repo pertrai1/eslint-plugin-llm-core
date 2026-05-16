@@ -1,7 +1,8 @@
-// Expected violations: 16
+// Expected violations: 17
 // Rules triggered:
 //   no-empty-catch (3): persistRecord (inner retry), retryWithDelay, processAll
 //   throw-error-objects (3): fetchRecord (string), transformRecord (object), persistRecord (template)
+//   missing-throw (1): validatePipelineRecord constructs Error without throwing it
 //   prefer-unknown-in-catch (3): fetchRecord, transformRecord, runPipeline — catch (error: any)
 //   structured-logging (3): fetchRecord, transformRecord, runPipeline
 //   no-redundant-logic (2): hasValidPayload — redundant === true, ternary ? true : false
@@ -39,6 +40,12 @@ function hasValidPayload(record: PipelineRecord): boolean {
     return Object.keys(record.payload).length > 0 ? true : false;
   }
   return false;
+}
+
+function validatePipelineRecord(record: PipelineRecord): void {
+  if (!record.id) {
+    new Error("Missing record id");
+  }
 }
 
 async function fetchRecord(recordId: string): Promise<PipelineRecord> {
@@ -94,6 +101,7 @@ async function retryWithDelay(record: PipelineRecord): Promise<void> {
 
 export async function runPipeline(records: PipelineRecord[]): Promise<void> {
   for (const record of records) {
+    validatePipelineRecord(record);
     try {
       const fetched = await fetchRecord(record.id);
       const transformed = transformRecord(fetched);

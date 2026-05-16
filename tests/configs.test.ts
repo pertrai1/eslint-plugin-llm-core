@@ -22,4 +22,14 @@ describe("plugin configs", () => {
       recommendedConfig.rules?.["llm-core/prefer-nullish-coalescing"],
     ).toBe("error");
   });
+
+  it("registers missing-throw in rule exports and best-practices configs", () => {
+    expect(plugin.rules["missing-throw"]).toBeDefined();
+
+    const bestPracticesConfig = plugin.configs["best-practices"][0];
+    const recommendedConfig = plugin.configs.recommended[0];
+
+    expect(bestPracticesConfig.rules?.["llm-core/missing-throw"]).toBe("error");
+    expect(recommendedConfig.rules?.["llm-core/missing-throw"]).toBe("error");
+  });
 });

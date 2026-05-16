@@ -60,6 +60,9 @@ import noTypeAssertionAnyRule, {
 import preferEarlyReturnRule, {
   instruction as preferEarlyReturn,
 } from "../rules/prefer-early-return";
+import preferNullishCoalescingRule, {
+  instruction as preferNullishCoalescing,
+} from "../rules/prefer-nullish-coalescing";
 import preferUnknownInCatchRule, {
   instruction as preferUnknownInCatch,
 } from "../rules/prefer-unknown-in-catch";
@@ -112,6 +115,7 @@ export const ruleInstructions: Record<string, RuleInstruction> = {
   "no-swallowed-errors": noSwallowedErrors,
   "no-type-assertion-any": noTypeAssertionAny,
   "prefer-early-return": preferEarlyReturn,
+  "prefer-nullish-coalescing": preferNullishCoalescing,
   "prefer-unknown-in-catch": preferUnknownInCatch,
   "structured-logging": structuredLogging,
   "throw-error-objects": throwErrorObjects,
@@ -143,6 +147,7 @@ export const ruleDefaultOptions: Record<string, Record<string, unknown>> = {
   "no-swallowed-errors": getDefaultOptions(noSwallowedErrorsRule),
   "no-type-assertion-any": getDefaultOptions(noTypeAssertionAnyRule),
   "prefer-early-return": getDefaultOptions(preferEarlyReturnRule),
+  "prefer-nullish-coalescing": getDefaultOptions(preferNullishCoalescingRule),
   "prefer-unknown-in-catch": getDefaultOptions(preferUnknownInCatchRule),
   "structured-logging": getDefaultOptions(structuredLoggingRule),
   "throw-error-objects": getDefaultOptions(throwErrorObjectsRule),

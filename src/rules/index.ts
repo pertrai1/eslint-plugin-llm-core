@@ -21,6 +21,7 @@ export { default as "no-redundant-logic" } from "./no-redundant-logic";
 export { default as "no-swallowed-errors" } from "./no-swallowed-errors";
 export { default as "no-type-assertion-any" } from "./no-type-assertion-any";
 export { default as "prefer-early-return" } from "./prefer-early-return";
+export { default as "prefer-nullish-coalescing" } from "./prefer-nullish-coalescing";
 export { default as "prefer-unknown-in-catch" } from "./prefer-unknown-in-catch";
 export { default as "structured-logging" } from "./structured-logging";
 export { default as "throw-error-objects" } from "./throw-error-objects";

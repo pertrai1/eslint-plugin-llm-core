@@ -47,6 +47,7 @@ const styleRules: TSESLint.FlatConfig.Rules = {
   "llm-core/no-exported-function-expressions": "error",
   "llm-core/no-redundant-logic": "error",
   "llm-core/prefer-early-return": "error",
+  "llm-core/prefer-nullish-coalescing": "error",
 };
 
 const hygieneRules: TSESLint.FlatConfig.Rules = {

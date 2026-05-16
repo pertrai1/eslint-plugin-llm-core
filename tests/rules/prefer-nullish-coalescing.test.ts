@@ -23,6 +23,7 @@ ruleTester.run("prefer-nullish-coalescing", rule, {
     `return isCached || isFresh;`,
     `return flags.isReady || computeDefault();`,
     `return user?.hasAccess || computeDefault();`,
+    `return user?.hasAccess() || computeDefault();`,
     `const access = user.hasAccess || request.canBypass;`,
 
     // Boolean fallbacks intentionally coerce/choose boolean values.

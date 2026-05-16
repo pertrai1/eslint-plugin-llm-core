@@ -42,11 +42,8 @@ function isBooleanishExpression(node: TSESTree.Node): boolean {
     return isBooleanNamedMemberExpression(node);
   }
 
-  if (
-    node.type === AST_NODE_TYPES.ChainExpression &&
-    node.expression.type === AST_NODE_TYPES.MemberExpression
-  ) {
-    return isBooleanNamedMemberExpression(node.expression);
+  if (node.type === AST_NODE_TYPES.ChainExpression) {
+    return isBooleanishExpression(node.expression);
   }
 
   if (node.type === AST_NODE_TYPES.UnaryExpression && node.operator === "!") {

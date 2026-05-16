@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.20.0
+
+### Minor Changes
+
+- [#169](https://github.com/pertrai1/eslint-plugin-llm-core/pull/169) [`f0f029d`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/f0f029df910a2949777c52431bb644c53ddd1c72) Thanks [@pertrai1-bot](https://github.com/pertrai1-bot)! - Add `missing-throw` to catch standalone `new Error(...)` expressions that likely forgot `throw`.
+
 ## 0.19.0
 
 ### Minor Changes

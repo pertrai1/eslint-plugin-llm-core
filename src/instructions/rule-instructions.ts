@@ -21,6 +21,9 @@ import maxNestingDepthRule, {
   instruction as maxNestingDepth,
 } from "../rules/max-nesting-depth";
 import maxParamsRule, { instruction as maxParams } from "../rules/max-params";
+import missingThrowRule, {
+  instruction as missingThrow,
+} from "../rules/missing-throw";
 import namingConventionsRule, {
   instruction as namingConventions,
 } from "../rules/naming-conventions";
@@ -102,6 +105,7 @@ export const ruleInstructions: Record<string, RuleInstruction> = {
   "max-function-length": maxFunctionLength,
   "max-nesting-depth": maxNestingDepth,
   "max-params": maxParams,
+  "missing-throw": missingThrow,
   "naming-conventions": namingConventions,
   "no-any-in-generic": noAnyInGeneric,
   "no-async-array-callbacks": noAsyncArrayCallbacks,
@@ -132,6 +136,7 @@ export const ruleDefaultOptions: Record<string, Record<string, unknown>> = {
   "max-function-length": getDefaultOptions(maxFunctionLengthRule),
   "max-nesting-depth": getDefaultOptions(maxNestingDepthRule),
   "max-params": getDefaultOptions(maxParamsRule),
+  "missing-throw": getDefaultOptions(missingThrowRule),
   "naming-conventions": getDefaultOptions(namingConventionsRule),
   "no-any-in-generic": getDefaultOptions(noAnyInGenericRule),
   "no-async-array-callbacks": getDefaultOptions(noAsyncArrayCallbacksRule),

@@ -93,7 +93,7 @@ git show origin/eval-results:eval-2026-04-09.json  # specific result
 | `auth-middleware.ts`    | prefer-early-return, max-nesting-depth, structured-logging, no-magic-numbers, throw-error-objects, no-empty-catch, no-type-assertion-any, explicit-export-types              |
 | `config-loader.ts`      | no-exported-function-expressions, explicit-export-types, no-redundant-logic, structured-logging, no-magic-numbers, prefer-unknown-in-catch, no-empty-catch                   |
 | `data-transformer.ts`   | no-exported-function-expressions, explicit-export-types, no-type-assertion-any, no-any-in-generic, no-async-array-callbacks, no-redundant-logic                              |
-| `error-pipeline.ts`     | no-empty-catch, throw-error-objects, prefer-unknown-in-catch, structured-logging, no-redundant-logic, no-magic-numbers                                                       |
+| `error-pipeline.ts`     | no-empty-catch, throw-error-objects, missing-throw, prefer-unknown-in-catch, structured-logging, no-redundant-logic, no-magic-numbers                                        |
 | `event-system.ts`       | naming-conventions, no-exported-function-expressions, explicit-export-types, no-async-array-callbacks, consistent-catch-param-name, throw-error-objects, prefer-early-return |
 | `file-structure.ts`     | max-file-length, max-function-length, max-params, no-magic-numbers, structured-logging, no-exported-function-expressions, no-empty-catch, throw-error-objects                |
 | `integration-module.ts` | no-commented-out-code, no-llm-artifacts, no-inline-disable, explicit-export-types, no-async-array-callbacks, max-params, structured-logging                                  |

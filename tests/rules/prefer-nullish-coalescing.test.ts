@@ -21,10 +21,17 @@ ruleTester.run("prefer-nullish-coalescing", rule, {
     // Boolean expressions should remain logical OR.
     `const isAllowed = isAdmin || isOwner;`,
     `return isCached || isFresh;`,
+    `return flags.isReady || computeDefault();`,
+    `return user?.hasAccess || computeDefault();`,
+    `const access = user.hasAccess || request.canBypass;`,
 
     // Boolean fallbacks intentionally coerce/choose boolean values.
     `const enabled = config.enabled || false;`,
     `const visible = props.visible || true;`,
+
+    // Avoid suggestions that would mix ?? with ||/&& without parentheses.
+    `const value = input || cached || "fallback";`,
+    `const value = (input && cached) || "fallback";`,
   ],
 
   invalid: [

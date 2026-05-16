@@ -14,11 +14,39 @@ function isBooleanNamed(name: string): boolean {
   return /^(is|has|can|should|will|was|were|did)[A-Z_]/.test(name);
 }
 
+function isBooleanNamedMemberExpression(
+  node: TSESTree.MemberExpression,
+): boolean {
+  return (
+    !node.computed &&
+    node.property.type === AST_NODE_TYPES.Identifier &&
+    isBooleanNamed(node.property.name)
+  );
+}
+
+function hasLogicalOperand(node: TSESTree.LogicalExpression): boolean {
+  return (
+    node.left.type === AST_NODE_TYPES.LogicalExpression ||
+    node.right.type === AST_NODE_TYPES.LogicalExpression
+  );
+}
+
 function isBooleanishExpression(node: TSESTree.Node): boolean {
   if (isBooleanLiteral(node)) return true;
 
   if (node.type === AST_NODE_TYPES.Identifier) {
     return isBooleanNamed(node.name);
+  }
+
+  if (node.type === AST_NODE_TYPES.MemberExpression) {
+    return isBooleanNamedMemberExpression(node);
+  }
+
+  if (
+    node.type === AST_NODE_TYPES.ChainExpression &&
+    node.expression.type === AST_NODE_TYPES.MemberExpression
+  ) {
+    return isBooleanNamedMemberExpression(node.expression);
   }
 
   if (node.type === AST_NODE_TYPES.UnaryExpression && node.operator === "!") {
@@ -126,6 +154,7 @@ export default createRule<[], MessageIds>({
       LogicalExpression(node) {
         if (node.operator !== "||") return;
         if (isBooleanContext(node)) return;
+        if (hasLogicalOperand(node)) return;
         if (isBooleanishExpression(node.left)) return;
         if (!isFallbackCandidate(node.right)) return;
 

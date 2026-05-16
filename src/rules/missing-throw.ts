@@ -1,10 +1,11 @@
-import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "missingThrow";
 
 const ERROR_CONSTRUCTORS = new Set([
+  "AggregateError",
   "Error",
   "EvalError",
   "RangeError",
@@ -13,6 +14,52 @@ const ERROR_CONSTRUCTORS = new Set([
   "TypeError",
   "URIError",
 ]);
+
+function isGlobalBuiltinConstructor(
+  sourceCode: Readonly<TSESLint.SourceCode>,
+  callee: TSESTree.Identifier,
+): boolean {
+  let scope: ReturnType<TSESLint.SourceCode["getScope"]> | null =
+    sourceCode.getScope(callee);
+
+  while (scope) {
+    const variable = scope.variables.find(({ name }) => name === callee.name);
+
+    if (variable) {
+      return variable.defs.length === 0;
+    }
+
+    scope = scope.upper;
+  }
+
+  return true;
+}
+
+function getExpressionStatement(
+  node: TSESTree.NewExpression,
+): TSESTree.ExpressionStatement | undefined {
+  let current: TSESTree.Node = node;
+  let parent = node.parent;
+
+  while (
+    parent.type === AST_NODE_TYPES.TSAsExpression ||
+    parent.type === AST_NODE_TYPES.TSNonNullExpression ||
+    parent.type === AST_NODE_TYPES.TSSatisfiesExpression ||
+    parent.type === AST_NODE_TYPES.TSTypeAssertion
+  ) {
+    current = parent;
+    parent = parent.parent;
+  }
+
+  if (
+    parent.type === AST_NODE_TYPES.ExpressionStatement &&
+    parent.expression === current
+  ) {
+    return parent;
+  }
+
+  return undefined;
+}
 
 export default createRule<[], MessageIds>({
   name: "missing-throw",
@@ -41,6 +88,8 @@ export default createRule<[], MessageIds>({
   },
   defaultOptions: [],
   create(context) {
+    const sourceCode = context.sourceCode;
+
     return {
       NewExpression(node: TSESTree.NewExpression) {
         if (
@@ -50,7 +99,11 @@ export default createRule<[], MessageIds>({
           return;
         }
 
-        if (node.parent.type !== AST_NODE_TYPES.ExpressionStatement) {
+        if (!isGlobalBuiltinConstructor(sourceCode, node.callee)) {
+          return;
+        }
+
+        if (!getExpressionStatement(node)) {
           return;
         }
 

@@ -26,6 +26,10 @@ function parse(value) {
     new TypeError("Expected string");
   }
 }
+
+function collectErrors(errors) {
+  new AggregateError(errors, "Multiple failures");
+}
 ```
 
 Correct patterns:
@@ -49,6 +53,7 @@ const error = new Error("User is required");
 This rule uses AST-only analysis. It flags standalone construction of built-in Error constructors:
 
 - `Error`
+- `AggregateError`
 - `EvalError`
 - `RangeError`
 - `ReferenceError`

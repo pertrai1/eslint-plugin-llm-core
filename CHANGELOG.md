@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.19.0
+
+### Minor Changes
+
+- [#166](https://github.com/pertrai1/eslint-plugin-llm-core/pull/166) [`abb9372`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/abb93728061f73858c74ce2e1635789ee68f1e6e) Thanks [@pertrai1-bot](https://github.com/pertrai1-bot)! - Add `prefer-nullish-coalescing` rule to prefer `??` over `||` for default values.
+
 ## 0.18.1
 
 ### Patch Changes

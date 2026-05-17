@@ -82,7 +82,7 @@
     "@anthropic-ai/sdk": "^0.96.0",
     "@changesets/changelog-github": "^0.7.0",
     "@changesets/cli": "^2.27.0",
-    "@commitlint/cli": "^20.5.0",
+    "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",
     "@types/node": "^25.5.0",
     "@typescript-eslint/parser": "^8.0.0",

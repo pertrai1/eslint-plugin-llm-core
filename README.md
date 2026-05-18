@@ -159,6 +159,7 @@ export default [
 | [prefer-unknown-in-catch](docs/rules/prefer-unknown-in-catch.md)                   | Disallow `any` type annotation on catch clause parameters; prefer `unknown`                                                     | 🌐 ✅ ⌨️ |     |     |
 | [structured-logging](docs/rules/structured-logging.md)                             | Enforce structured logging with static messages and dynamic values as separate metadata                                         | 🌐 🏆 ✅ |     |     |
 | [throw-error-objects](docs/rules/throw-error-objects.md)                           | Disallow throwing non-Error values such as strings, template literals, plain objects, or arrays                                 | 🌐 🏆 ✅ |     |     |
+| [uninvoked-array-callback](docs/rules/uninvoked-array-callback.md)                 | Disallow callbacks on sparse arrays created with Array(length) because holes skip callback invocation                           | 🌐 🏆 ✅ |     |     |
 
 <!-- end auto-generated rules list -->
 

@@ -26,3 +26,4 @@ export { default as "prefer-nullish-coalescing" } from "./prefer-nullish-coalesc
 export { default as "prefer-unknown-in-catch" } from "./prefer-unknown-in-catch";
 export { default as "structured-logging" } from "./structured-logging";
 export { default as "throw-error-objects" } from "./throw-error-objects";
+export { default as "uninvoked-array-callback" } from "./uninvoked-array-callback";

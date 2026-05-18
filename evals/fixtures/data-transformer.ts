@@ -106,6 +106,16 @@ export function persistBatch(records: NormalizedRecord[]) {
   }, {});
 }
 
+export function createTransformSlots(count: number): NormalizedRecord[] {
+  return new Array(count).map((_, index) => ({
+    id: `slot-${index}`,
+    value: 0,
+    status: "pending",
+    source: "generated",
+    tags: [],
+  }));
+}
+
 export async function loadTransforms(source: string) {
   const response = await fetch(`/transforms/${source}`);
   return response.json();

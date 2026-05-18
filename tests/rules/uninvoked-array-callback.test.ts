@@ -27,6 +27,15 @@ ruleTester.run("uninvoked-array-callback", rule, {
 
     // Non-array methods with the same name are outside this rule's narrow scope.
     `collection.map((item) => item.value);`,
+
+    // Single non-length arguments create single-element arrays, not sparse arrays.
+    `Array("x").map((value) => value.toUpperCase());`,
+    `Array(true).map((value) => value);`,
+    `Array(null).map((value) => value);`,
+    `Array(1n).map((value) => value);`,
+    `Array({ id: "row" }).map((value) => value.id);`,
+    `Array(() => createRow()).map((factory) => factory());`,
+    `Array(3.14).map((value) => value);`,
   ],
 
   invalid: [
@@ -48,9 +57,9 @@ ruleTester.run("uninvoked-array-callback", rule, {
       errors: [{ messageId: "uninvokedArrayCallback" as const }],
     },
 
-    // Chaining through another skipped callback remains sparse and still wrong.
+    // Partial fills leave holes outside the filled range.
     {
-      code: `new Array(3).map((_, index) => index).filter((index) => index > 0);`,
+      code: `new Array(5).fill(null, 1, 3).map((_, index) => createRow(index));`,
       errors: [{ messageId: "uninvokedArrayCallback" as const }],
     },
   ],

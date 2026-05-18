@@ -45,9 +45,11 @@ const ids = [...new Array(3)]
 | `new Array(5).map(callback)`            | Yes       | Length-only arrays contain holes, so callbacks are skipped. |
 | `Array(count).forEach(callback)`        | Yes       | `Array(length)` has the same sparse-array behavior.         |
 | `new Array(5).fill(null).map(callback)` | No        | `.fill(...)` materializes present elements first.           |
+| `new Array(5).fill(null, 1).map(cb)`    | Yes       | Partial fills leave holes outside the filled range.         |
 | `[...new Array(5)].map(callback)`       | No        | Spreading materializes present `undefined` elements.        |
 | `Array.from({ length: 5 }, callback)`   | No        | `Array.from` invokes the mapping callback for each index.   |
 | `new Array("a", "b").map(callback)`     | No        | Multiple arguments create present elements.                 |
+| `Array(true).map(callback)`             | No        | Non-number single arguments create one present element.     |
 | `collection.map(callback)`              | No        | The rule stays narrow and only targets Array constructors.  |
 
 ## Error messages

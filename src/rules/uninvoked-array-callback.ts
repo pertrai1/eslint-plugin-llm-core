@@ -44,10 +44,22 @@ function isSingleLengthArrayArgument(
     return false;
   }
 
-  return !(
-    argument.type === AST_NODE_TYPES.Literal &&
-    typeof argument.value === "string"
-  );
+  if (argument.type === AST_NODE_TYPES.Literal) {
+    return (
+      typeof argument.value === "number" &&
+      Number.isInteger(argument.value) &&
+      argument.value >= 0
+    );
+  }
+
+  return ![
+    AST_NODE_TYPES.ArrayExpression,
+    AST_NODE_TYPES.ArrowFunctionExpression,
+    AST_NODE_TYPES.ClassExpression,
+    AST_NODE_TYPES.FunctionExpression,
+    AST_NODE_TYPES.ObjectExpression,
+    AST_NODE_TYPES.TemplateLiteral,
+  ].includes(argument.type);
 }
 
 function isSparseArrayConstructorCall(node: TSESTree.Node): boolean {
@@ -83,7 +95,24 @@ function isFilledArrayCall(node: TSESTree.Node): boolean {
 
   return (
     getStaticPropertyName(node.callee) === "fill" &&
-    isSparseArrayConstructorCall(node.callee.object)
+    isSparseArrayConstructorCall(node.callee.object) &&
+    node.arguments.length <= 1
+  );
+}
+
+function isPartiallyFilledArrayCall(node: TSESTree.Node): boolean {
+  if (node.type !== AST_NODE_TYPES.CallExpression) {
+    return false;
+  }
+
+  if (node.callee.type !== AST_NODE_TYPES.MemberExpression) {
+    return false;
+  }
+
+  return (
+    getStaticPropertyName(node.callee) === "fill" &&
+    isSparseArrayConstructorCall(node.callee.object) &&
+    node.arguments.length > 1
   );
 }
 
@@ -103,7 +132,9 @@ function isSparseArrayCallbackCall(node: TSESTree.CallExpression): boolean {
     return false;
   }
 
-  return isSparseArrayConstructorCall(object);
+  return (
+    isSparseArrayConstructorCall(object) || isPartiallyFilledArrayCall(object)
+  );
 }
 
 export default createRule<[], MessageIds>({

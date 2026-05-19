@@ -39,6 +39,7 @@ const bestPracticesRules: TSESLint.FlatConfig.Rules = {
   "llm-core/no-swallowed-errors": "error",
   "llm-core/structured-logging": "error",
   "llm-core/throw-error-objects": "error",
+  "llm-core/uninvoked-array-callback": "error",
 };
 
 const styleRules: TSESLint.FlatConfig.Rules = {

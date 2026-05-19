@@ -31,6 +31,7 @@ const typescriptRules: TSESLint.FlatConfig.Rules = {
 };
 
 const bestPracticesRules: TSESLint.FlatConfig.Rules = {
+  "llm-core/bad-comparison-sequence": "error",
   "llm-core/missing-throw": "error",
   "llm-core/no-async-array-callbacks": "error",
   "llm-core/no-empty-catch": "error",

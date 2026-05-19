@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.21.0
+
+### Minor Changes
+
+- [#171](https://github.com/pertrai1/eslint-plugin-llm-core/pull/171) [`a95f2e4`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/a95f2e483532a8015ff7539f1f4801deaeb2a9a7) Thanks [@pertrai1-bot](https://github.com/pertrai1-bot)! - Add the `uninvoked-array-callback` rule for sparse `Array(length)` callback bugs.
+
 ## 0.20.0
 
 ### Minor Changes

@@ -91,7 +91,7 @@ function shouldFlush(records: NormalizedRecord[]): boolean {
 }
 
 function hasValidConfidence(confidence: number): boolean {
-  return 0 <= confidence <= 1;
+  return 0 <= confidence && confidence <= 1;
 }
 
 export function persistBatch(records: NormalizedRecord[]) {

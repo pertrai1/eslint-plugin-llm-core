@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.22.0
+
+### Minor Changes
+
+- [#173](https://github.com/pertrai1/eslint-plugin-llm-core/pull/173) [`eb70fb7`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/eb70fb76cba6644389a5a2cc9e735c83f7d9d4e5) Thanks [@pertrai1-bot](https://github.com/pertrai1-bot)! - Add bad-comparison-sequence rule to catch chained JavaScript/TypeScript comparisons like `0 <= value <= 1`.
+
 ## 0.21.0
 
 ### Minor Changes

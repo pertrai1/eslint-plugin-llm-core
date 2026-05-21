@@ -90,12 +90,17 @@ function shouldFlush(records: NormalizedRecord[]): boolean {
   }
 }
 
+function hasValidConfidence(confidence: number): boolean {
+  return 0 <= confidence && confidence <= 1;
+}
+
 export function persistBatch(records: NormalizedRecord[]) {
   const lookup = buildLookup(records);
 
   if (
     shouldFlush(records) &&
-    hasActiveTransforms(records as unknown as RawTransformRecord[])
+    hasActiveTransforms(records as unknown as RawTransformRecord[]) &&
+    hasValidConfidence(records.length / 100)
   ) {
     logger.info(`Persisting ${records.length} normalized records`);
   }

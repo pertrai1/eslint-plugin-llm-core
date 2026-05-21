@@ -32,4 +32,18 @@ describe("plugin configs", () => {
     expect(bestPracticesConfig.rules?.["llm-core/missing-throw"]).toBe("error");
     expect(recommendedConfig.rules?.["llm-core/missing-throw"]).toBe("error");
   });
+
+  it("registers bad-comparison-sequence in rule exports and best-practices configs", () => {
+    expect(plugin.rules["bad-comparison-sequence"]).toBeDefined();
+
+    const bestPracticesConfig = plugin.configs["best-practices"][0];
+    const recommendedConfig = plugin.configs.recommended[0];
+
+    expect(
+      bestPracticesConfig.rules?.["llm-core/bad-comparison-sequence"],
+    ).toBe("error");
+    expect(recommendedConfig.rules?.["llm-core/bad-comparison-sequence"]).toBe(
+      "error",
+    );
+  });
 });

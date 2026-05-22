@@ -21,6 +21,12 @@ ruleTester.run("bad-min-max-func", rule, {
     `const clamped = Math.min(Math.max(value, lower), upper);`,
     `const clamped = Math.min(Math.max(value, getLower()), 100);`,
 
+    // Multi-argument Math.min/Math.max calls do not necessarily collapse to a constant.
+    `const clamped = Math.min(Math.max(value, 100), 0, other);`,
+    `const clamped = Math.max(Math.min(value, 0), 100, other);`,
+    `const clamped = Math.min(Math.max(value, 100, other), 0);`,
+    `const clamped = Math.max(Math.min(value, 0, other), 100);`,
+
     // Non-Math helper functions may implement different semantics.
     `const clamped = min(max(100, value), 0);`,
   ],

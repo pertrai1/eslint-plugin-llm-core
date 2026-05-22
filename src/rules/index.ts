@@ -1,4 +1,5 @@
 export { default as "bad-comparison-sequence" } from "./bad-comparison-sequence";
+export { default as "bad-min-max-func" } from "./bad-min-max-func";
 export { default as "consistent-catch-param-name" } from "./consistent-catch-param-name";
 export { default as "explicit-export-types" } from "./explicit-export-types";
 export { default as "filename-match-export" } from "./filename-match-export";

@@ -46,4 +46,18 @@ describe("plugin configs", () => {
       "error",
     );
   });
+
+  it("registers bad-min-max-func in rule exports and best-practices configs", () => {
+    expect(plugin.rules["bad-min-max-func"]).toBeDefined();
+
+    const bestPracticesConfig = plugin.configs["best-practices"][0];
+    const recommendedConfig = plugin.configs.recommended[0];
+
+    expect(bestPracticesConfig.rules?.["llm-core/bad-min-max-func"]).toBe(
+      "error",
+    );
+    expect(recommendedConfig.rules?.["llm-core/bad-min-max-func"]).toBe(
+      "error",
+    );
+  });
 });

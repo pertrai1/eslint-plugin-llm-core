@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import badMinMaxFunc from "../../src/rules/bad-min-max-func";
 import explicitExportTypes from "../../src/rules/explicit-export-types";
 import maxComplexity from "../../src/rules/max-complexity";
 import maxFileLength from "../../src/rules/max-file-length";
@@ -72,6 +73,8 @@ describe("rule message guidance", () => {
   });
 
   it("uses a concrete rewrite template for repair-oriented rules", () => {
+    const badMinMaxFuncMessage =
+      badMinMaxFunc.meta.messages?.badMinMaxFunc ?? "";
     const noAsyncArrayCallback =
       noAsyncArrayCallbacks.meta.messages?.noAsyncArrayCallback ?? "";
     const noAsyncMapCallback =
@@ -83,6 +86,13 @@ describe("rule message guidance", () => {
       maxComplexity.meta.messages?.maxComplexity ?? "";
     const maxFunctionLengthMessage =
       maxFunctionLength.meta.messages?.maxFunctionLength ?? "";
+
+    expectSingleWhyLine(badMinMaxFuncMessage);
+    expectTemplateShape(badMinMaxFuncMessage);
+    expect(badMinMaxFuncMessage).toContain(
+      "Why: The inner clamp forces values past the outer bound, so the outer call chooses a bound instead of preserving the input range.",
+    );
+    expect(badMinMaxFuncMessage).not.toContain("The result is always 0.");
 
     expectSingleWhyLine(noAsyncArrayCallback);
     expectTemplateShape(noAsyncArrayCallback);

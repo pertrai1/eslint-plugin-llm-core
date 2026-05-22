@@ -47,6 +47,7 @@ describe("resolveActiveRules", () => {
   it("resolves active rules from JavaScript and TypeScript configs", async () => {
     mockVirtualFileConfigs({
       js: {
+        "llm-core/bad-min-max-func": "error",
         "llm-core/bad-comparison-sequence": "error",
         "llm-core/max-function-length": ["error", { max: 40 }],
         "llm-core/explicit-export-types": "off",
@@ -66,6 +67,12 @@ describe("resolveActiveRules", () => {
           name: "bad-comparison-sequence",
           instruction:
             "Do not write chained comparisons like 0 <= value <= 1; split range checks with &&",
+          scope: "all",
+        },
+        {
+          name: "bad-min-max-func",
+          instruction:
+            "When clamping with Math.min/Math.max, keep the lower bound in Math.max and the upper bound in Math.min",
           scope: "all",
         },
         {

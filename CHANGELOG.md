@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.23.0
+
+### Minor Changes
+
+- [#183](https://github.com/pertrai1/eslint-plugin-llm-core/pull/183) [`5f130bf`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/5f130bf998a0c30cdedbac1d700753d0b7c4c87c) Thanks [@pertrai1-bot](https://github.com/pertrai1-bot)! - Add `bad-min-max-func` to catch inverted `Math.min`/`Math.max` clamp expressions that always return a constant bound.
+
 ## 0.22.0
 
 ### Minor Changes

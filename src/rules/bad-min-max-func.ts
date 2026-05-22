@@ -100,8 +100,16 @@ function isImpossibleClamp(node: TSESTree.CallExpression): boolean {
     return false;
   }
 
+  if (node.arguments.length !== 2) {
+    return false;
+  }
+
   const innerCall = getSingleNestedMathCall(node.arguments);
   if (!innerCall) {
+    return false;
+  }
+
+  if (innerCall.arguments.length !== 2) {
     return false;
   }
 
@@ -139,7 +147,7 @@ export default createRule<[], MessageIds>({
       badMinMaxFunc: [
         "This nested Math.min/Math.max clamp has inverted numeric bounds, so it always returns a constant.",
         "",
-        "Why: `Math.min(Math.max(value, 100), 0)` first raises the value to at least 100, then caps it at 0. The result is always 0. LLMs often generate this when they swap clamp lower and upper bounds.",
+        "Why: The inner clamp forces values past the outer bound, so the outer call chooses a bound instead of preserving the input range. LLMs often generate this when they swap clamp lower and upper bounds.",
         "",
         "How to fix:",
         "  Put the lower bound in Math.max and the upper bound in Math.min.",

@@ -2,6 +2,9 @@ import type { RuleInstruction } from "./types";
 import badComparisonSequenceRule, {
   instruction as badComparisonSequence,
 } from "../rules/bad-comparison-sequence";
+import badMinMaxFuncRule, {
+  instruction as badMinMaxFunc,
+} from "../rules/bad-min-max-func";
 import consistentCatchParamNameRule, {
   instruction as consistentCatchParamName,
 } from "../rules/consistent-catch-param-name";
@@ -101,6 +104,7 @@ function getDefaultOptions(
 
 export const ruleInstructions: Record<string, RuleInstruction> = {
   "bad-comparison-sequence": badComparisonSequence,
+  "bad-min-max-func": badMinMaxFunc,
   "consistent-catch-param-name": consistentCatchParamName,
   "explicit-export-types": explicitExportTypes,
   "filename-match-export": filenameMatchExport,
@@ -131,6 +135,7 @@ export const ruleInstructions: Record<string, RuleInstruction> = {
 
 export const ruleDefaultOptions: Record<string, Record<string, unknown>> = {
   "bad-comparison-sequence": getDefaultOptions(badComparisonSequenceRule),
+  "bad-min-max-func": getDefaultOptions(badMinMaxFuncRule),
   "consistent-catch-param-name": getDefaultOptions(
     consistentCatchParamNameRule,
   ),

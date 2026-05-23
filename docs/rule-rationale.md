@@ -22,7 +22,9 @@ New rule proposals should answer these questions before implementation:
 ```md
 ### `llm-core/rule-name`
 
-**Category:** correctness | safety | maintainability | hygiene | style | TypeScript | complexity
+**Category:** best-practices | complexity | hygiene | style | typescript
+Optional descriptive tags: reliability | readability | observability | async correctness | safety | maintainability | correctness
+Use **Category** for the plugin config group. If helpful, include one or more descriptive tags to match the terminology used in the rule inventory below.
 
 **Why this belongs in llm-core:**
 Explain the LLM/agent-specific failure mode.

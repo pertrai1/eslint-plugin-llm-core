@@ -45,6 +45,8 @@ How to fix:
 
 This structure gives LLMs everything they need in one pass — the violation, the reasoning, and a concrete transformation. In practice, this reduces the back-and-forth iterations needed to resolve violations compared to standard ESLint messages.
 
+For the per-rule decision record explaining why each rule belongs in this plugin, see [Rule Rationale](docs/rule-rationale.md).
+
 ### Strict Mode by Default
 
 Both the `recommended` and `all` configs set every rule to `error`, not `warn`. Warnings are easy to ignore — for both humans and LLMs. Errors force the issue to be resolved before the code is accepted. Combined with the `no-inline-disable` rule (which prevents `// eslint-disable` escape hatches), this creates a feedback loop where the LLM **must** fix violations rather than suppress them.

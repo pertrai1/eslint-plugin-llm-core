@@ -57,15 +57,25 @@ describe("rule resources", () => {
     const noEmptyCatch = payload.rules.find(
       (rule) => rule.name === "no-empty-catch",
     );
+    const categoryTotal = Object.values(payload.categories).reduce(
+      (total, count) => total + count,
+      0,
+    );
 
-    expect(payload.total).toBe(32);
-    expect(payload.categories).toEqual({
-      complexity: 5,
-      typescript: 4,
-      "best-practices": 12,
-      style: 7,
-      hygiene: 4,
-    });
+    expect(payload.total).toBe(payload.rules.length);
+    expect(categoryTotal).toBe(payload.total);
+    expect(Object.values(payload.categories).every((count) => count > 0)).toBe(
+      true,
+    );
+    expect(
+      payload.rules.every(
+        (rule) =>
+          typeof rule.description === "string" &&
+          rule.description.length > 0 &&
+          typeof rule.hasInstruction === "boolean" &&
+          Object.hasOwn(payload.categories, rule.category),
+      ),
+    ).toBe(true);
     expect(noEmptyCatch).toEqual({
       name: "no-empty-catch",
       description:

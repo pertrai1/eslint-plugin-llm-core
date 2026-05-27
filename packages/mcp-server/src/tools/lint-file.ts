@@ -49,8 +49,12 @@ const NO_CONFIG_MESSAGE = [
 ].join("\n");
 
 function isNoConfigError(error: unknown): boolean {
+  const maybeEslintError = error as { messageTemplate?: unknown };
+
   return (
-    error instanceof Error && /could not find config file/i.test(error.message)
+    error instanceof Error &&
+    (maybeEslintError.messageTemplate === "config-file-missing" ||
+      /could not find config file/i.test(error.message))
   );
 }
 

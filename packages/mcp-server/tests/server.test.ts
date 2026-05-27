@@ -2,6 +2,11 @@ import { describe, it, expect, afterEach } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import { isDirectRun } from "../src/server.js";
 import { makeTestServer } from "./helpers/make-test-server.js";
 
 /**
@@ -75,5 +80,28 @@ describe("MCP server scaffold", () => {
         (template) => template.uriTemplate === "llm-core://rules/{ruleName}",
       ),
     ).toBe(true);
+  });
+});
+
+describe("server entrypoint detection", () => {
+  it("treats bin symlinks to the server file as direct execution", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "llmcore-mcp-bin-"));
+
+    try {
+      const realServer = path.join(dir, "server.js");
+      const binLink = path.join(dir, "llm-core-mcp");
+      await writeFile(realServer, "#!/usr/bin/env node\n");
+      await symlink(realServer, binLink);
+
+      expect(isDirectRun(binLink, pathToFileURL(realServer).href)).toBe(true);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("does not start the server when imported by another module", () => {
+    expect(
+      isDirectRun("/tmp/importer.js", pathToFileURL("/tmp/server.js").href),
+    ).toBe(false);
   });
 });

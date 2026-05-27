@@ -11,6 +11,27 @@ import plugin from "eslint-plugin-llm-core";
 
 const LLM_CORE_PREFIX = "llm-core/";
 
+const NO_CONFIG_MESSAGE = [
+  "No ESLint configuration was discovered for this path.",
+  "",
+  "lint_file lints using your project's own ESLint config; in v1 it does not",
+  "fall back to a built-in config. To use it, install and configure",
+  "eslint-plugin-llm-core in your project:",
+  "",
+  "  npm install --save-dev eslint eslint-plugin-llm-core",
+  "",
+  "Then add it to your flat config (eslint.config.js), for example:",
+  "",
+  '  import llmCore from "eslint-plugin-llm-core";',
+  "  export default [...llmCore.configs.recommended];",
+].join("\n");
+
+function isNoConfigError(error: unknown): boolean {
+  return (
+    error instanceof Error && /could not find config file/i.test(error.message)
+  );
+}
+
 interface RuleModuleWithDefaults {
   defaultOptions?: readonly unknown[];
 }
@@ -170,7 +191,19 @@ export function registerLintFile(
       const absoluteTarget = path.resolve(projectRoot, targetPath);
 
       const eslint = await createFlatESLint(projectRoot);
-      const results = await eslint.lintFiles([absoluteTarget]);
+
+      let results: FlatLintResult[];
+      try {
+        results = await eslint.lintFiles([absoluteTarget]);
+      } catch (error) {
+        if (isNoConfigError(error)) {
+          return {
+            content: [{ type: "text" as const, text: NO_CONFIG_MESSAGE }],
+          };
+        }
+        throw error;
+      }
+
       const violations = await toViolations(results, eslint);
 
       return {

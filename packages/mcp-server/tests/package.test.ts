@@ -31,6 +31,22 @@ describe("MCP package metadata", () => {
     expect(pkg.files).toContain("dist");
   });
 
+  it("declares repository metadata for npm provenance validation", async () => {
+    const pkg = JSON.parse(await readFile(PACKAGE_JSON, "utf8")) as {
+      repository?: {
+        type?: string;
+        url?: string;
+        directory?: string;
+      };
+    };
+
+    expect(pkg.repository).toEqual({
+      type: "git",
+      url: "https://github.com/pertrai1/eslint-plugin-llm-core",
+      directory: "packages/mcp-server",
+    });
+  });
+
   it("ships package-level setup documentation", async () => {
     await expect(access(README, constants.R_OK)).resolves.toBeUndefined();
 

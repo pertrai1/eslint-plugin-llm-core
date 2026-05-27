@@ -4,8 +4,20 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 // ESM importing the CJS plugin's ./instructions subpath via interop.
 import { getRuleInstruction } from "eslint-plugin-llm-core/instructions";
+// Default export = the plugin object; plugin.rules[name].defaultOptions is the
+// public source of a rule's defaults, merged in so option-template placeholders
+// resolve even when a project enables a rule without explicit options.
+import plugin from "eslint-plugin-llm-core";
 
 const LLM_CORE_PREFIX = "llm-core/";
+
+interface RuleModuleWithDefaults {
+  defaultOptions?: readonly unknown[];
+}
+
+const coreRules = (
+  plugin as unknown as { rules: Record<string, RuleModuleWithDefaults> }
+).rules;
 
 /**
  * Options that configure the lint_file tool at registration time. Kept separate
@@ -39,8 +51,13 @@ interface FlatLintResult {
   messages: FlatLintMessage[];
 }
 
+interface ResolvedFileConfig {
+  rules?: Record<string, unknown>;
+}
+
 interface FlatESLintInstance {
   lintFiles(patterns: string[]): Promise<FlatLintResult[]>;
+  calculateConfigForFile(filePath: string): Promise<ResolvedFileConfig>;
 }
 
 type FlatESLintConstructor = new (options?: {
@@ -63,15 +80,61 @@ async function createFlatESLint(cwd: string): Promise<FlatESLintInstance> {
   return new ESLint({ cwd });
 }
 
-function toViolations(results: FlatLintResult[]): LintViolation[] {
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** A rule's default options object from the public plugin export. */
+function getRuleDefaultOptions(bareName: string): Record<string, unknown> {
+  const first = coreRules[bareName]?.defaultOptions?.[0];
+  return isPlainObject(first) ? { ...first } : {};
+}
+
+/**
+ * Resolves the options a rule effectively fired with: the rule's defaults
+ * merged with whatever the project's config configured. Mirrors the core
+ * plugin's own option resolution so instructions interpolate identically.
+ */
+function resolveRuleOptions(
+  ruleId: string,
+  configEntry: unknown,
+): Record<string, unknown> {
+  const bareName = ruleId.slice(LLM_CORE_PREFIX.length);
+  const defaults = getRuleDefaultOptions(bareName);
+
+  if (Array.isArray(configEntry)) {
+    const configured = configEntry[1];
+    return isPlainObject(configured)
+      ? { ...defaults, ...configured }
+      : { ...defaults };
+  }
+
+  return { ...defaults };
+}
+
+async function toViolations(
+  results: FlatLintResult[],
+  eslint: FlatESLintInstance,
+): Promise<LintViolation[]> {
   const violations: LintViolation[] = [];
 
   for (const result of results) {
+    const hasLlmCore = result.messages.some((m) =>
+      m.ruleId?.startsWith(LLM_CORE_PREFIX),
+    );
+    // Resolve the file's config once (only when it has llm-core diagnostics) so
+    // option-template placeholders interpolate against the configured options.
+    const fileRules = hasLlmCore
+      ? ((await eslint.calculateConfigForFile(result.filePath)).rules ?? {})
+      : {};
+
     for (const message of result.messages) {
       const ruleId = message.ruleId;
       if (!ruleId || !ruleId.startsWith(LLM_CORE_PREFIX)) {
         continue;
       }
+
+      const options = resolveRuleOptions(ruleId, fileRules[ruleId]);
 
       violations.push({
         ruleId,
@@ -79,7 +142,7 @@ function toViolations(results: FlatLintResult[]): LintViolation[] {
         column: message.column,
         severity: message.severity,
         message: message.message,
-        instruction: getRuleInstruction(ruleId),
+        instruction: getRuleInstruction(ruleId, options),
       });
     }
   }
@@ -108,7 +171,7 @@ export function registerLintFile(
 
       const eslint = await createFlatESLint(projectRoot);
       const results = await eslint.lintFiles([absoluteTarget]);
-      const violations = toViolations(results);
+      const violations = await toViolations(results, eslint);
 
       return {
         content: [

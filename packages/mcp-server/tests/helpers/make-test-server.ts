@@ -4,6 +4,7 @@ import {
   registerLintFile,
   type LintFileOptions,
 } from "../../src/tools/lint-file.js";
+import { registerRuleResources } from "../../src/resources/index.js";
 
 /**
  * Options forwarded to the lint_file tool registration so integration tests can
@@ -22,5 +23,6 @@ export async function makeTestServer(
   const server = new McpServer({ name: "test-server", version: "0.0.0" });
   registerGetActiveInstructions(server);
   registerLintFile(server, lintFileOptions);
+  registerRuleResources(server);
   return server;
 }

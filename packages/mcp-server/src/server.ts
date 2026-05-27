@@ -2,6 +2,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createRequire } from "node:module";
+import { registerRuleResources } from "./resources/index.js";
 import { registerGetActiveInstructions } from "./tools/get-active-instructions.js";
 import { registerLintFile } from "./tools/lint-file.js";
 
@@ -18,7 +19,8 @@ export const server = new McpServer({
 registerGetActiveInstructions(server);
 registerLintFile(server);
 
-// Resources — filled in Task 5.
+// Resources
+registerRuleResources(server);
 
 export async function startServer(): Promise<void> {
   const transport = new StdioServerTransport();

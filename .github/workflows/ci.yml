@@ -25,7 +25,7 @@ jobs:
       - run: npm run test:coverage
       - name: Verify MCP stdio server starts
         run: |
-          node -e "const { spawn } = require('node:child_process'); const child = spawn('./node_modules/.bin/llm-core-mcp', [], { stdio: ['pipe', 'pipe', 'pipe'] }); let stderr = ''; child.stderr.on('data', (chunk) => { stderr += chunk; }); child.on('exit', (code, signal) => { if (code !== null && code !== 0) { console.error(stderr); process.exit(code); } }); setTimeout(() => { if (child.exitCode !== null) { console.error(stderr); process.exit(child.exitCode ?? 1); } child.kill(); }, 300);"
+          node -e "const { spawn } = require('node:child_process'); const child = spawn('node', ['packages/mcp-server/dist/server.js'], { stdio: ['pipe', 'pipe', 'pipe'] }); let stderr = ''; child.stderr.on('data', (chunk) => { stderr += chunk; }); child.on('error', (error) => { console.error(error); process.exit(1); }); child.on('exit', (code) => { if (code !== null && code !== 0) { console.error(stderr); process.exit(code); } }); setTimeout(() => { if (child.exitCode !== null) { console.error(stderr); process.exit(child.exitCode ?? 1); } child.kill(); }, 300);"
       - name: Verify docs are up to date
         run: |
           npm run update:eslint-docs

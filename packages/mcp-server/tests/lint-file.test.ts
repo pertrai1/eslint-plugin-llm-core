@@ -31,6 +31,18 @@ const PROJECT_WITH_CONFIG = fileURLToPath(
 const BAD_FILE = fileURLToPath(
   new URL("./fixtures/project-with-config/src/bad.ts", import.meta.url),
 );
+const CONFIGURABLE_DEFAULT_FILE = fileURLToPath(
+  new URL(
+    "./fixtures/project-with-config/configurable/default/fn.ts",
+    import.meta.url,
+  ),
+);
+const CONFIGURABLE_EXPLICIT_FILE = fileURLToPath(
+  new URL(
+    "./fixtures/project-with-config/configurable/explicit/fn.ts",
+    import.meta.url,
+  ),
+);
 
 const clients: Client[] = [];
 
@@ -107,5 +119,56 @@ describe("lint_file tool", () => {
     for (const v of violations) {
       expect(v.ruleId.startsWith("llm-core/")).toBe(true);
     }
+  });
+});
+
+describe("lint_file option-template interpolation", () => {
+  function findInstruction(
+    violations: LintViolation[],
+    ruleId: string,
+  ): string | undefined {
+    return violations.find((v) => v.ruleId === ruleId)?.instruction;
+  }
+
+  it("interpolates explicit option values into the optionTemplate", async () => {
+    const client = await connectClient({ projectRoot: PROJECT_WITH_CONFIG });
+
+    const result = await client.callTool({
+      name: "lint_file",
+      arguments: { path: CONFIGURABLE_EXPLICIT_FILE },
+    });
+
+    const violations = readViolations(
+      result as { content: Array<{ type: string; text: string }> },
+    );
+    const instruction = findInstruction(violations, "llm-core/max-params");
+
+    // max-params optionTemplate interpolated with the configured { max: 1,
+    // maxConstructor: 1 }; no literal {placeholder} tokens may remain.
+    expect(instruction).toBe(
+      "Limit function parameters to 1 (constructors: 1) — use object parameter patterns",
+    );
+    expect(instruction).not.toMatch(/\{[a-zA-Z]+\}/);
+  });
+
+  it("interpolates the rule's default options when none are configured", async () => {
+    const client = await connectClient({ projectRoot: PROJECT_WITH_CONFIG });
+
+    const result = await client.callTool({
+      name: "lint_file",
+      arguments: { path: CONFIGURABLE_DEFAULT_FILE },
+    });
+
+    const violations = readViolations(
+      result as { content: Array<{ type: string; text: string }> },
+    );
+    const instruction = findInstruction(violations, "llm-core/max-params");
+
+    // No options configured: defaults { max: 2, maxConstructor: 5 } must be
+    // merged in and interpolated, with no {placeholder} leaks.
+    expect(instruction).toBe(
+      "Limit function parameters to 2 (constructors: 5) — use object parameter patterns",
+    );
+    expect(instruction).not.toMatch(/\{[a-zA-Z]+\}/);
   });
 });

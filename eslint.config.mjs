@@ -4,7 +4,17 @@ import eslintConfigPrettier from "eslint-config-prettier";
 
 export default [
   {
-    ignores: ["dist/", "coverage/", "node_modules/", "evals/"],
+    ignores: [
+      "dist/",
+      "coverage/",
+      "node_modules/",
+      "evals/",
+      // Fixtures contain deliberate rule violations for the MCP lint_file
+      // integration tests; the repo linter must not flag them.
+      "packages/mcp-server/tests/fixtures/",
+      // Transient benchmark projects (also gitignored).
+      "packages/mcp-server/benchmarks/tmp-*/",
+    ],
   },
   ...tseslint.configs.recommended,
   eslintPlugin.configs.recommended,

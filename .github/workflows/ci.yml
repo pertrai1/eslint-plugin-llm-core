@@ -20,10 +20,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - run: npx tsc --noEmit
       - run: npm run lint
       - run: npm run format:check
-      - run: npm run test -- --coverage
+      - run: npm run test:coverage
+      - name: Verify MCP stdio server starts
+        run: |
+          node -e "const { spawn } = require('node:child_process'); const child = spawn('./node_modules/.bin/llm-core-mcp', [], { stdio: ['pipe', 'pipe', 'pipe'] }); let stderr = ''; child.stderr.on('data', (chunk) => { stderr += chunk; }); child.on('exit', (code, signal) => { if (code !== null && code !== 0) { console.error(stderr); process.exit(code); } }); setTimeout(() => { if (child.exitCode !== null) { console.error(stderr); process.exit(child.exitCode ?? 1); } child.kill(); }, 300);"
       - name: Verify docs are up to date
         run: |
           npm run update:eslint-docs
@@ -33,4 +35,6 @@ jobs:
             exit 1
           fi
       - name: Verify package contents
-        run: npm pack --dry-run 2>&1
+        run: |
+          npm pack --dry-run 2>&1
+          npm --workspace eslint-plugin-llm-core-mcp pack --dry-run 2>&1

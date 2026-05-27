@@ -17,8 +17,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Skip TDD check when no src/ files changed (docs, workflows, configs)
-          SRC_CHANGED=$(git diff --name-only origin/main...HEAD -- src/ | wc -l | tr -d ' ')
+          # Skip TDD check when no source files changed (docs, workflows, configs)
+          SRC_CHANGED=$(git diff --name-only origin/main...HEAD -- src/ 'packages/*/src/' | wc -l | tr -d ' ')
           if [ "$SRC_CHANGED" -eq 0 ]; then
             echo "✓ No src/ changes — TDD commit check not required"
             exit 0
@@ -107,7 +107,7 @@ jobs:
           fetch-depth: 0
       - name: Check for changeset when src/ is modified
         run: |
-          SRC_CHANGED=$(git diff --name-only origin/main...HEAD -- src/ | wc -l | tr -d ' ')
+          SRC_CHANGED=$(git diff --name-only origin/main...HEAD -- src/ 'packages/*/src/' package.json 'packages/*/package.json' | wc -l | tr -d ' ')
           if [ "$SRC_CHANGED" -eq 0 ]; then
             echo "✓ No src/ changes — changeset not required"
             exit 0

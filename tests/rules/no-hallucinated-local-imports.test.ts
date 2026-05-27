@@ -48,6 +48,18 @@ ruleTester.run("no-hallucinated-local-imports", rule, {
       code: `export { createCache } from "./cache";`,
       filename: fixtureFilename,
     },
+    {
+      code: `export * from "./cache";`,
+      filename: fixtureFilename,
+    },
+    {
+      code: `export * as ns from "./cache";`,
+      filename: fixtureFilename,
+    },
+    {
+      code: `import x from "./alias-default";`,
+      filename: fixtureFilename,
+    },
   ],
   invalid: [
     {
@@ -69,6 +81,16 @@ ruleTester.run("no-hallucinated-local-imports", rule, {
       code: `import parseUser from "./parser";`,
       filename: fixtureFilename,
       errors: [{ messageId: "missingDefaultExport" as const }],
+    },
+    {
+      code: `export * from "./cache-utils";`,
+      filename: fixtureFilename,
+      errors: [{ messageId: "missingLocalModule" as const }],
+    },
+    {
+      code: `export * as ns from "./cache-utils";`,
+      filename: fixtureFilename,
+      errors: [{ messageId: "missingLocalModule" as const }],
     },
   ],
 });

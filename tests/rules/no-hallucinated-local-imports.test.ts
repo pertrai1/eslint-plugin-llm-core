@@ -29,6 +29,22 @@ ruleTester.run("no-hallucinated-local-imports", rule, {
       filename: fixtureFilename,
     },
     {
+      code: `import defaultVal from "./has-default";`,
+      filename: fixtureFilename,
+    },
+    {
+      code: `import { runHelper } from "./utils";`,
+      filename: fixtureFilename,
+    },
+    {
+      code: `import { publicSecret } from "./aliases";`,
+      filename: fixtureFilename,
+    },
+    {
+      code: `const localVal = 1; export { localVal };`,
+      filename: fixtureFilename,
+    },
+    {
       code: `export { createCache } from "./cache";`,
       filename: fixtureFilename,
     },

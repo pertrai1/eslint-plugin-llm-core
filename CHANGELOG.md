@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.24.0
+
+### Minor Changes
+
+- [#186](https://github.com/pertrai1/eslint-plugin-llm-core/pull/186) [`d6dbbc8`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/d6dbbc8fc8b18d43cddb9ab002d62c67bb9d8c89) Thanks [@pertrai1-bot](https://github.com/pertrai1-bot)! - feat: add `no-hallucinated-local-imports` ESLint rule to prevent LLM agents from importing non-existent local modules or exports
+
 ## 0.23.0
 
 ### Minor Changes

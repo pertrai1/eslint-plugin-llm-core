@@ -27,7 +27,7 @@ describe("MCP package metadata", () => {
       files?: string[];
     };
 
-    expect(pkg.bin?.["llm-core-mcp"]).toBe("./dist/server.js");
+    expect(pkg.bin?.["llm-core-mcp"]).toBe("dist/server.js");
     expect(pkg.files).toContain("dist");
   });
 

@@ -12,7 +12,7 @@
     }
   },
   "bin": {
-    "llm-core-mcp": "./dist/server.js"
+    "llm-core-mcp": "dist/server.js"
   },
   "files": [
     "dist"

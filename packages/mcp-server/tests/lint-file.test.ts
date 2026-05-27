@@ -46,6 +46,9 @@ const CONFIGURABLE_EXPLICIT_FILE = fileURLToPath(
     import.meta.url,
   ),
 );
+const SRC_DIR = fileURLToPath(
+  new URL("./fixtures/project-with-config/src", import.meta.url),
+);
 
 const clients: Client[] = [];
 
@@ -231,5 +234,46 @@ describe("lint_file path sandboxing", () => {
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text.toLowerCase()).toContain("project root");
+  });
+});
+
+describe("lint_file directory file-count guard", () => {
+  it("lints a directory that is within the file cap", async () => {
+    const client = await connectClient({ projectRoot: PROJECT_WITH_CONFIG });
+
+    const result = await client.callTool({
+      name: "lint_file",
+      arguments: { path: SRC_DIR },
+    });
+
+    const violations = readViolations(
+      result as { content: Array<{ type: string; text: string }> },
+    );
+    // src/ is well under the default cap, so it lints normally.
+    expect(violations.some((v) => v.ruleId === "llm-core/no-empty-catch")).toBe(
+      true,
+    );
+  });
+
+  it("warns instead of linting when a directory exceeds the configurable cap", async () => {
+    const client = await connectClient({
+      projectRoot: PROJECT_WITH_CONFIG,
+      maxFiles: 1,
+    });
+
+    const result = (await client.callTool({
+      name: "lint_file",
+      arguments: { path: PROJECT_WITH_CONFIG },
+    })) as {
+      isError?: boolean;
+      content: Array<{ type: string; text: string }>;
+    };
+
+    const text = result.content[0].text;
+    // A warning string, not a JSON violations array.
+    expect(() => JSON.parse(text)).toThrow();
+    expect(text.toLowerCase()).toContain("narrow");
+    expect(text).toContain("1");
+    expect(result.isError).toBeFalsy();
   });
 });

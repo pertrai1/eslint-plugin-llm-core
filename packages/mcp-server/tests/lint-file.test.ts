@@ -2,6 +2,9 @@ import { describe, it, expect, afterEach } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import {
   makeTestServer,
   type MakeTestServerOptions,
@@ -170,5 +173,36 @@ describe("lint_file option-template interpolation", () => {
       "Limit function parameters to 2 (constructors: 5) — use object parameter patterns",
     );
     expect(instruction).not.toMatch(/\{[a-zA-Z]+\}/);
+  });
+});
+
+describe("lint_file with no discoverable ESLint config", () => {
+  it("returns an actionable install/configure message, not an empty array", async () => {
+    // A temp dir outside the repo so ESLint's upward search finds no config.
+    const dir = await mkdtemp(path.join(tmpdir(), "llmcore-mcp-noconfig-"));
+    try {
+      const target = path.join(dir, "foo.ts");
+      await writeFile(target, "export const x = 1;\n");
+
+      const client = await connectClient({ projectRoot: dir });
+      const result = (await client.callTool({
+        name: "lint_file",
+        arguments: { path: target },
+      })) as {
+        isError?: boolean;
+        content: Array<{ type: string; text: string }>;
+      };
+
+      const text = result.content[0].text;
+      // Must be an actionable message, not a JSON violations array.
+      expect(() => JSON.parse(text)).toThrow();
+      expect(text).toContain("eslint-plugin-llm-core");
+      expect(text.toLowerCase()).toMatch(/install/);
+      expect(text.toLowerCase()).toMatch(/configure|config/);
+      // Informational guidance, not a thrown protocol error.
+      expect(result.isError).toBeFalsy();
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 });

@@ -3,6 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createRequire } from "node:module";
 import { registerGetActiveInstructions } from "./tools/get-active-instructions.js";
+import { registerLintFile } from "./tools/lint-file.js";
 
 const require = createRequire(import.meta.url);
 
@@ -15,6 +16,7 @@ export const server = new McpServer({
 
 // Tools
 registerGetActiveInstructions(server);
+registerLintFile(server);
 
 // Resources — filled in Task 5.
 

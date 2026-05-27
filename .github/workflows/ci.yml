@@ -20,10 +20,86 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - run: npx tsc --noEmit
       - run: npm run lint
       - run: npm run format:check
-      - run: npm run test -- --coverage
+      - run: npm run test:coverage
+      - name: Verify MCP stdio server starts
+        run: |
+          node <<'NODE'
+          const { spawn } = require("node:child_process");
+
+          const child = spawn("node", ["packages/mcp-server/dist/server.js"], {
+            stdio: ["pipe", "pipe", "pipe"],
+          });
+          const timeout = setTimeout(() => {
+            console.error("Timed out waiting for MCP initialize response");
+            child.kill();
+            process.exit(1);
+          }, 5000);
+          let stdout = "";
+          let stderr = "";
+          let completed = false;
+
+          function fail(message) {
+            if (completed) {
+              return;
+            }
+            completed = true;
+            clearTimeout(timeout);
+            child.kill();
+            console.error(message);
+            if (stderr) {
+              console.error(stderr);
+            }
+            process.exit(1);
+          }
+
+          function pass() {
+            completed = true;
+            clearTimeout(timeout);
+            child.kill();
+          }
+
+          child.stderr.on("data", (chunk) => {
+            stderr += chunk;
+          });
+          child.stdout.on("data", (chunk) => {
+            stdout += chunk;
+            const line = stdout.split("\n").find((candidate) => candidate.trim());
+            if (!line) {
+              return;
+            }
+
+            const message = JSON.parse(line);
+            if (
+              message.id === 1 &&
+              message.result?.serverInfo?.name === "eslint-plugin-llm-core-mcp"
+            ) {
+              pass();
+            } else {
+              fail(`Unexpected MCP response: ${line}`);
+            }
+          });
+          child.on("error", (error) => fail(error.message));
+          child.on("exit", (code) => {
+            if (!completed && code !== null) {
+              fail(`MCP server exited before initialize response with code ${code}`);
+            }
+          });
+
+          child.stdin.write(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method: "initialize",
+              params: {
+                protocolVersion: "2025-11-25",
+                capabilities: {},
+                clientInfo: { name: "ci-smoke", version: "0.0.0" },
+              },
+            }) + "\n",
+          );
+          NODE
       - name: Verify docs are up to date
         run: |
           npm run update:eslint-docs
@@ -33,4 +109,6 @@ jobs:
             exit 1
           fi
       - name: Verify package contents
-        run: npm pack --dry-run 2>&1
+        run: |
+          npm pack --dry-run 2>&1
+          npm --workspace eslint-plugin-llm-core-mcp pack --dry-run 2>&1

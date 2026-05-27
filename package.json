@@ -1,5 +1,9 @@
 {
   "name": "eslint-plugin-llm-core",
+  "workspaces": [
+    ".",
+    "packages/*"
+  ],
   "version": "0.24.0",
   "description": "ESLint rules that catch the patterns LLM agents get wrong — and teach them to self-correct",
   "license": "MIT",
@@ -58,16 +62,18 @@
     "url": "https://github.com/pertrai1/eslint-plugin-llm-core/issues"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "npm run build:core && npm --workspace eslint-plugin-llm-core-mcp run build",
+    "build:core": "tsc -p tsconfig.build.json",
     "eval": "tsx evals/src/run-eval.ts",
     "eval:treatment": "tsx evals/src/run-eval.ts --mode treatment",
     "eval:control": "tsx evals/src/run-eval.ts --mode control",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
+    "test": "npm run test:core && npm --workspace eslint-plugin-llm-core-mcp test",
+    "test:core": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage && npm --workspace eslint-plugin-llm-core-mcp test",
     "update:eslint-docs": "eslint-doc-generator && prettier --write README.md \"docs/rules/**/*.md\"",
     "prepare": "husky",
     "changeset": "changeset",

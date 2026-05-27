@@ -17,8 +17,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Skip TDD check when no src/ files changed (docs, workflows, configs)
-          SRC_CHANGED=$(git diff --name-only origin/main...HEAD -- src/ | wc -l | tr -d ' ')
+          # Skip TDD check when no source files changed (docs, workflows, configs)
+          SRC_CHANGED=$(git diff --name-only origin/main...HEAD -- src/ 'packages/*/src/' | wc -l | tr -d ' ')
           if [ "$SRC_CHANGED" -eq 0 ]; then
             echo "✓ No src/ changes — TDD commit check not required"
             exit 0
@@ -107,7 +107,7 @@ jobs:
           fetch-depth: 0
       - name: Check for changeset when src/ is modified
         run: |
-          SRC_CHANGED=$(git diff --name-only origin/main...HEAD -- src/ | wc -l | tr -d ' ')
+          SRC_CHANGED=$(git diff --name-only origin/main...HEAD -- src/ 'packages/*/src/' package.json 'packages/*/package.json' | wc -l | tr -d ' ')
           if [ "$SRC_CHANGED" -eq 0 ]; then
             echo "✓ No src/ changes — changeset not required"
             exit 0
@@ -124,26 +124,35 @@ jobs:
 
           echo "✓ Changeset found ($CHANGESETS changeset file(s))"
 
-  lockfile-version:
-    name: Lockfile Version Guard
+  package-version:
+    name: Package Version Guard
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Check package-lock.json version unchanged
+      - name: Check package manifest versions unchanged
         run: |
-          if git diff --quiet origin/main...HEAD -- package-lock.json; then
-            echo "✓ package-lock.json not modified"
+          if git diff --quiet origin/main...HEAD -- package.json 'packages/*/package.json'; then
+            echo "✓ package manifests not modified"
             exit 0
           fi
 
-          VERSION_CHANGED=$(git diff origin/main...HEAD -- package-lock.json | grep -cE '^\+\s*"version"\s*:' || true)
-          if [ "$VERSION_CHANGED" -gt 0 ]; then
-            echo "::error::package-lock.json has version field changes. Versions are managed by Changesets CI — do not bump versions in feature PRs."
-            echo ""
-            echo "If this is from a stale fork, run: git checkout main -- package-lock.json"
-            exit 1
-          fi
+          for manifest in $(git diff --name-only origin/main...HEAD -- package.json 'packages/*/package.json'); do
+            if ! git cat-file -e "origin/main:$manifest" 2>/dev/null; then
+              echo "✓ $manifest is new; initial package version is allowed"
+              continue
+            fi
 
-          echo "✓ package-lock.json version unchanged"
+            BEFORE=$(git show "origin/main:$manifest" | node -e "let input = ''; process.stdin.on('data', (chunk) => input += chunk); process.stdin.on('end', () => console.log(JSON.parse(input).version ?? ''));")
+            AFTER=$(node -e "const fs = require('node:fs'); console.log(JSON.parse(fs.readFileSync(process.argv[1], 'utf8')).version ?? '');" "$manifest")
+
+            if [ "$BEFORE" != "$AFTER" ]; then
+              echo "::error::$manifest version changed from $BEFORE to $AFTER. Versions are managed by Changesets CI — do not bump versions in feature PRs."
+              echo ""
+              echo "If this is from a stale fork, restore the package.json version fields from main."
+              exit 1
+            fi
+          done
+
+          echo "✓ package manifest versions unchanged"

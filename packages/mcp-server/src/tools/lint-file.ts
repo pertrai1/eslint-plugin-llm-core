@@ -1,4 +1,5 @@
 import path from "node:path";
+import { readdir, stat } from "node:fs/promises";
 import { loadESLint } from "eslint";
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -10,6 +11,27 @@ import { getRuleInstruction } from "eslint-plugin-llm-core/instructions";
 import plugin from "eslint-plugin-llm-core";
 
 const LLM_CORE_PREFIX = "llm-core/";
+
+// Default directory-lint cap (Assumption A1); validated/tuned by sub-task 3.7.
+const DEFAULT_MAX_FILES = 200;
+
+// Extensions ESLint may lint; used to estimate a directory's size for the cap.
+const LINTABLE_EXTENSIONS = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+]);
+
+// Directories excluded from the file-count estimate (never linted in practice).
+const SKIPPED_DIRECTORIES = new Set([
+  "node_modules",
+  ".git",
+  "dist",
+  "coverage",
+]);
 
 const NO_CONFIG_MESSAGE = [
   "No ESLint configuration was discovered for this path.",
@@ -41,6 +63,40 @@ function isWithinRoot(absoluteTarget: string, root: string): boolean {
   );
 }
 
+/**
+ * Counts lintable source files under `dir`, short-circuiting once the count
+ * exceeds `limit`. A conservative estimate for the directory guard — it ignores
+ * ESLint's own ignore rules, so it may over-count, which only makes the guard
+ * safer.
+ */
+async function countSourceFiles(dir: string, limit: number): Promise<number> {
+  let count = 0;
+  const pending: string[] = [dir];
+
+  while (pending.length > 0) {
+    const current = pending.pop() as string;
+    const entries = await readdir(current, { withFileTypes: true });
+
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        if (!SKIPPED_DIRECTORIES.has(entry.name)) {
+          pending.push(path.join(current, entry.name));
+        }
+      } else if (
+        entry.isFile() &&
+        LINTABLE_EXTENSIONS.has(path.extname(entry.name))
+      ) {
+        count += 1;
+        if (count > limit) {
+          return count;
+        }
+      }
+    }
+  }
+
+  return count;
+}
+
 interface RuleModuleWithDefaults {
   defaultOptions?: readonly unknown[];
 }
@@ -57,6 +113,12 @@ const coreRules = (
 export interface LintFileOptions {
   /** Project root used as the ESLint cwd and sandbox boundary. */
   projectRoot?: string;
+  /**
+   * Maximum number of lintable files a directory target may contain before the
+   * tool refuses and asks the caller to narrow the path (FR-13). Defaults to
+   * {@link DEFAULT_MAX_FILES}.
+   */
+  maxFiles?: number;
 }
 
 interface LintViolation {
@@ -185,6 +247,7 @@ export function registerLintFile(
   options: LintFileOptions = {},
 ): void {
   const projectRoot = path.resolve(options.projectRoot ?? process.cwd());
+  const maxFiles = options.maxFiles ?? DEFAULT_MAX_FILES;
 
   server.registerTool(
     "lint_file",
@@ -211,6 +274,24 @@ export function registerLintFile(
             },
           ],
         };
+      }
+
+      const targetStat = await stat(absoluteTarget).catch(() => null);
+      if (targetStat?.isDirectory()) {
+        const fileCount = await countSourceFiles(absoluteTarget, maxFiles);
+        if (fileCount > maxFiles) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text:
+                  `"${targetPath}" contains more than ${maxFiles} lintable files. ` +
+                  `Narrow the path to a specific file or subdirectory, or raise the ` +
+                  `configured maxFiles cap.`,
+              },
+            ],
+          };
+        }
       }
 
       const eslint = await createFlatESLint(projectRoot);

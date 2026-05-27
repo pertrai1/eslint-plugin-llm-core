@@ -1,5 +1,14 @@
 # eslint-plugin-llm-core-mcp
 
+## 0.25.2
+
+### Patch Changes
+
+- [#194](https://github.com/pertrai1/eslint-plugin-llm-core/pull/194) [`2214c3b`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/2214c3b1f3f680283895c93a5a85d27a6e64ce4d) Thanks [@pertrai1](https://github.com/pertrai1)! - Add MCP package repository metadata required for npm provenance validation.
+
+- Updated dependencies [[`2214c3b`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/2214c3b1f3f680283895c93a5a85d27a6e64ce4d)]:
+  - eslint-plugin-llm-core@0.25.2
+
 ## 0.25.1
 
 ### Patch Changes

@@ -277,3 +277,20 @@ describe("lint_file directory file-count guard", () => {
     expect(result.isError).toBeFalsy();
   });
 });
+
+describe("lint_file registration", () => {
+  it("is exposed as a tool with a required string `path` input", async () => {
+    const client = await connectClient({ projectRoot: PROJECT_WITH_CONFIG });
+
+    const { tools } = await client.listTools();
+    const tool = tools.find((t) => t.name === "lint_file");
+
+    expect(tool).toBeDefined();
+    const schema = tool?.inputSchema as {
+      properties?: Record<string, { type?: string }>;
+      required?: string[];
+    };
+    expect(schema?.properties?.path?.type).toBe("string");
+    expect(schema?.required).toContain("path");
+  });
+});

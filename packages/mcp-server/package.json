@@ -3,6 +3,11 @@
   "version": "0.25.1",
   "description": "MCP server for just-in-time linting guidance from eslint-plugin-llm-core",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pertrai1/eslint-plugin-llm-core",
+    "directory": "packages/mcp-server"
+  },
   "type": "module",
   "main": "dist/index.js",
   "exports": {

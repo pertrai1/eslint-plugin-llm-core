@@ -206,3 +206,30 @@ describe("lint_file with no discoverable ESLint config", () => {
     }
   });
 });
+
+describe("lint_file path sandboxing", () => {
+  async function callWithPath(targetPath: string) {
+    const client = await connectClient({ projectRoot: PROJECT_WITH_CONFIG });
+    return (await client.callTool({
+      name: "lint_file",
+      arguments: { path: targetPath },
+    })) as {
+      isError?: boolean;
+      content: Array<{ type: string; text: string }>;
+    };
+  }
+
+  it("rejects a relative path that escapes the project root", async () => {
+    const result = await callWithPath("../../../../package.json");
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text.toLowerCase()).toContain("project root");
+  });
+
+  it("rejects an absolute path outside the project root", async () => {
+    const result = await callWithPath("/etc/hosts");
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text.toLowerCase()).toContain("project root");
+  });
+});

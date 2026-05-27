@@ -10,3 +10,4 @@ evals/results/*.md
 .claude/skills/gitnexus/
 .agents/skills/gitnexus/
 .internal/
+packages/mcp-server/src/embedded-docs.ts

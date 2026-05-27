@@ -1,0 +1,49 @@
+{
+  "name": "eslint-plugin-llm-core-mcp",
+  "version": "0.24.0",
+  "description": "MCP server for just-in-time linting guidance from eslint-plugin-llm-core",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "llm-core-mcp": "./dist/server.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "embed": "tsx scripts/embed-rule-docs.ts",
+    "prebuild": "npm run embed",
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "npm run embed",
+    "prepublishOnly": "npm run build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^10.1.0",
+    "eslint-plugin-llm-core": "*",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
+  }
+}

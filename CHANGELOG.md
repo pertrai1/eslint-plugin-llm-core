@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.25.1
+
+### Patch Changes
+
+- [#192](https://github.com/pertrai1/eslint-plugin-llm-core/pull/192) [`497bc6e`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/497bc6e03ca725cf034272092cf768189ab67ea5) Thanks [@pertrai1](https://github.com/pertrai1)! - Fix MCP package publishing metadata and configure the release workflow to provide npm authentication for package publishing.
+
 ## 0.25.0
 
 ### Minor Changes

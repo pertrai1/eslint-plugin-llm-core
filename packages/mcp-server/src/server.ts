@@ -2,6 +2,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createRequire } from "node:module";
+import { registerGetActiveInstructions } from "./tools/get-active-instructions.js";
 
 const require = createRequire(import.meta.url);
 
@@ -12,8 +13,10 @@ export const server = new McpServer({
   version,
 });
 
-// Tools and resources are registered in their own modules and wired here.
-// Stubs — filled in Phase 2 and 3.
+// Tools
+registerGetActiveInstructions(server);
+
+// Resources — filled in Task 5.
 
 export async function startServer(): Promise<void> {
   const transport = new StdioServerTransport();

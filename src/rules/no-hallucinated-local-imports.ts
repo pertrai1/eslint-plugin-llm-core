@@ -69,7 +69,7 @@ function getDirectExportSurface(filename: string): ExportSurface | null {
 
   const named = new Set<string>();
   const text = stripComments(sourceText);
-  const hasDefault = /\bexport\s+default\b/.test(text);
+  let hasDefault = /\bexport\s+default\b/.test(text);
 
   const declarationExportPattern =
     /\bexport\s+(?:declare\s+)?(?:async\s+)?(?:const|let|var|function|class|interface|type|enum)\s+([A-Za-z_$][\w$]*)/g;
@@ -77,7 +77,11 @@ function getDirectExportSurface(filename: string): ExportSurface | null {
   while ((declarationMatch = declarationExportPattern.exec(text)) !== null) {
     const [, exportName] = declarationMatch;
     if (exportName !== undefined) {
-      named.add(exportName);
+      if (exportName === "default") {
+        hasDefault = true;
+      } else {
+        named.add(exportName);
+      }
     }
   }
 
@@ -97,7 +101,12 @@ function getDirectExportSurface(filename: string): ExportSurface | null {
 
       const parts = specifier.split(/\s+as\s+/);
       const exportName = (parts[1] ?? parts[0])?.trim();
-      if (exportName !== undefined && /^[A-Za-z_$][\w$]*$/.test(exportName)) {
+      if (exportName === "default") {
+        hasDefault = true;
+      } else if (
+        exportName !== undefined &&
+        /^[A-Za-z_$][\w$]*$/.test(exportName)
+      ) {
         named.add(exportName);
       }
     }
@@ -174,7 +183,10 @@ export default createRule<[], MessageIds>({
   defaultOptions: [],
   create(context) {
     function resolveSource(
-      node: TSESTree.ImportDeclaration | TSESTree.ExportNamedDeclaration,
+      node:
+        | TSESTree.ImportDeclaration
+        | TSESTree.ExportNamedDeclaration
+        | TSESTree.ExportAllDeclaration,
     ): string | null {
       if (node.source === null) {
         return null;
@@ -264,6 +276,9 @@ export default createRule<[], MessageIds>({
             exportSurface.named,
           );
         }
+      },
+      ExportAllDeclaration(node: TSESTree.ExportAllDeclaration) {
+        resolveSource(node);
       },
     };
   },

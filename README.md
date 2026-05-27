@@ -289,6 +289,40 @@ result.javascriptRules; // JavaScript-only rules
 result.typescriptRules; // TypeScript-only rules
 ```
 
+## MCP Server
+
+`eslint-plugin-llm-core-mcp` serves the same guidance over MCP stdio so agents
+can request rule guidance only when they need it.
+
+Register it with an MCP-capable client:
+
+```json
+{
+  "mcpServers": {
+    "llm-core": {
+      "command": "npx",
+      "args": ["-y", "eslint-plugin-llm-core-mcp"]
+    }
+  }
+}
+```
+
+The server exposes `lint_file`, `get_active_instructions`,
+`llm-core://rules`, and `llm-core://rules/{ruleName}`. `lint_file` uses the
+target project's discovered ESLint flat config. In v1 it does not provide a
+built-in fallback config, so the target project must already install and
+configure `eslint-plugin-llm-core`.
+
+Manual smoke check after build:
+
+```bash
+npm --workspace eslint-plugin-llm-core-mcp run build
+npx -y eslint-plugin-llm-core-mcp
+```
+
+The MCP package versions in lockstep with `eslint-plugin-llm-core` through the
+existing Changesets release flow.
+
 ## Agent Skills
 
 Beyond ESLint rules, this plugin ships **agent skills** — markdown instruction files that LLM agents can load when performing specific tasks. Skills complement the lint rules by catching patterns that require judgment rather than pattern matching.

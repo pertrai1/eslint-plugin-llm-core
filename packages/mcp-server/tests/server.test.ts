@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { makeTestServer } from "./helpers/make-test-server.js";
 
 /**
  * Integration test: verifies that the MCP server scaffolding accepts a client
@@ -42,5 +43,37 @@ describe("MCP server scaffold", () => {
     expect(serverInfo).toBeDefined();
     expect(serverInfo?.name).toBe("test-server");
     expect(serverInfo?.version).toBe("0.0.0");
+  });
+
+  it("enumerates the assembled server tools and resources", async () => {
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
+    const server = await makeTestServer();
+    const client = new Client({ name: "test-client", version: "0.0.0" });
+    clients.push(client);
+
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+
+    const [{ tools }, { resources }, { resourceTemplates }] = await Promise.all(
+      [
+        client.listTools(),
+        client.listResources(),
+        client.listResourceTemplates(),
+      ],
+    );
+
+    expect(tools.map((tool) => tool.name).sort()).toEqual([
+      "get_active_instructions",
+      "lint_file",
+    ]);
+    expect(
+      resources.some((resource) => resource.uri === "llm-core://rules"),
+    ).toBe(true);
+    expect(
+      resourceTemplates.some(
+        (template) => template.uriTemplate === "llm-core://rules/{ruleName}",
+      ),
+    ).toBe(true);
   });
 });

@@ -60,4 +60,18 @@ describe("plugin configs", () => {
       "error",
     );
   });
+
+  it("registers no-hallucinated-local-imports in all config only", () => {
+    expect(plugin.rules["no-hallucinated-local-imports"]).toBeDefined();
+
+    const allConfig = plugin.configs.all[0];
+    const recommendedConfig = plugin.configs.recommended[0];
+
+    expect(allConfig.rules?.["llm-core/no-hallucinated-local-imports"]).toBe(
+      "error",
+    );
+    expect(
+      recommendedConfig.rules?.["llm-core/no-hallucinated-local-imports"],
+    ).toBeUndefined();
+  });
 });

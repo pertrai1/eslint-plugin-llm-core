@@ -1,5 +1,8 @@
 {
   "name": "eslint-plugin-llm-core",
+  "workspaces": [
+    "packages/*"
+  ],
   "version": "0.24.0",
   "description": "ESLint rules that catch the patterns LLM agents get wrong — and teach them to self-correct",
   "license": "MIT",

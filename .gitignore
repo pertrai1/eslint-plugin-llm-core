@@ -11,3 +11,4 @@ evals/results/*.md
 .agents/skills/gitnexus/
 .internal/
 packages/mcp-server/src/embedded-docs.ts
+packages/mcp-server/benchmarks/tmp-*/

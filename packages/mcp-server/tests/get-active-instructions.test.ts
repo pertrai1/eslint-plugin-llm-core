@@ -58,4 +58,26 @@ describe("get_active_instructions tool", () => {
       /allFilesRules|javascriptRules|typescriptRules|rules/i,
     );
   });
+
+  it("response includes rule scope counts as metadata", async () => {
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
+    const client = new Client({ name: "test-client", version: "0.0.0" });
+    clients.push(client);
+
+    const server = await makeTestServer();
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+
+    const result = await client.callTool({
+      name: "get_active_instructions",
+      arguments: {},
+    });
+
+    expect(result._meta?.scopeCounts).toEqual({
+      allFilesRules: expect.any(Number),
+      javascriptRules: expect.any(Number),
+      typescriptRules: expect.any(Number),
+    });
+  });
 });

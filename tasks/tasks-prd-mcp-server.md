@@ -147,7 +147,7 @@ parallel once 2 lands. 6 depends on 3–5; 7 depends on all.
   3.1. (RED) Integration test with a fixture project + a file violating e.g.
   `no-empty-catch`; expect a violation with the attached instruction.
   3.2. (GREEN) Implement `src/tools/lint-file.ts`: `loadESLint({ useFlatConfig:
-     true })`, discover the project config, `eslint.lintFiles([path])`, map
+true })`, discover the project config, `eslint.lintFiles([path])`, map
   results to the filtered structured array.
   3.3. Attach guidance via `getRuleInstruction(ruleId, options)`; add a test for
   a configurable rule whose `optionTemplate` must interpolate (no `{…}`

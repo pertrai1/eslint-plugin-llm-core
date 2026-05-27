@@ -35,6 +35,13 @@ export function registerGetActiveInstructions(server: McpServer): void {
       const text = `${result.content}\n\n<!-- scope counts: ${scopeSummary} -->`;
 
       return {
+        _meta: {
+          scopeCounts: {
+            allFilesRules: result.allFilesRules.length,
+            javascriptRules: result.javascriptRules.length,
+            typescriptRules: result.typescriptRules.length,
+          },
+        },
         content: [{ type: "text" as const, text }],
       };
     },

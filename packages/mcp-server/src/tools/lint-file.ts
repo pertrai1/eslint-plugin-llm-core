@@ -1,5 +1,5 @@
 import path from "node:path";
-import { readdir, stat } from "node:fs/promises";
+import { readdir, realpath, stat } from "node:fs/promises";
 import { loadESLint } from "eslint";
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -261,6 +261,9 @@ export function registerLintFile(
     },
     async ({ path: targetPath }) => {
       const absoluteTarget = path.resolve(projectRoot, targetPath);
+      const realProjectRoot = await realpath(projectRoot).catch(
+        () => projectRoot,
+      );
 
       if (!isWithinRoot(absoluteTarget, projectRoot)) {
         return {
@@ -277,8 +280,26 @@ export function registerLintFile(
       }
 
       const targetStat = await stat(absoluteTarget).catch(() => null);
+      const realTarget = targetStat
+        ? await realpath(absoluteTarget).catch(() => absoluteTarget)
+        : absoluteTarget;
+
+      if (targetStat && !isWithinRoot(realTarget, realProjectRoot)) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text" as const,
+              text:
+                `Refusing to lint "${targetPath}": it resolves outside the ` +
+                `project root (${projectRoot}). Pass a path within the project root.`,
+            },
+          ],
+        };
+      }
+
       if (targetStat?.isDirectory()) {
-        const fileCount = await countSourceFiles(absoluteTarget, maxFiles);
+        const fileCount = await countSourceFiles(realTarget, maxFiles);
         if (fileCount > maxFiles) {
           return {
             content: [

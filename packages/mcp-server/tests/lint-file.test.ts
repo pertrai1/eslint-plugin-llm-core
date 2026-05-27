@@ -3,7 +3,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, writeFile, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import {
   makeTestServer,
@@ -234,6 +234,35 @@ describe("lint_file path sandboxing", () => {
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text.toLowerCase()).toContain("project root");
+  });
+
+  it("rejects a symlink inside the project root that resolves outside it", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "llmcore-mcp-root-"));
+    const outsideRoot = await mkdtemp(
+      path.join(tmpdir(), "llmcore-mcp-outside-"),
+    );
+
+    try {
+      const outsideFile = path.join(outsideRoot, "outside.ts");
+      const linkPath = path.join(projectRoot, "outside-link.ts");
+      await writeFile(outsideFile, "export const outside = true;\n");
+      await symlink(outsideFile, linkPath);
+
+      const client = await connectClient({ projectRoot });
+      const result = (await client.callTool({
+        name: "lint_file",
+        arguments: { path: "outside-link.ts" },
+      })) as {
+        isError?: boolean;
+        content: Array<{ type: string; text: string }>;
+      };
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text.toLowerCase()).toContain("project root");
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+      await rm(outsideRoot, { recursive: true, force: true });
+    }
   });
 });
 

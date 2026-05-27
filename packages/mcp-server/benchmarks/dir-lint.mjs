@@ -1,3 +1,4 @@
+// fallow-ignore-file unused-file
 // Benchmark: ESLint programmatic lint latency vs. file count (PRD Open Q #1).
 //
 // Validates the lint_file directory cap default (Assumption A1 = 200 files) by

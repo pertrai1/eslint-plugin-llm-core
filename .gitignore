@@ -10,5 +10,7 @@ evals/results/*.md
 .claude/skills/gitnexus/
 .agents/skills/gitnexus/
 .internal/
+.fallow/
+.omc/
 packages/mcp-server/src/embedded-docs.ts
 packages/mcp-server/benchmarks/tmp-*/

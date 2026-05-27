@@ -32,6 +32,15 @@ function isNoConfigError(error: unknown): boolean {
   );
 }
 
+/** True when `absoluteTarget` is the project root or nested inside it. */
+function isWithinRoot(absoluteTarget: string, root: string): boolean {
+  const relative = path.relative(root, absoluteTarget);
+  return (
+    relative === "" ||
+    (!relative.startsWith("..") && !path.isAbsolute(relative))
+  );
+}
+
 interface RuleModuleWithDefaults {
   defaultOptions?: readonly unknown[];
 }
@@ -189,6 +198,20 @@ export function registerLintFile(
     },
     async ({ path: targetPath }) => {
       const absoluteTarget = path.resolve(projectRoot, targetPath);
+
+      if (!isWithinRoot(absoluteTarget, projectRoot)) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text" as const,
+              text:
+                `Refusing to lint "${targetPath}": it resolves outside the ` +
+                `project root (${projectRoot}). Pass a path within the project root.`,
+            },
+          ],
+        };
+      }
 
       const eslint = await createFlatESLint(projectRoot);
 

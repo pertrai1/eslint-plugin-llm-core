@@ -14,6 +14,8 @@ export default [
     },
     rules: {
       "llm-core/no-empty-catch": "error",
+      // A core (non-llm-core) rule used to verify lint_file filters it out.
+      "no-debugger": "error",
     },
   },
 ];

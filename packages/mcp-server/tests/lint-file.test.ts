@@ -2,15 +2,18 @@ import { describe, it, expect, afterEach } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { fileURLToPath } from "node:url";
-import { makeTestServer } from "./helpers/make-test-server.js";
+import {
+  makeTestServer,
+  type MakeTestServerOptions,
+} from "./helpers/make-test-server.js";
 
 /**
- * Integration tests for the lint_file tool (sub-task 3.1 RED → sub-task 3.2 GREEN).
+ * Integration tests for the lint_file tool (Task 3).
  * Drives the tool over an in-memory transport per Assumption A2.
  *
  * Fixture: tests/fixtures/project-with-config/
- *   eslint.config.js  — flat config enabling llm-core/no-empty-catch
- *   src/bad.ts        — violates no-empty-catch
+ *   eslint.config.js  — flat config: llm-core/no-empty-catch + core no-debugger
+ *   src/bad.ts        — violates no-empty-catch and no-debugger
  */
 
 interface LintViolation {
@@ -22,27 +25,42 @@ interface LintViolation {
   instruction: string | undefined;
 }
 
+const PROJECT_WITH_CONFIG = fileURLToPath(
+  new URL("./fixtures/project-with-config/", import.meta.url),
+);
 const BAD_FILE = fileURLToPath(
   new URL("./fixtures/project-with-config/src/bad.ts", import.meta.url),
 );
 
+const clients: Client[] = [];
+
+afterEach(async () => {
+  await Promise.all(clients.map((c) => c.close().catch(() => {})));
+  clients.length = 0;
+});
+
+async function connectClient(options?: MakeTestServerOptions): Promise<Client> {
+  const [clientTransport, serverTransport] =
+    InMemoryTransport.createLinkedPair();
+  const client = new Client({ name: "test-client", version: "0.0.0" });
+  clients.push(client);
+
+  const server = await makeTestServer(options);
+  await server.connect(serverTransport);
+  await client.connect(clientTransport);
+  return client;
+}
+
+function readViolations(result: {
+  content: Array<{ type: string; text: string }>;
+}): LintViolation[] {
+  const text = result.content[0].text;
+  return JSON.parse(text) as LintViolation[];
+}
+
 describe("lint_file tool", () => {
-  const clients: Client[] = [];
-
-  afterEach(async () => {
-    await Promise.all(clients.map((c) => c.close().catch(() => {})));
-    clients.length = 0;
-  });
-
   it("returns a violation for no-empty-catch with instruction attached", async () => {
-    const [clientTransport, serverTransport] =
-      InMemoryTransport.createLinkedPair();
-    const client = new Client({ name: "test-client", version: "0.0.0" });
-    clients.push(client);
-
-    const server = await makeTestServer();
-    await server.connect(serverTransport);
-    await client.connect(clientTransport);
+    const client = await connectClient({ projectRoot: PROJECT_WITH_CONFIG });
 
     const result = await client.callTool({
       name: "lint_file",
@@ -50,46 +68,44 @@ describe("lint_file tool", () => {
     });
 
     expect(result.isError).toBeFalsy();
-    const text = (result.content[0] as { type: string; text: string }).text;
-    const violations = JSON.parse(text) as LintViolation[];
+    const violations = readViolations(
+      result as { content: Array<{ type: string; text: string }> },
+    );
 
     expect(Array.isArray(violations)).toBe(true);
-    expect(violations.length).toBeGreaterThan(0);
-
     const violation = violations.find(
       (v) => v.ruleId === "llm-core/no-empty-catch",
     );
     expect(violation).toBeDefined();
     expect(violation?.line).toBeGreaterThan(0);
     expect(violation?.column).toBeGreaterThan(0);
-    expect(violation?.severity).toBeGreaterThan(0);
+    expect(violation?.severity).toBe(2);
     expect(typeof violation?.message).toBe("string");
-    // Instruction must be attached and contain the rule's guidance.
-    expect(violation?.instruction).toBeDefined();
-    expect(violation?.instruction).toContain("Never leave catch blocks empty");
+    expect(violation?.message.length).toBeGreaterThan(0);
+    // Instruction must be attached and carry the rule's guidance verbatim.
+    expect(violation?.instruction).toBe(
+      "Never leave catch blocks empty — handle, rethrow, or log the error",
+    );
   });
 
-  it("excludes non-llm-core violations from results", async () => {
-    const [clientTransport, serverTransport] =
-      InMemoryTransport.createLinkedPair();
-    const client = new Client({ name: "test-client", version: "0.0.0" });
-    clients.push(client);
-
-    const server = await makeTestServer();
-    await server.connect(serverTransport);
-    await client.connect(clientTransport);
+  it("excludes non-llm-core diagnostics (e.g. no-debugger) from results", async () => {
+    const client = await connectClient({ projectRoot: PROJECT_WITH_CONFIG });
 
     const result = await client.callTool({
       name: "lint_file",
       arguments: { path: BAD_FILE },
     });
 
-    const text = (result.content[0] as { type: string; text: string }).text;
-    const violations = JSON.parse(text) as LintViolation[];
+    const violations = readViolations(
+      result as { content: Array<{ type: string; text: string }> },
+    );
 
-    // Every returned violation must be an llm-core/ rule.
+    // The fixture also trips core no-debugger; it must not appear in results,
+    // and every returned violation must be an llm-core/ rule.
+    expect(violations.some((v) => v.ruleId === "no-debugger")).toBe(false);
+    expect(violations.length).toBeGreaterThan(0);
     for (const v of violations) {
-      expect(v.ruleId).toMatch(/^llm-core\//);
+      expect(v.ruleId.startsWith("llm-core/")).toBe(true);
     }
   });
 });

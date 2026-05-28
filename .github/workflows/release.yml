@@ -34,8 +34,6 @@ jobs:
       - name: Publish to npm
         id: publish
         if: steps.changesets.outputs.hasChangesets == 'false'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           MCP_VERSION=$(node -p "require('./packages/mcp-server/package.json').version")

@@ -6,6 +6,7 @@ import maxFileLength from "../../src/rules/max-file-length";
 import maxFunctionLength from "../../src/rules/max-function-length";
 import namingConventions from "../../src/rules/naming-conventions";
 import noAsyncArrayCallbacks from "../../src/rules/no-async-array-callbacks";
+import noAsyncPromiseExecutor from "../../src/rules/no-async-promise-executor";
 import noEmptyCatch from "../../src/rules/no-empty-catch";
 import preferUnknownInCatch from "../../src/rules/prefer-unknown-in-catch";
 
@@ -79,6 +80,8 @@ describe("rule message guidance", () => {
       noAsyncArrayCallbacks.meta.messages?.noAsyncArrayCallback ?? "";
     const noAsyncMapCallback =
       noAsyncArrayCallbacks.meta.messages?.noAsyncMapCallback ?? "";
+    const noAsyncPromiseExecutorMessage =
+      noAsyncPromiseExecutor.meta.messages?.noAsyncPromiseExecutor ?? "";
     const noEmptyCatchMessage = noEmptyCatch.meta.messages?.noEmptyCatch ?? "";
     const maxFileLengthMessage =
       maxFileLength.meta.messages?.maxFileLength ?? "";
@@ -120,6 +123,13 @@ describe("rule message guidance", () => {
     expect(noAsyncMapCallback).toContain(
       "After:  const results = await Promise.all(items.map(async (item) => processItem(item)));",
     );
+
+    expectSingleWhyLine(noAsyncPromiseExecutorMessage);
+    expectTemplateShape(noAsyncPromiseExecutorMessage);
+    expect(noAsyncPromiseExecutorMessage).toContain(
+      "Before: new Promise(async (resolve) => { resolve(await loadValue()); })",
+    );
+    expect(noAsyncPromiseExecutorMessage).toContain("After:  loadValue()");
 
     expectSingleWhyLine(noEmptyCatchMessage);
     expectTemplateShape(noEmptyCatchMessage);

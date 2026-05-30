@@ -61,6 +61,20 @@ describe("plugin configs", () => {
     );
   });
 
+  it("registers no-async-promise-executor in rule exports and best-practices configs", () => {
+    expect(plugin.rules["no-async-promise-executor"]).toBeDefined();
+
+    const bestPracticesConfig = plugin.configs["best-practices"][0];
+    const recommendedConfig = plugin.configs.recommended[0];
+
+    expect(
+      bestPracticesConfig.rules?.["llm-core/no-async-promise-executor"],
+    ).toBe("error");
+    expect(
+      recommendedConfig.rules?.["llm-core/no-async-promise-executor"],
+    ).toBe("error");
+  });
+
   it("registers no-hallucinated-local-imports in all config only", () => {
     expect(plugin.rules["no-hallucinated-local-imports"]).toBeDefined();
 

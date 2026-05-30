@@ -12,6 +12,7 @@ export { default as "missing-throw" } from "./missing-throw";
 export { default as "naming-conventions" } from "./naming-conventions";
 export { default as "no-any-in-generic" } from "./no-any-in-generic";
 export { default as "no-async-array-callbacks" } from "./no-async-array-callbacks";
+export { default as "no-async-promise-executor" } from "./no-async-promise-executor";
 export { default as "no-commented-out-code" } from "./no-commented-out-code";
 export { default as "no-empty-catch" } from "./no-empty-catch";
 export { default as "no-exported-function-expressions" } from "./no-exported-function-expressions";

@@ -39,6 +39,9 @@ import noAnyInGenericRule, {
 import noAsyncArrayCallbacksRule, {
   instruction as noAsyncArrayCallbacks,
 } from "../rules/no-async-array-callbacks";
+import noAsyncPromiseExecutorRule, {
+  instruction as noAsyncPromiseExecutor,
+} from "../rules/no-async-promise-executor";
 import noCommentedOutCodeRule, {
   instruction as noCommentedOutCode,
 } from "../rules/no-commented-out-code";
@@ -117,6 +120,7 @@ export const ruleInstructions: Record<string, RuleInstruction> = {
   "naming-conventions": namingConventions,
   "no-any-in-generic": noAnyInGeneric,
   "no-async-array-callbacks": noAsyncArrayCallbacks,
+  "no-async-promise-executor": noAsyncPromiseExecutor,
   "no-commented-out-code": noCommentedOutCode,
   "no-empty-catch": noEmptyCatch,
   "no-exported-function-expressions": noExportedFunctionExpressions,
@@ -150,6 +154,7 @@ export const ruleDefaultOptions: Record<string, Record<string, unknown>> = {
   "naming-conventions": getDefaultOptions(namingConventionsRule),
   "no-any-in-generic": getDefaultOptions(noAnyInGenericRule),
   "no-async-array-callbacks": getDefaultOptions(noAsyncArrayCallbacksRule),
+  "no-async-promise-executor": getDefaultOptions(noAsyncPromiseExecutorRule),
   "no-commented-out-code": getDefaultOptions(noCommentedOutCodeRule),
   "no-empty-catch": getDefaultOptions(noEmptyCatchRule),
   "no-exported-function-expressions": getDefaultOptions(

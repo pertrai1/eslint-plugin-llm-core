@@ -1,5 +1,16 @@
 # eslint-plugin-llm-core-mcp
 
+## 0.26.0
+
+### Minor Changes
+
+- [#200](https://github.com/pertrai1/eslint-plugin-llm-core/pull/200) [`30be45d`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/30be45df92999c9381df98cc607208e2cb55706b) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Add the `no-async-promise-executor` rule.
+
+### Patch Changes
+
+- Updated dependencies [[`30be45d`](https://github.com/pertrai1/eslint-plugin-llm-core/commit/30be45df92999c9381df98cc607208e2cb55706b)]:
+  - eslint-plugin-llm-core@0.26.0
+
 ## 0.25.2
 
 ### Patch Changes

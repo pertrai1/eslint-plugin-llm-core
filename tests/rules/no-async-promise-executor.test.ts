@@ -15,6 +15,15 @@ ruleTester.run("no-async-promise-executor", rule, {
 
     // Async callbacks passed to other APIs are outside this rule's scope.
     `queueTask(async () => { await saveValue(); });`,
+
+    // Promise constructor call without an executor is outside this rule's scope.
+    `const result = new Promise();`,
+
+    // Spread arguments are not inline async executor functions.
+    `const result = new Promise(...promiseArgs);`,
+
+    // Referenced executors are not inline async executor functions.
+    `const result = new Promise(executor);`,
   ],
 
   invalid: [

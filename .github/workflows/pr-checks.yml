@@ -10,7 +10,7 @@ jobs:
     name: TDD Commit Presence
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Check feat commits have corresponding test commits
@@ -102,7 +102,7 @@ jobs:
     name: Changeset Presence
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Check for changeset when src/ is modified
@@ -128,7 +128,7 @@ jobs:
     name: Package Version Guard
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Check package manifest versions unchanged

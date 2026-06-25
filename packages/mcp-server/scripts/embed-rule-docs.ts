@@ -44,9 +44,9 @@ async function main(): Promise<void> {
   ];
 
   await writeFile(OUTPUT_FILE, lines.join("\n"), "utf8");
-  console.log(
-    `[embed-rule-docs] wrote ${entries.length} rules to src/embedded-docs.ts`,
-  );
+  console.log("[embed-rule-docs] wrote rules to src/embedded-docs.ts", {
+    count: entries.length,
+  });
 }
 
 main().catch((err) => {

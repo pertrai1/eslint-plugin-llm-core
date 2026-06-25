@@ -238,7 +238,7 @@ describe("e2e: CLI generate-instructions", () => {
         injectDir,
       );
       expect(exitCode).toBe(0);
-      expect(stdout).toContain("Injected reference into AGENTS.md");
+      expect(stdout).toContain("Injected reference into file");
 
       const agentsContent = fs.readFileSync(
         path.join(injectDir, "AGENTS.md"),

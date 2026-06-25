@@ -159,6 +159,82 @@ export function interpolateInstruction(
   return interpolateTemplate(template, options);
 }
 
+type SampledConfig = {
+  scope: SampleScope;
+  rules: Record<string, unknown>;
+};
+
+async function sampleConfigs(
+  eslint: InstanceType<FlatESLint>,
+  cwd: string,
+): Promise<SampledConfig[]> {
+  return Promise.all(
+    VIRTUAL_FILE_SAMPLES.map(async (sample) => {
+      const config = await eslint.calculateConfigForFile(
+        path.join(cwd, sample.fileName),
+      );
+
+      return {
+        scope: sample.scope,
+        rules: (config?.rules ?? {}) as Record<string, unknown>,
+      };
+    }),
+  );
+}
+
+function resolveRuleEntry(
+  ruleName: string,
+  jsRuleConfigs: Record<string, unknown>[],
+  tsRuleConfigs: Record<string, unknown>[],
+): ResolvedRule[] {
+  const jsRule = resolveFirstEnabledRuleConfig(
+    ruleName,
+    jsRuleConfigs.map((rules) => rules[`llm-core/${ruleName}`]),
+  );
+  const tsRule = resolveFirstEnabledRuleConfig(
+    ruleName,
+    tsRuleConfigs.map((rules) => rules[`llm-core/${ruleName}`]),
+  );
+  const enabledInJs = jsRule.enabled;
+  const enabledInTs = tsRule.enabled;
+
+  if (!enabledInJs && !enabledInTs) {
+    return [];
+  }
+
+  const instruction = ruleInstructions[ruleName];
+
+  if (
+    enabledInJs &&
+    enabledInTs &&
+    !areOptionsEqual(jsRule.options, tsRule.options)
+  ) {
+    return [
+      {
+        name: ruleName,
+        instruction: interpolateInstruction(instruction, jsRule.options),
+        scope: "javascript-only",
+      },
+      {
+        name: ruleName,
+        instruction: interpolateInstruction(instruction, tsRule.options),
+        scope: "typescript-only",
+      },
+    ];
+  }
+
+  const scope = enabledInTs && !enabledInJs ? "typescript-only" : "all";
+  const options = enabledInJs ? jsRule.options : tsRule.options;
+
+  return [
+    {
+      name: ruleName,
+      instruction: interpolateInstruction(instruction, options),
+      scope,
+    },
+  ];
+}
+
 export async function resolveActiveRules(
   configPath?: string,
 ): Promise<ResolvedRule[]> {
@@ -172,18 +248,7 @@ export async function resolveActiveRules(
     : new ESLint({});
   const cwd = process.cwd();
 
-  const sampledConfigs = await Promise.all(
-    VIRTUAL_FILE_SAMPLES.map(async (sample) => {
-      const config = await eslint.calculateConfigForFile(
-        path.join(cwd, sample.fileName),
-      );
-
-      return {
-        scope: sample.scope,
-        rules: (config?.rules ?? {}) as Record<string, unknown>,
-      };
-    }),
-  );
+  const sampledConfigs = await sampleConfigs(eslint, cwd);
   const jsRuleConfigs = sampledConfigs
     .filter((config) => config.scope === "javascript")
     .map((config) => config.rules);
@@ -200,54 +265,9 @@ export async function resolveActiveRules(
 
   return [...ruleNames]
     .filter((ruleName) => ruleName in ruleInstructions)
-    .flatMap((ruleName): ResolvedRule[] => {
-      const jsRule = resolveFirstEnabledRuleConfig(
-        ruleName,
-        jsRuleConfigs.map((rules) => rules[`llm-core/${ruleName}`]),
-      );
-      const tsRule = resolveFirstEnabledRuleConfig(
-        ruleName,
-        tsRuleConfigs.map((rules) => rules[`llm-core/${ruleName}`]),
-      );
-      const enabledInJs = jsRule.enabled;
-      const enabledInTs = tsRule.enabled;
-
-      if (!enabledInJs && !enabledInTs) {
-        return [];
-      }
-
-      const instruction = ruleInstructions[ruleName];
-
-      if (
-        enabledInJs &&
-        enabledInTs &&
-        !areOptionsEqual(jsRule.options, tsRule.options)
-      ) {
-        return [
-          {
-            name: ruleName,
-            instruction: interpolateInstruction(instruction, jsRule.options),
-            scope: "javascript-only",
-          },
-          {
-            name: ruleName,
-            instruction: interpolateInstruction(instruction, tsRule.options),
-            scope: "typescript-only",
-          },
-        ];
-      }
-
-      const scope = enabledInTs && !enabledInJs ? "typescript-only" : "all";
-      const options = enabledInJs ? jsRule.options : tsRule.options;
-
-      return [
-        {
-          name: ruleName,
-          instruction: interpolateInstruction(instruction, options),
-          scope,
-        },
-      ];
-    })
+    .flatMap((ruleName) =>
+      resolveRuleEntry(ruleName, jsRuleConfigs, tsRuleConfigs),
+    )
     .sort((left, right) => {
       const nameComparison = left.name.localeCompare(right.name);
 

@@ -34,12 +34,12 @@ async function main(): Promise<void> {
 
   const outputPath = path.join(agentsDir, "linting-rules.md");
   fs.writeFileSync(outputPath, result.content, "utf-8");
-  console.log(`Generated ${outputPath}`);
+  console.log("Generated instructions file", outputPath);
 
   if (!noInject) {
     const modified = injectReferences(process.cwd());
     for (const file of modified) {
-      console.log(`Injected reference into ${file}`);
+      console.log("Injected reference into file", file);
     }
   }
 }

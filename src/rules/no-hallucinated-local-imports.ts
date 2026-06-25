@@ -17,7 +17,7 @@ type ExportSurface = {
 const moduleExtensions = [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"];
 
 function isRelativeImport(source: string): boolean {
-  return source.startsWith("./") || source.startsWith("../");
+  return ["./", "../"].some((prefix) => source.startsWith(prefix));
 }
 
 function isFile(filename: string): boolean {

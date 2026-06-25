@@ -41,40 +41,38 @@ export default createRule<[], MessageIds>({
 
     return {
       TSAsExpression(node: TSESTree.TSAsExpression) {
-        if (isAnyKeyword(node.typeAnnotation)) {
-          const sourceCode = context.sourceCode;
-          const expressionText = sourceCode.getText(node.expression);
-          const truncated =
-            expressionText.length > 30
-              ? expressionText.slice(0, 30) + "..."
-              : expressionText;
+        if (!isAnyKeyword(node.typeAnnotation)) return;
+        const sourceCode = context.sourceCode;
+        const expressionText = sourceCode.getText(node.expression);
+        const truncated =
+          expressionText.length > 30
+            ? expressionText.slice(0, 30) + "..."
+            : expressionText;
 
-          context.report({
-            node,
-            messageId: "noTypeAssertionAny",
-            data: {
-              assertion: `${truncated} as any`,
-            },
-          });
-        }
+        context.report({
+          node,
+          messageId: "noTypeAssertionAny",
+          data: {
+            assertion: `${truncated} as any`,
+          },
+        });
       },
       TSTypeAssertion(node: TSESTree.TSTypeAssertion) {
-        if (isAnyKeyword(node.typeAnnotation)) {
-          const sourceCode = context.sourceCode;
-          const expressionText = sourceCode.getText(node.expression);
-          const truncated =
-            expressionText.length > 30
-              ? expressionText.slice(0, 30) + "..."
-              : expressionText;
+        if (!isAnyKeyword(node.typeAnnotation)) return;
+        const sourceCode = context.sourceCode;
+        const expressionText = sourceCode.getText(node.expression);
+        const truncated =
+          expressionText.length > 30
+            ? expressionText.slice(0, 30) + "..."
+            : expressionText;
 
-          context.report({
-            node,
-            messageId: "noTypeAssertionAny",
-            data: {
-              assertion: `<any>${truncated}`,
-            },
-          });
-        }
+        context.report({
+          node,
+          messageId: "noTypeAssertionAny",
+          data: {
+            assertion: `<any>${truncated}`,
+          },
+        });
       },
     };
   },

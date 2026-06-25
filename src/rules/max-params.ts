@@ -127,6 +127,97 @@ export default createRule<Options, MessageIds>({
       );
     }
 
+    function isDirectlyExported(
+      node:
+        | TSESTree.FunctionDeclaration
+        | TSESTree.FunctionExpression
+        | TSESTree.ArrowFunctionExpression,
+    ): boolean {
+      if (node.parent?.type === AST_NODE_TYPES.ExportNamedDeclaration) {
+        return true;
+      }
+
+      if (node.parent?.type === AST_NODE_TYPES.ExportDefaultDeclaration) {
+        return true;
+      }
+
+      return (
+        node.parent?.type === AST_NODE_TYPES.VariableDeclarator &&
+        node.parent.parent?.type === AST_NODE_TYPES.VariableDeclaration &&
+        node.parent.parent.parent?.type ===
+          AST_NODE_TYPES.ExportNamedDeclaration
+      );
+    }
+
+    function isReExportedFunction(
+      node:
+        | TSESTree.FunctionDeclaration
+        | TSESTree.FunctionExpression
+        | TSESTree.ArrowFunctionExpression,
+    ): boolean {
+      if (
+        node.parent?.type !== AST_NODE_TYPES.Program ||
+        node.type !== AST_NODE_TYPES.FunctionDeclaration ||
+        !node.id
+      ) {
+        return false;
+      }
+
+      const program = node.parent;
+      const funcName = node.id.name;
+      for (const stmt of program.body) {
+        if (
+          stmt.type === AST_NODE_TYPES.ExportNamedDeclaration &&
+          stmt.source == null &&
+          stmt.specifiers.some(
+            (spec) =>
+              spec.type === AST_NODE_TYPES.ExportSpecifier &&
+              spec.local.type === AST_NODE_TYPES.Identifier &&
+              spec.local.name === funcName,
+          )
+        ) {
+          return true;
+        }
+        if (
+          stmt.type === AST_NODE_TYPES.ExportDefaultDeclaration &&
+          stmt.declaration.type === AST_NODE_TYPES.Identifier &&
+          stmt.declaration.name === funcName
+        ) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function isDefaultExportedVariable(
+      node:
+        | TSESTree.FunctionDeclaration
+        | TSESTree.FunctionExpression
+        | TSESTree.ArrowFunctionExpression,
+    ): boolean {
+      if (
+        node.parent?.type !== AST_NODE_TYPES.VariableDeclarator ||
+        node.parent.id.type !== AST_NODE_TYPES.Identifier ||
+        node.parent.parent?.type !== AST_NODE_TYPES.VariableDeclaration ||
+        node.parent.parent.parent?.type !== AST_NODE_TYPES.Program
+      ) {
+        return false;
+      }
+
+      const varName = node.parent.id.name;
+      const program = node.parent.parent.parent;
+      for (const stmt of program.body) {
+        if (
+          stmt.type === AST_NODE_TYPES.ExportDefaultDeclaration &&
+          stmt.declaration.type === AST_NODE_TYPES.Identifier &&
+          stmt.declaration.name === varName
+        ) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     function isExported(
       node:
         | TSESTree.FunctionDeclaration
@@ -137,76 +228,11 @@ export default createRule<Options, MessageIds>({
         return false;
       }
 
-      if (node.parent?.type === AST_NODE_TYPES.ExportNamedDeclaration) {
-        return true;
-      }
-
-      if (node.parent?.type === AST_NODE_TYPES.ExportDefaultDeclaration) {
-        return true;
-      }
-
-      if (
-        node.parent?.type === AST_NODE_TYPES.VariableDeclarator &&
-        node.parent.parent?.type === AST_NODE_TYPES.VariableDeclaration &&
-        node.parent.parent.parent?.type ===
-          AST_NODE_TYPES.ExportNamedDeclaration
-      ) {
-        return true;
-      }
-
-      // Detect re-exported functions: function helper() {} export { helper }
-      // Also detects: const foo = () => {}; export default foo;
-      if (
-        node.parent?.type === AST_NODE_TYPES.Program &&
-        node.type === AST_NODE_TYPES.FunctionDeclaration &&
-        node.id
-      ) {
-        const program = node.parent;
-        const funcName = node.id.name;
-        for (const stmt of program.body) {
-          if (
-            stmt.type === AST_NODE_TYPES.ExportNamedDeclaration &&
-            stmt.source == null &&
-            stmt.specifiers.some(
-              (spec) =>
-                spec.type === AST_NODE_TYPES.ExportSpecifier &&
-                spec.local.type === AST_NODE_TYPES.Identifier &&
-                spec.local.name === funcName,
-            )
-          ) {
-            return true;
-          }
-          if (
-            stmt.type === AST_NODE_TYPES.ExportDefaultDeclaration &&
-            stmt.declaration.type === AST_NODE_TYPES.Identifier &&
-            stmt.declaration.name === funcName
-          ) {
-            return true;
-          }
-        }
-      }
-
-      // Detect default-exported arrow/const: const foo = () => {}; export default foo;
-      if (
-        node.parent?.type === AST_NODE_TYPES.VariableDeclarator &&
-        node.parent.id.type === AST_NODE_TYPES.Identifier &&
-        node.parent.parent?.type === AST_NODE_TYPES.VariableDeclaration &&
-        node.parent.parent.parent?.type === AST_NODE_TYPES.Program
-      ) {
-        const varName = node.parent.id.name;
-        const program = node.parent.parent.parent;
-        for (const stmt of program.body) {
-          if (
-            stmt.type === AST_NODE_TYPES.ExportDefaultDeclaration &&
-            stmt.declaration.type === AST_NODE_TYPES.Identifier &&
-            stmt.declaration.name === varName
-          ) {
-            return true;
-          }
-        }
-      }
-
-      return false;
+      return (
+        isDirectlyExported(node) ||
+        isReExportedFunction(node) ||
+        isDefaultExportedVariable(node)
+      );
     }
 
     function checkParams(

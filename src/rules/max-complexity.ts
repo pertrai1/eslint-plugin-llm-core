@@ -233,12 +233,12 @@ export default createRule<Options, MessageIds>({
         }
       },
       MemberExpression(node: TSESTree.MemberExpression) {
-        if (node.optional === true) {
+        if (node.optional) {
           increaseComplexity();
         }
       },
       CallExpression(node: TSESTree.CallExpression) {
-        if (node.optional === true) {
+        if (node.optional) {
           increaseComplexity();
         }
       },

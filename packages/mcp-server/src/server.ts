@@ -39,8 +39,8 @@ function realPathOrResolved(filePath: string): string {
 }
 
 export function isDirectRun(
-  entryPoint = process.argv[1],
-  moduleUrl = import.meta.url,
+  entryPoint: string | undefined = process.argv[1],
+  moduleUrl: string = import.meta.url,
 ): boolean {
   if (!entryPoint) {
     return false;

@@ -9,13 +9,14 @@ import { fileURLToPath } from "node:url";
 import { getRuleListEntries, getRuleNames } from "./rule-data.js";
 
 const RULE_DOC_TEMPLATE = "llm-core://rules/{ruleName}";
+const MAX_DIR_DEPTH = 8;
 
 let docsCache: Promise<Record<string, string>> | undefined;
 
 async function readDocsFromRepo(): Promise<Record<string, string>> {
   let current = dirname(fileURLToPath(import.meta.url));
 
-  for (let depth = 0; depth < 8; depth += 1) {
+  for (let depth = 0; depth < MAX_DIR_DEPTH; depth += 1) {
     const docsDir = join(current, "docs", "rules");
     const files = await readdir(docsDir).catch(() => null);
 

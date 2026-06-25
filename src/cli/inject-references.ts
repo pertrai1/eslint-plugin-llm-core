@@ -71,8 +71,8 @@ export function injectReferences(cwd: string): string[] {
         fs.writeFileSync(fullPath, updated, "utf-8");
         modified.push(target);
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
       process.stderr.write(
         `Warning: could not inject reference into ${target}: ${message}\n`,
       );

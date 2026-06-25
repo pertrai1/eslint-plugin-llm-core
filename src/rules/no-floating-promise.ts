@@ -49,10 +49,7 @@ export default createRule<[], MessageIds>({
       if (!variable) return false;
       return variable.defs.some((def) => {
         const node = def.node;
-        if (
-          node.type === AST_NODE_TYPES.FunctionDeclaration &&
-          node.async === true
-        ) {
+        if (node.type === AST_NODE_TYPES.FunctionDeclaration && node.async) {
           return true;
         }
         if (node.type === AST_NODE_TYPES.VariableDeclarator) {
@@ -62,7 +59,7 @@ export default createRule<[], MessageIds>({
             init !== undefined &&
             (init.type === AST_NODE_TYPES.ArrowFunctionExpression ||
               init.type === AST_NODE_TYPES.FunctionExpression) &&
-            init.async === true
+            init.async
           );
         }
         return false;

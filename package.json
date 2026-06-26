@@ -4,7 +4,7 @@
     ".",
     "packages/*"
   ],
-  "version": "0.26.0",
+  "version": "0.27.0",
   "description": "ESLint rules that catch the patterns LLM agents get wrong — and teach them to self-correct",
   "license": "MIT",
   "author": "Rob Simpson <rsimpson2@me.com>",

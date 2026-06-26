@@ -43,7 +43,7 @@ function formatOptionValue(value: unknown): string {
 }
 
 function getReferencedOptionKeys(template: string): string[] {
-  return [...template.matchAll(/\{(\w+)\}/g)].map((match) => match[1]);
+  return [...template.matchAll(/\{(\w+)\}/g)].map((match) => match[1]!);
 }
 
 function interpolateTemplate(
@@ -216,7 +216,13 @@ export async function resolveActiveRules(
         return [];
       }
 
+      // Guard required for `noUncheckedIndexedAccess` — the prior
+      // `.filter(ruleName => ruleName in ruleInstructions)` guarantees
+      // the key exists at runtime.
       const instruction = ruleInstructions[ruleName];
+      if (!instruction) {
+        return [];
+      }
 
       if (
         enabledInJs &&

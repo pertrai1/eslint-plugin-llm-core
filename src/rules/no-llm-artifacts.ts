@@ -98,7 +98,7 @@ export default createRule<[], MessageIds>({
 
     function checkFunctionBody(body: TSESTree.BlockStatement): void {
       if (body.body.length !== 1) return;
-      const stmt = body.body[0];
+      const stmt = body.body[0]!;
       // throw new Error("not implemented") as sole statement
       if (isNotImplementedThrow(stmt)) {
         context.report({

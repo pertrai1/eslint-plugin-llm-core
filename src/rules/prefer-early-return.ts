@@ -25,7 +25,7 @@ function isShortElse(alternate: TSESTree.Statement): boolean {
   if (
     alternate.type === AST_NODE_TYPES.BlockStatement &&
     alternate.body.length === 1 &&
-    isReturnOrThrow(alternate.body[0])
+    isReturnOrThrow(alternate.body[0]!)
   ) {
     return true;
   }
@@ -106,7 +106,7 @@ export default createRule<Options, MessageIds>({
       // Function body must have exactly one statement
       if (body.body.length !== 1) return;
 
-      const onlyStatement = body.body[0];
+      const onlyStatement = body.body[0]!;
       if (onlyStatement.type !== AST_NODE_TYPES.IfStatement) return;
 
       const ifStatement = onlyStatement;

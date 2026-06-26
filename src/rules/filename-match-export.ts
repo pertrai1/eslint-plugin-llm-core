@@ -215,7 +215,9 @@ export default createRule<[], MessageIds>({
       "Program:exit"() {
         if (exportedNames.length !== 1) return;
 
-        const { name: exportName, node: exportNode } = exportedNames[0];
+        const exportedEntry = exportedNames[0];
+        if (!exportedEntry) return;
+        const { name: exportName, node: exportNode } = exportedEntry;
 
         if (filenameMatchesExport(filename, exportName)) return;
 

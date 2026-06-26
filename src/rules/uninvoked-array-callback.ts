@@ -64,20 +64,24 @@ function isSingleLengthArrayArgument(
 
 function isSparseArrayConstructorCall(node: TSESTree.Node): boolean {
   if (node.type === AST_NODE_TYPES.NewExpression) {
+    const firstArg = node.arguments[0];
     return (
       node.callee.type === AST_NODE_TYPES.Identifier &&
       node.callee.name === "Array" &&
       node.arguments.length === 1 &&
-      isSingleLengthArrayArgument(node.arguments[0])
+      firstArg !== undefined &&
+      isSingleLengthArrayArgument(firstArg)
     );
   }
 
   if (node.type === AST_NODE_TYPES.CallExpression) {
+    const firstArg = node.arguments[0];
     return (
       node.callee.type === AST_NODE_TYPES.Identifier &&
       node.callee.name === "Array" &&
       node.arguments.length === 1 &&
-      isSingleLengthArrayArgument(node.arguments[0])
+      firstArg !== undefined &&
+      isSingleLengthArrayArgument(firstArg)
     );
   }
 

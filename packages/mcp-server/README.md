@@ -27,9 +27,37 @@ Register the server with an MCP-capable client using `npx`:
 }
 ```
 
-`lint_file` uses the project ESLint configuration it discovers from the target
-path. In v1 there is no built-in fallback config, so the target project must
-already install and configure `eslint-plugin-llm-core` in `eslint.config.*`.
+`lint_file` first uses the project ESLint configuration it discovers from the
+target path. Project configuration always takes precedence, and project-config
+findings are labeled with `source: "project-config"`.
+
+## Optional Zero-Config Fallback
+
+Repos without an ESLint config can opt in to a transient fallback config:
+
+```json
+{
+  "mcpServers": {
+    "llm-core": {
+      "command": "npx",
+      "args": ["-y", "eslint-plugin-llm-core-mcp"],
+      "env": {
+        "LLM_CORE_MCP_ENABLE_FALLBACK": "1"
+      }
+    }
+  }
+}
+```
+
+Fallback mode only runs when no project ESLint config is discoverable. It uses
+the bundled `eslint-plugin-llm-core` recommended config and TypeScript parser,
+returns findings labeled with `source: "fallback"`, and remains read-only: it
+does not write files, create config files, enable autofix, or create an ESLint
+cache.
+
+Tradeoff: fallback findings may include rules the target project has not opted
+into. Install and configure `eslint-plugin-llm-core` in the project when you need
+findings to match CI/editor lint exactly.
 
 ## Manual Smoke Check
 

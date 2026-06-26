@@ -43,7 +43,7 @@ export default createRule<[], MessageIds>({
           loc: comment.loc,
           messageId: "noInlineDisable",
           data: {
-            comment: `// ${value.split("\n")[0].trim()}`,
+            comment: `// ${value.split("\n")[0]!.trim()}`,
           },
         });
       }

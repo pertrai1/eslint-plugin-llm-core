@@ -169,7 +169,7 @@ export default [
 
 <!-- end auto-generated rules list -->
 
-## Complementary Rules
+## Complementary ESLint Rules
 
 These ESLint core rules address common LLM patterns and pair well with this plugin:
 
@@ -197,6 +197,32 @@ export default [
     },
   },
 ];
+```
+
+## Typescript Compiler Guardrails
+
+These are not ESLint rules, but they catch classes of LLM-generated TypeScript mistakes before runtime:
+
+| Guardrail                          | Why it helps                                                |
+| ---------------------------------- | ----------------------------------------------------------- |
+| `strict: true`                     | Enables the baseline TypeScript safety checks.              |
+| `noUncheckedIndexedAccess: true`   | Prevents agents from assuming indexed lookups always exist. |
+| `exactOptionalPropertyTypes: true` | Prevents sloppy optional-property handling.                 |
+| `noImplicitOverride: true`         | Prevents accidental method shadowing in classes.            |
+| `noImplicitReturns: true`          | Catches branches where the agent forgot to return.          |
+| `noFallthroughCasesInSwitch: true` | Catches accidental switch fallthrough.                      |
+
+```ts
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}
 ```
 
 ## Research & Evidence

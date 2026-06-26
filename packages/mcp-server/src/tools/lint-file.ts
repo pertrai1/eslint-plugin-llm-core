@@ -215,6 +215,14 @@ function createFallbackConfig(): FlatConfig[] {
 
   return [
     {
+      ignores: [
+        "**/node_modules/**",
+        "**/.git/**",
+        "**/dist/**",
+        "**/coverage/**",
+      ],
+    },
+    {
       files: ["**/*.ts", "**/*.tsx"],
       languageOptions: {
         parser: tsParser,
@@ -225,10 +233,20 @@ function createFallbackConfig(): FlatConfig[] {
       },
     },
     {
-      files: ["**/*.js", "**/*.jsx", "**/*.mjs"],
+      files: ["**/*.js", "**/*.mjs"],
       languageOptions: {
         ecmaVersion: "latest",
         sourceType: "module",
+      },
+    },
+    {
+      files: ["**/*.jsx"],
+      languageOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+        parserOptions: {
+          ecmaFeatures: { jsx: true },
+        },
       },
     },
     {

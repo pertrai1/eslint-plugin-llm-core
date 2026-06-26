@@ -315,6 +315,39 @@ describe("lint_file with no discoverable ESLint config", () => {
     }
   });
 
+  it("parses JSX syntax in fallback mode without parser errors", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "llmcore-mcp-jsx-"));
+    try {
+      const target = path.join(dir, "component.jsx");
+      await writeFile(
+        target,
+        [
+          "function Greeting({ name }: { name: string }) {",
+          "  return <div>Hello, {name}!</div>;",
+          "}",
+          "",
+        ].join("\n"),
+      );
+
+      const client = await connectClient({
+        projectRoot: dir,
+        fallbackEnabled: true,
+      });
+      const result = (await client.callTool({
+        name: "lint_file",
+        arguments: { path: target },
+      })) as LintToolResult;
+
+      const violations = readViolations(result);
+      // JSX must parse without fatal errors; violations are valid llm-core rules
+      for (const v of violations) {
+        expect(v.ruleId.startsWith("llm-core/")).toBe(true);
+      }
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("does not create config or cache files when fallback mode runs", async () => {
     const dir = await mkdtemp(path.join(tmpdir(), "llmcore-mcp-readonly-"));
     try {

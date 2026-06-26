@@ -34,6 +34,7 @@ interface LintToolResult {
   structuredContent?: {
     source?: unknown;
     violationCount?: unknown;
+    violations?: unknown[];
   };
 }
 
@@ -112,7 +113,7 @@ describe("lint_file tool", () => {
     expect(typeof violation?.message).toBe("string");
     expect(violation?.message.length).toBeGreaterThan(0);
     expect(violation?.source).toBe("project-config");
-    expect((result as LintToolResult).structuredContent).toEqual({
+    expect((result as LintToolResult).structuredContent).toMatchObject({
       source: "project-config",
       violationCount: violations.length,
     });
@@ -262,7 +263,7 @@ describe("lint_file with no discoverable ESLint config", () => {
             "Never leave catch blocks empty — handle, rethrow, or log the error",
         }),
       );
-      expect(result.structuredContent).toEqual({
+      expect(result.structuredContent).toMatchObject({
         source: "fallback",
         violationCount: violations.length,
       });
@@ -283,7 +284,7 @@ describe("lint_file with no discoverable ESLint config", () => {
     })) as LintToolResult;
 
     expect(readViolations(result)).toEqual([]);
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       source: "project-config",
       violationCount: 0,
     });

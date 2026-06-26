@@ -212,6 +212,9 @@ function createFallbackConfig(): FlatConfig[] {
     configs: Record<string, FlatConfig[]>;
   };
   const recommended = llmPlugin.configs.recommended ?? [];
+  const recommendedRules = (
+    recommended[0] as { rules?: Record<string, unknown> } | undefined
+  )?.rules;
 
   return [
     {
@@ -241,6 +244,8 @@ function createFallbackConfig(): FlatConfig[] {
     },
     {
       files: ["**/*.jsx"],
+      plugins: { "llm-core": plugin },
+      rules: recommendedRules,
       languageOptions: {
         ecmaVersion: "latest",
         sourceType: "module",

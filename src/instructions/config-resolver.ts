@@ -199,7 +199,7 @@ export async function resolveActiveRules(
   );
 
   return [...ruleNames]
-    .filter((ruleName) => ruleName in ruleInstructions)
+    .filter((ruleName) => Object.hasOwn(ruleInstructions, ruleName))
     .flatMap((ruleName): ResolvedRule[] => {
       const jsRule = resolveFirstEnabledRuleConfig(
         ruleName,
@@ -216,9 +216,9 @@ export async function resolveActiveRules(
         return [];
       }
 
-      // Safe `!` because the prior `.filter(ruleName => ruleName in ruleInstructions)`
-      // guarantees the key exists at runtime. The assertion avoids an untestable
-      // guard that would degrade statement coverage.
+      // Safe `!` because the prior `Object.hasOwn` check guarantees the key
+      // exists at runtime. The assertion avoids an untestable guard that would
+      // degrade statement coverage.
       const instruction = ruleInstructions[ruleName]!;
 
       if (

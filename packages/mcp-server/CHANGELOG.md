@@ -1,5 +1,13 @@
 # eslint-plugin-llm-core-mcp
 
+## 0.27.1
+
+### Patch Changes
+
+- 5e1069f: Include full violation details in MCP lint_file `structuredContent` so clients
+  that prefer structured responses over text content see the individual
+  what/why/how-to-fix messages alongside the violation count.
+
 ## 0.27.0
 
 ### Minor Changes

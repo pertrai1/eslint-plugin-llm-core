@@ -68,7 +68,7 @@ function isSparseArrayConstructorCall(node: TSESTree.Node): boolean {
       node.callee.type === AST_NODE_TYPES.Identifier &&
       node.callee.name === "Array" &&
       node.arguments.length === 1 &&
-      isSingleLengthArrayArgument(node.arguments[0])
+      isSingleLengthArrayArgument(node.arguments[0]!)
     );
   }
 
@@ -77,7 +77,7 @@ function isSparseArrayConstructorCall(node: TSESTree.Node): boolean {
       node.callee.type === AST_NODE_TYPES.Identifier &&
       node.callee.name === "Array" &&
       node.arguments.length === 1 &&
-      isSingleLengthArrayArgument(node.arguments[0])
+      isSingleLengthArrayArgument(node.arguments[0]!)
     );
   }
 

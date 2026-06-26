@@ -6,7 +6,7 @@ import { mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { isDirectRun } from "../src/server.js";
+import { isDirectRun, isFallbackEnabledFromEnv } from "../src/server.js";
 import { makeTestServer } from "./helpers/make-test-server.js";
 
 /**
@@ -102,6 +102,21 @@ describe("server entrypoint detection", () => {
   it("does not start the server when imported by another module", () => {
     expect(
       isDirectRun("/tmp/importer.js", pathToFileURL("/tmp/server.js").href),
+    ).toBe(false);
+  });
+});
+
+describe("server fallback env configuration", () => {
+  it("enables fallback only for the documented env value", () => {
+    expect(
+      isFallbackEnabledFromEnv({ LLM_CORE_MCP_ENABLE_FALLBACK: "1" }),
+    ).toBe(true);
+    expect(isFallbackEnabledFromEnv({})).toBe(false);
+    expect(
+      isFallbackEnabledFromEnv({ LLM_CORE_MCP_ENABLE_FALLBACK: "true" }),
+    ).toBe(false);
+    expect(
+      isFallbackEnabledFromEnv({ LLM_CORE_MCP_ENABLE_FALLBACK: "0" }),
     ).toBe(false);
   });
 });

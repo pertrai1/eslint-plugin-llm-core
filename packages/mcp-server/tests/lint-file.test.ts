@@ -3,7 +3,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { mkdtemp, writeFile, rm, symlink } from "node:fs/promises";
+import { mkdtemp, readdir, writeFile, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import {
   makeTestServer,
@@ -26,6 +26,15 @@ interface LintViolation {
   severity: number;
   message: string;
   instruction: string | undefined;
+  source: "project-config" | "fallback";
+}
+
+interface LintToolResult {
+  content: Array<{ type: string; text: string }>;
+  structuredContent?: {
+    source?: unknown;
+    violationCount?: unknown;
+  };
 }
 
 const PROJECT_WITH_CONFIG = fileURLToPath(
@@ -49,6 +58,12 @@ const CONFIGURABLE_EXPLICIT_FILE = fileURLToPath(
 const SRC_DIR = fileURLToPath(
   new URL("./fixtures/project-with-config/src", import.meta.url),
 );
+const PRECEDENCE_FILE = fileURLToPath(
+  new URL(
+    "./fixtures/project-with-config/precedence/empty-catch.ts",
+    import.meta.url,
+  ),
+);
 
 const clients: Client[] = [];
 
@@ -69,9 +84,7 @@ async function connectClient(options?: MakeTestServerOptions): Promise<Client> {
   return client;
 }
 
-function readViolations(result: {
-  content: Array<{ type: string; text: string }>;
-}): LintViolation[] {
+function readViolations(result: LintToolResult): LintViolation[] {
   const text = result.content[0].text;
   return JSON.parse(text) as LintViolation[];
 }
@@ -86,9 +99,7 @@ describe("lint_file tool", () => {
     });
 
     expect(result.isError).toBeFalsy();
-    const violations = readViolations(
-      result as { content: Array<{ type: string; text: string }> },
-    );
+    const violations = readViolations(result as LintToolResult);
 
     expect(Array.isArray(violations)).toBe(true);
     const violation = violations.find(
@@ -100,6 +111,11 @@ describe("lint_file tool", () => {
     expect(violation?.severity).toBe(2);
     expect(typeof violation?.message).toBe("string");
     expect(violation?.message.length).toBeGreaterThan(0);
+    expect(violation?.source).toBe("project-config");
+    expect((result as LintToolResult).structuredContent).toEqual({
+      source: "project-config",
+      violationCount: violations.length,
+    });
     // Instruction must be attached and carry the rule's guidance verbatim.
     expect(violation?.instruction).toBe(
       "Never leave catch blocks empty — handle, rethrow, or log the error",
@@ -208,6 +224,156 @@ describe("lint_file with no discoverable ESLint config", () => {
       await rm(dir, { recursive: true, force: true });
     }
   });
+
+  it("runs fallback linting when fallback mode is enabled", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "llmcore-mcp-fallback-"));
+    try {
+      const target = path.join(dir, "foo.ts");
+      await writeFile(
+        target,
+        [
+          "try {",
+          '  throw new Error("boom");',
+          "} catch (error) {",
+          "}",
+          "",
+        ].join("\n"),
+      );
+
+      const client = await connectClient({
+        projectRoot: dir,
+        fallbackEnabled: true,
+      });
+      const result = (await client.callTool({
+        name: "lint_file",
+        arguments: { path: target },
+      })) as LintToolResult;
+
+      const violations = readViolations(result);
+      const violation = violations.find(
+        (v) => v.ruleId === "llm-core/no-empty-catch",
+      );
+
+      expect(violation).toEqual(
+        expect.objectContaining({
+          ruleId: "llm-core/no-empty-catch",
+          source: "fallback",
+          instruction:
+            "Never leave catch blocks empty — handle, rethrow, or log the error",
+        }),
+      );
+      expect(result.structuredContent).toEqual({
+        source: "fallback",
+        violationCount: violations.length,
+      });
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("uses the project config instead of fallback when both are available", async () => {
+    const client = await connectClient({
+      projectRoot: PROJECT_WITH_CONFIG,
+      fallbackEnabled: true,
+    });
+
+    const result = (await client.callTool({
+      name: "lint_file",
+      arguments: { path: PRECEDENCE_FILE },
+    })) as LintToolResult;
+
+    expect(readViolations(result)).toEqual([]);
+    expect(result.structuredContent).toEqual({
+      source: "project-config",
+      violationCount: 0,
+    });
+  });
+
+  it("parses TypeScript syntax in fallback mode", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "llmcore-mcp-ts-"));
+    try {
+      const target = path.join(dir, "types.ts");
+      await writeFile(target, "const values: Array<any> = [];\n");
+
+      const client = await connectClient({
+        projectRoot: dir,
+        fallbackEnabled: true,
+      });
+      const result = (await client.callTool({
+        name: "lint_file",
+        arguments: { path: target },
+      })) as LintToolResult;
+
+      expect(readViolations(result)).toEqual([
+        expect.objectContaining({
+          ruleId: "llm-core/no-any-in-generic",
+          source: "fallback",
+        }),
+      ]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("parses JSX syntax in fallback mode without parser errors", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "llmcore-mcp-jsx-"));
+    try {
+      const target = path.join(dir, "component.jsx");
+      await writeFile(
+        target,
+        [
+          "function Greeting({ name }: { name: string }) {",
+          "  return <div>Hello, {name}!</div>;",
+          "}",
+          "",
+        ].join("\n"),
+      );
+
+      const client = await connectClient({
+        projectRoot: dir,
+        fallbackEnabled: true,
+      });
+      const result = (await client.callTool({
+        name: "lint_file",
+        arguments: { path: target },
+      })) as LintToolResult;
+
+      const violations = readViolations(result);
+      // JSX must parse without fatal errors; violations are valid llm-core rules
+      for (const v of violations) {
+        expect(v.ruleId.startsWith("llm-core/")).toBe(true);
+      }
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("does not create config or cache files when fallback mode runs", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "llmcore-mcp-readonly-"));
+    try {
+      const target = path.join(dir, "foo.ts");
+      await writeFile(target, "try {} catch (error) {}\n");
+
+      const client = await connectClient({
+        projectRoot: dir,
+        fallbackEnabled: true,
+      });
+      const before = await readdir(dir);
+      const result = (await client.callTool({
+        name: "lint_file",
+        arguments: { path: target },
+      })) as LintToolResult;
+      const after = await readdir(dir);
+
+      expect(before).toEqual(["foo.ts"]);
+      expect(readViolations(result)).toEqual([
+        expect.objectContaining({ source: "fallback" }),
+      ]);
+      expect(after).toEqual(["foo.ts"]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe("lint_file path sandboxing", () => {
@@ -231,6 +397,23 @@ describe("lint_file path sandboxing", () => {
 
   it("rejects an absolute path outside the project root", async () => {
     const result = await callWithPath("/etc/hosts");
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text.toLowerCase()).toContain("project root");
+  });
+
+  it("rejects an absolute path outside the project root before fallback can run", async () => {
+    const client = await connectClient({
+      projectRoot: PROJECT_WITH_CONFIG,
+      fallbackEnabled: true,
+    });
+    const result = (await client.callTool({
+      name: "lint_file",
+      arguments: { path: "/etc/hosts" },
+    })) as {
+      isError?: boolean;
+      content: Array<{ type: string; text: string }>;
+    };
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text.toLowerCase()).toContain("project root");

@@ -1,6 +1,7 @@
 import path from "node:path";
 import { readdir, realpath, stat } from "node:fs/promises";
 import { loadESLint } from "eslint";
+import tsParser from "@typescript-eslint/parser";
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 // ESM importing the CJS plugin's ./instructions subpath via interop.
@@ -36,9 +37,9 @@ const SKIPPED_DIRECTORIES = new Set([
 const NO_CONFIG_MESSAGE = [
   "No ESLint configuration was discovered for this path.",
   "",
-  "lint_file lints using your project's own ESLint config; in v1 it does not",
-  "fall back to a built-in config. To use it, install and configure",
-  "eslint-plugin-llm-core in your project:",
+  "lint_file lints using your project's own ESLint config by default. To use",
+  "project-config findings, install and configure eslint-plugin-llm-core in",
+  "your project:",
   "",
   "  npm install --save-dev eslint eslint-plugin-llm-core",
   "",
@@ -46,6 +47,9 @@ const NO_CONFIG_MESSAGE = [
   "",
   '  import llmCore from "eslint-plugin-llm-core";',
   "  export default [...llmCore.configs.recommended];",
+  "",
+  "Alternatively, start the MCP server with LLM_CORE_MCP_ENABLE_FALLBACK=1 to",
+  'enable read-only fallback findings labeled with source: "fallback".',
 ].join("\n");
 
 function isNoConfigError(error: unknown): boolean {
@@ -123,6 +127,12 @@ export interface LintFileOptions {
    * {@link DEFAULT_MAX_FILES}.
    */
   maxFiles?: number;
+  /**
+   * Enables a transient zero-config fallback when no project ESLint config is
+   * discoverable. Disabled by default so v1 project-config behavior remains the
+   * default contract.
+   */
+  fallbackEnabled?: boolean;
 }
 
 interface LintViolation {
@@ -132,6 +142,7 @@ interface LintViolation {
   severity: number;
   message: string;
   instruction: string | undefined;
+  source: LintSource;
 }
 
 interface FlatLintMessage {
@@ -158,7 +169,13 @@ interface FlatESLintInstance {
 
 type FlatESLintConstructor = new (options?: {
   cwd?: string;
+  overrideConfigFile?: true;
+  overrideConfig?: FlatConfig[];
 }) => FlatESLintInstance;
+
+type LintSource = "project-config" | "fallback";
+
+type FlatConfig = Record<string, unknown>;
 
 const inputSchema = {
   path: z
@@ -166,14 +183,86 @@ const inputSchema = {
     .describe("Path to a file or directory to lint, within the project root"),
 };
 
-async function createFlatESLint(cwd: string): Promise<FlatESLintInstance> {
+async function newFlatESLint(
+  opts: { cwd: string } & Record<string, unknown>,
+): Promise<FlatESLintInstance> {
   // ESLint's exported types do not surface the flat-config overload; the cast
   // matches the runtime shape (mirrors src/instructions/config-resolver.ts).
   const loadFlatESLint = loadESLint as unknown as (options: {
     useFlatConfig: boolean;
   }) => Promise<FlatESLintConstructor>;
   const ESLint = await loadFlatESLint({ useFlatConfig: true });
-  return new ESLint({ cwd });
+  return new ESLint(opts);
+}
+
+async function createFlatESLint(cwd: string): Promise<FlatESLintInstance> {
+  return newFlatESLint({ cwd });
+}
+
+async function createFallbackESLint(cwd: string): Promise<FlatESLintInstance> {
+  return newFlatESLint({
+    cwd,
+    overrideConfigFile: true,
+    overrideConfig: createFallbackConfig(),
+  });
+}
+
+function createFallbackConfig(): FlatConfig[] {
+  const llmPlugin = plugin as unknown as {
+    configs: Record<string, FlatConfig[]>;
+  };
+  const recommended = llmPlugin.configs.recommended ?? [];
+  const recommendedRules = (
+    recommended[0] as { rules?: Record<string, unknown> } | undefined
+  )?.rules;
+
+  return [
+    {
+      ignores: [
+        "**/node_modules/**",
+        "**/.git/**",
+        "**/dist/**",
+        "**/coverage/**",
+      ],
+    },
+    {
+      files: ["**/*.ts", "**/*.tsx"],
+      languageOptions: {
+        parser: tsParser,
+        parserOptions: {
+          ecmaVersion: "latest",
+          sourceType: "module",
+        },
+      },
+    },
+    {
+      files: ["**/*.js", "**/*.mjs"],
+      languageOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    {
+      files: ["**/*.jsx"],
+      plugins: { "llm-core": plugin },
+      rules: recommendedRules,
+      languageOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+        parserOptions: {
+          ecmaFeatures: { jsx: true },
+        },
+      },
+    },
+    {
+      files: ["**/*.cjs"],
+      languageOptions: {
+        ecmaVersion: "latest",
+        sourceType: "commonjs",
+      },
+    },
+    ...recommended,
+  ];
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -211,6 +300,7 @@ function resolveRuleOptions(
 async function toViolations(
   results: FlatLintResult[],
   eslint: FlatESLintInstance,
+  source: LintSource,
 ): Promise<LintViolation[]> {
   const violations: LintViolation[] = [];
 
@@ -239,6 +329,7 @@ async function toViolations(
         severity: message.severity,
         message: message.message,
         instruction: getRuleInstruction(ruleId, options),
+        source,
       });
     }
   }
@@ -252,14 +343,16 @@ export function registerLintFile(
 ): void {
   const projectRoot = path.resolve(options.projectRoot ?? process.cwd());
   const maxFiles = options.maxFiles ?? DEFAULT_MAX_FILES;
+  const fallbackEnabled = options.fallbackEnabled === true;
 
   server.registerTool(
     "lint_file",
     {
       title: "Lint a File for llm-core Violations",
       description:
-        "Lints a file (or directory) with the project's own ESLint config and " +
-        "returns each eslint-plugin-llm-core violation with its what/why/how-to-fix " +
+        "Lints a file (or directory) with the project's own ESLint config, " +
+        "or the opt-in read-only fallback when no config is found, and returns " +
+        "each eslint-plugin-llm-core violation with its what/why/how-to-fix " +
         "instruction attached. Call after editing a file to self-correct.",
       inputSchema,
     },
@@ -326,6 +419,32 @@ export function registerLintFile(
         results = await eslint.lintFiles([absoluteTarget]);
       } catch (error) {
         if (isNoConfigError(error)) {
+          if (fallbackEnabled) {
+            const fallbackEslint = await createFallbackESLint(projectRoot);
+            const fallbackResults = await fallbackEslint.lintFiles([
+              absoluteTarget,
+            ]);
+            const source = "fallback";
+            const violations = await toViolations(
+              fallbackResults,
+              fallbackEslint,
+              source,
+            );
+
+            return {
+              structuredContent: {
+                source,
+                violationCount: violations.length,
+              },
+              content: [
+                {
+                  type: "text" as const,
+                  text: JSON.stringify(violations, null, 2),
+                },
+              ],
+            };
+          }
+
           return {
             content: [{ type: "text" as const, text: NO_CONFIG_MESSAGE }],
           };
@@ -333,9 +452,14 @@ export function registerLintFile(
         throw error;
       }
 
-      const violations = await toViolations(results, eslint);
+      const source = "project-config";
+      const violations = await toViolations(results, eslint, source);
 
       return {
+        structuredContent: {
+          source,
+          violationCount: violations.length,
+        },
         content: [
           { type: "text" as const, text: JSON.stringify(violations, null, 2) },
         ],

@@ -84,7 +84,7 @@ export default createRule<[], MessageIds>({
           return;
         }
 
-        const [firstArg] = args;
+        const firstArg = args[0]!;
         if (
           firstArg.type === AST_NODE_TYPES.Identifier &&
           firstArg.name === "undefined"

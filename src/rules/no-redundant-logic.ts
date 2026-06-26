@@ -58,7 +58,7 @@ function alternateIsSimple(alternate: TSESTree.Statement): boolean {
   if (
     alternate.type === AST_NODE_TYPES.BlockStatement &&
     alternate.body.length === 1 &&
-    isReturnOrThrow(alternate.body[0])
+    isReturnOrThrow(alternate.body[0]!)
   ) {
     return true;
   }
@@ -216,7 +216,7 @@ export default createRule<[], MessageIds>({
           {
             messageId: "unnecessaryElseSuggest",
             fix(fixer) {
-              const line = sourceCode.lines[node.loc.start.line - 1];
+              const line = sourceCode.lines[node.loc.start.line - 1] ?? "";
               const leadingWhitespace = line.match(/^\s*/)?.[0] ?? "";
               const ifIndent =
                 leadingWhitespace.length >= node.loc.start.column
@@ -227,7 +227,7 @@ export default createRule<[], MessageIds>({
 
               let innerText: string;
               if (alternate.type === AST_NODE_TYPES.BlockStatement) {
-                innerText = sourceCode.getText(alternate.body[0]);
+                innerText = sourceCode.getText(alternate.body[0]!);
               } else {
                 innerText = sourceCode.getText(alternate);
               }
@@ -291,7 +291,7 @@ export default createRule<[], MessageIds>({
         branch.type === AST_NODE_TYPES.BlockStatement &&
         branch.body.length === 1
       ) {
-        return branch.body[0];
+        return branch.body[0] ?? null;
       }
       if (branch.type !== AST_NODE_TYPES.BlockStatement) return branch;
       return null;

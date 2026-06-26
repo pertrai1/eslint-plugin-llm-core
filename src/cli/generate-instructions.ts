@@ -20,7 +20,9 @@ async function main(): Promise<void> {
     }
   }
 
-  const result = await generateInstructions({ configPath });
+  const result = await generateInstructions(
+    configPath ? { configPath } : undefined,
+  );
 
   if (dryRun) {
     process.stdout.write(result.content);

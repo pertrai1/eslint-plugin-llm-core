@@ -20,7 +20,7 @@ export const server = new McpServer({
 
 // Tools
 registerGetActiveInstructions(server);
-registerLintFile(server);
+registerLintFile(server, { fallbackEnabled: isFallbackEnabledFromEnv() });
 
 // Resources
 registerRuleResources(server);
@@ -50,6 +50,12 @@ export function isDirectRun(
     realPathOrResolved(entryPoint) ===
     realPathOrResolved(fileURLToPath(moduleUrl))
   );
+}
+
+export function isFallbackEnabledFromEnv(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  return env.LLM_CORE_MCP_ENABLE_FALLBACK === "1";
 }
 
 // Only start when run directly (not imported in tests).

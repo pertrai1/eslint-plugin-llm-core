@@ -335,10 +335,32 @@ Register it with an MCP-capable client:
 ```
 
 The server exposes `lint_file`, `get_active_instructions`,
-`llm-core://rules`, and `llm-core://rules/{ruleName}`. `lint_file` uses the
-target project's discovered ESLint flat config. In v1 it does not provide a
-built-in fallback config, so the target project must already install and
-configure `eslint-plugin-llm-core`.
+`llm-core://rules`, and `llm-core://rules/{ruleName}`. `lint_file` first uses
+the target project's discovered ESLint flat config and labels those findings
+with `source: "project-config"`.
+
+Repos without an ESLint config can opt in to a transient zero-config fallback by
+setting `LLM_CORE_MCP_ENABLE_FALLBACK=1` in the MCP server environment:
+
+```json
+{
+  "mcpServers": {
+    "llm-core": {
+      "command": "npx",
+      "args": ["-y", "eslint-plugin-llm-core-mcp"],
+      "env": {
+        "LLM_CORE_MCP_ENABLE_FALLBACK": "1"
+      }
+    }
+  }
+}
+```
+
+Fallback mode only runs when no project config is discoverable. It uses the
+bundled recommended `llm-core` rules and TypeScript parser, labels findings with
+`source: "fallback"`, and remains read-only: no file edits, generated config, or
+ESLint cache. Fallback findings may include rules the project has not opted into;
+configure the plugin in the project when results must match CI/editor lint.
 
 Manual smoke check after build:
 

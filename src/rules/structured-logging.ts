@@ -116,7 +116,7 @@ export default createRule<Options, MessageIds>({
     ): TSESTree.Node | null {
       if (node.arguments.length === 0) return null;
 
-      const firstArg = node.arguments[0];
+      const firstArg = node.arguments[0]!;
 
       // For logException(error, message, ...) patterns, check second arg
       // if first arg is an identifier (the error object)
@@ -126,7 +126,7 @@ export default createRule<Options, MessageIds>({
         callee.name === "logException" &&
         node.arguments.length >= 2
       ) {
-        return node.arguments[1];
+        return node.arguments[1]!;
       }
 
       return firstArg;

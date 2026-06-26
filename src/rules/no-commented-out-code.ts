@@ -82,7 +82,7 @@ export default createRule<[], MessageIds>({
         const processed = new Set<(typeof comments)[number]>();
 
         for (let i = 0; i < comments.length; i++) {
-          const comment = comments[i];
+          const comment = comments[i]!;
           if (processed.has(comment)) continue;
           processed.add(comment);
 
@@ -103,7 +103,8 @@ export default createRule<[], MessageIds>({
             let j = i + 1;
             while (j < comments.length) {
               const next = comments[j];
-              const prev = group[group.length - 1];
+              if (!next) break;
+              const prev = group[group.length - 1]!;
               if (
                 next.type === "Line" &&
                 next.loc.start.line === prev.loc.end.line + 1
@@ -118,10 +119,12 @@ export default createRule<[], MessageIds>({
 
             const groupText = group.map((c) => c.value).join("\n");
             if (containsCode(groupText)) {
+              const firstLoc = group[0]!.loc;
+              const lastLoc = group[group.length - 1]!.loc;
               context.report({
                 loc: {
-                  start: group[0].loc.start,
-                  end: group[group.length - 1].loc.end,
+                  start: firstLoc.start,
+                  end: lastLoc.end,
                 },
                 messageId: "noCommentedOutCode",
               });

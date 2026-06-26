@@ -435,6 +435,7 @@ export function registerLintFile(
               structuredContent: {
                 source,
                 violationCount: violations.length,
+                violations,
               },
               content: [
                 {
@@ -459,6 +460,7 @@ export function registerLintFile(
         structuredContent: {
           source,
           violationCount: violations.length,
+          violations,
         },
         content: [
           { type: "text" as const, text: JSON.stringify(violations, null, 2) },

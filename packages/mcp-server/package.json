@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-llm-core-mcp",
-  "version": "0.27.0",
+  "version": "0.27.1",
   "description": "MCP server for just-in-time linting guidance from eslint-plugin-llm-core",
   "license": "MIT",
   "repository": {

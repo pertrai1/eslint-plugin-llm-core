@@ -86,7 +86,6 @@
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.106.0",
-    "@changesets/changelog-github": "^0.7.0",
     "@changesets/cli": "^2.27.0",
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",

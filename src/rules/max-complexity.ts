@@ -138,9 +138,7 @@ export default createRule<Options, MessageIds>({
           key.expressions.length === 0 &&
           key.quasis.length === 1
         ) {
-          const quasi = key.quasis[0];
-          if (!quasi) return null;
-          return quasi.value.cooked;
+          return key.quasis[0]!.value.cooked;
         }
         // Dynamic computed key: { [expr]() {} }
         return null;

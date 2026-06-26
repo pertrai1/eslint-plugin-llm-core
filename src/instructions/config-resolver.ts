@@ -216,13 +216,10 @@ export async function resolveActiveRules(
         return [];
       }
 
-      // Guard required for `noUncheckedIndexedAccess` — the prior
-      // `.filter(ruleName => ruleName in ruleInstructions)` guarantees
-      // the key exists at runtime.
-      const instruction = ruleInstructions[ruleName];
-      if (!instruction) {
-        return [];
-      }
+      // Safe `!` because the prior `.filter(ruleName => ruleName in ruleInstructions)`
+      // guarantees the key exists at runtime. The assertion avoids an untestable
+      // guard that would degrade statement coverage.
+      const instruction = ruleInstructions[ruleName]!;
 
       if (
         enabledInJs &&

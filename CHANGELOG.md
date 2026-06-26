@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.27.0
+
+### Minor Changes
+
+- 969fb47: Add opt-in MCP server zero-config fallback mode via `LLM_CORE_MCP_ENABLE_FALLBACK=1`, with explicit project-config versus fallback source labeling.
+
 ## 0.26.0
 
 ### Minor Changes

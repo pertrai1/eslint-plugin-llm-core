@@ -113,9 +113,17 @@ describe("lint_file tool", () => {
     expect(typeof violation?.message).toBe("string");
     expect(violation?.message.length).toBeGreaterThan(0);
     expect(violation?.source).toBe("project-config");
-    expect((result as LintToolResult).structuredContent).toMatchObject({
+    const sc = (result as LintToolResult).structuredContent!;
+    expect(sc).toMatchObject({
       source: "project-config",
       violationCount: violations.length,
+    });
+    expect(sc.violations).toHaveLength(violations.length);
+    expect(sc.violations![0] as LintViolation).toMatchObject({
+      ruleId: "llm-core/no-empty-catch",
+      severity: 2,
+      instruction:
+        "Never leave catch blocks empty — handle, rethrow, or log the error",
     });
     // Instruction must be attached and carry the rule's guidance verbatim.
     expect(violation?.instruction).toBe(
@@ -267,6 +275,17 @@ describe("lint_file with no discoverable ESLint config", () => {
         source: "fallback",
         violationCount: violations.length,
       });
+      expect(result.structuredContent!.violations).toHaveLength(
+        violations.length,
+      );
+      expect(
+        result.structuredContent!.violations![0] as LintViolation,
+      ).toMatchObject({
+        ruleId: "llm-core/no-empty-catch",
+        source: "fallback",
+        instruction:
+          "Never leave catch blocks empty — handle, rethrow, or log the error",
+      });
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -288,6 +307,7 @@ describe("lint_file with no discoverable ESLint config", () => {
       source: "project-config",
       violationCount: 0,
     });
+    expect(result.structuredContent!.violations).toEqual([]);
   });
 
   it("parses TypeScript syntax in fallback mode", async () => {

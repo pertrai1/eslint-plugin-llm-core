@@ -26,6 +26,8 @@ const packageWithoutOptionalPath = path.join(
   fixtureRoot,
   "package-without-optional.json",
 );
+const invalidPackageJsonPath = path.join(fixtureRoot, "invalid-package.txt");
+const missingPackageJsonPath = path.join(fixtureRoot, "missing-package.json");
 
 ruleTester.run("no-hallucinated-package-imports", rule, {
   valid: [
@@ -43,6 +45,20 @@ ruleTester.run("no-hallucinated-package-imports", rule, {
       code: `import { helper } from "./helper";`,
       filename: fixtureFilename,
       options: [{ packageJsonPath }],
+    },
+    {
+      code: `import missing from "made-up-package";`,
+      filename: "<input>",
+    },
+    {
+      code: `import missing from "made-up-package";`,
+      filename: fixtureFilename,
+      options: [{ packageJsonPath: missingPackageJsonPath }],
+    },
+    {
+      code: `import missing from "made-up-package";`,
+      filename: fixtureFilename,
+      options: [{ packageJsonPath: invalidPackageJsonPath }],
     },
     {
       code: `import leftPad from "left-pad";`,
@@ -135,6 +151,11 @@ ruleTester.run("no-hallucinated-package-imports", rule, {
     },
     {
       code: `const mod = require(42);`,
+      filename: fixtureFilename,
+      options: [{ packageJsonPath, checkRequire: true }],
+    },
+    {
+      code: `const resolved = require.resolve("made-up-package");`,
       filename: fixtureFilename,
       options: [{ packageJsonPath, checkRequire: true }],
     },

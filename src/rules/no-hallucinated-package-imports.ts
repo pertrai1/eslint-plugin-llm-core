@@ -274,10 +274,6 @@ function getPackageRoot(source: string): string | null {
 }
 
 function isBuiltinPackage(source: string, packageRoot: string): boolean {
-  if (source.startsWith("node:")) {
-    return true;
-  }
-
   return nodeBuiltins.has(source) || nodeBuiltins.has(packageRoot);
 }
 

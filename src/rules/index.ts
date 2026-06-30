@@ -18,6 +18,7 @@ export { default as "no-empty-catch" } from "./no-empty-catch";
 export { default as "no-exported-function-expressions" } from "./no-exported-function-expressions";
 export { default as "no-floating-promise" } from "./no-floating-promise";
 export { default as "no-hallucinated-local-imports" } from "./no-hallucinated-local-imports";
+export { default as "no-hallucinated-package-imports" } from "./no-hallucinated-package-imports";
 export { default as "no-incorrect-sort" } from "./no-incorrect-sort";
 export { default as "no-inline-disable" } from "./no-inline-disable";
 export { default as "no-llm-artifacts" } from "./no-llm-artifacts";

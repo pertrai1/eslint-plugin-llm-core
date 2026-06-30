@@ -21,7 +21,8 @@ By default, this rule treats these sources as allowed:
 - `peerDependencies`
 - `optionalDependencies`
 - Node.js builtins, including `node:` specifiers
-- workspace package names discovered from simple `workspaces` patterns such as `packages/*`
+- the current package's own `name` for valid package self-references
+- workspace package names discovered from explicit workspace paths and simple workspace glob patterns such as `packages/*`
 - packages listed in the `allow` option
 
 ## Examples
@@ -55,6 +56,12 @@ import { helper } from "./helper";
 
 import internal from "@workspace/internal-package";
 // workspace package names are allowed when workspace discovery is enabled
+
+import selfConfig from "my-package/config";
+// package self-references are allowed when package.json has "name": "my-package"
+
+import localAlias from "@/utils";
+// common @/ path aliases are ignored because they are not valid npm package roots
 ```
 
 ## Options
@@ -74,16 +81,16 @@ type Options = [
 ];
 ```
 
-| Option                      | Default | Description                                                                  |
-| --------------------------- | ------- | ---------------------------------------------------------------------------- |
-| `packageJsonPath`           | nearest | Package manifest to inspect. If omitted, the nearest `package.json` is used. |
-| `workspace`                 | `true`  | Allow workspace package names from simple workspace globs.                   |
-| `allow`                     | `[]`    | Additional exact specifiers or package roots to allow.                       |
-| `checkDevDependencies`      | `true`  | Treat `devDependencies` as allowed. Set to `false` to report them.           |
-| `checkPeerDependencies`     | `true`  | Treat `peerDependencies` as allowed. Set to `false` to report them.          |
-| `checkOptionalDependencies` | `true`  | Treat `optionalDependencies` as allowed. Set to `false` to report them.      |
-| `checkDynamicImports`       | `true`  | Check dynamic `import("literal")` package specifiers.                        |
-| `checkRequire`              | `false` | Check CommonJS `require("literal")` package specifiers.                      |
+| Option                      | Default | Description                                                                   |
+| --------------------------- | ------- | ----------------------------------------------------------------------------- |
+| `packageJsonPath`           | nearest | Package manifest to inspect. If omitted, the nearest `package.json` is used.  |
+| `workspace`                 | `true`  | Allow workspace package names from explicit paths and simple workspace globs. |
+| `allow`                     | `[]`    | Additional exact specifiers or package roots to allow.                        |
+| `checkDevDependencies`      | `true`  | Treat `devDependencies` as allowed. Set to `false` to report them.            |
+| `checkPeerDependencies`     | `true`  | Treat `peerDependencies` as allowed. Set to `false` to report them.           |
+| `checkOptionalDependencies` | `true`  | Treat `optionalDependencies` as allowed. Set to `false` to report them.       |
+| `checkDynamicImports`       | `true`  | Check dynamic `import("literal")` package specifiers.                         |
+| `checkRequire`              | `false` | Check CommonJS `require("literal")` package specifiers.                       |
 
 ## What This Rule Flags
 

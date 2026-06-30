@@ -144,6 +144,10 @@ function getDependencyNames(
     }
   }
 
+  if (typeof packageJson.name === "string") {
+    dependencies.add(packageJson.name);
+  }
+
   for (const allowed of options.allow) {
     dependencies.add(allowed);
   }
@@ -163,19 +167,41 @@ function getWorkspacePatterns(packageJson: PackageJson): string[] {
   return [];
 }
 
+function getDirectoryEntries(dirname: string): string[] {
+  try {
+    return readdirSync(dirname)
+      .map((entry) => path.join(dirname, entry))
+      .filter(isDirectory);
+  } catch {
+    return [];
+  }
+}
+
+function expandWorkspacePattern(rootDir: string, pattern: string): string[] {
+  const segments = pattern.split(/[\\/]+/).filter(Boolean);
+
+  function expand(currentDir: string, index: number): string[] {
+    if (index >= segments.length) {
+      return isDirectory(currentDir) ? [currentDir] : [];
+    }
+
+    const segment = segments[index]!;
+    if (segment === "*") {
+      return getDirectoryEntries(currentDir).flatMap((entry) =>
+        expand(entry, index + 1),
+      );
+    }
+
+    return expand(path.join(currentDir, segment), index + 1);
+  }
+
+  return expand(rootDir, 0);
+}
+
 function getWorkspacePackageDirs(rootDir: string, pattern: string): string[] {
-  if (!pattern.endsWith("/*")) {
-    return [];
-  }
-
-  const parentDir = path.join(rootDir, pattern.slice(0, -2));
-  if (!isDirectory(parentDir)) {
-    return [];
-  }
-
-  return readdirSync(parentDir)
-    .map((entry) => path.join(parentDir, entry))
-    .filter(isDirectory);
+  return expandWorkspacePattern(rootDir, pattern).filter((packageDir) =>
+    isFile(path.join(packageDir, "package.json")),
+  );
 }
 
 function addWorkspacePackageNames(
@@ -265,7 +291,7 @@ function getPackageRoot(source: string): string | null {
 
   if (source.startsWith("@")) {
     const [scope, name] = source.split("/");
-    return scope !== undefined && name !== undefined
+    return scope !== undefined && scope.length > 1 && name !== undefined
       ? `${scope}/${name}`
       : null;
   }

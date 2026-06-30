@@ -100,6 +100,26 @@ ruleTester.run("no-hallucinated-package-imports", rule, {
       options: [{ packageJsonPath }],
     },
     {
+      code: `import selfConfig from "fixture-app/config";`,
+      filename: fixtureFilename,
+      options: [{ packageJsonPath }],
+    },
+    {
+      code: `import explicit from "explicit-lib";`,
+      filename: fixtureFilename,
+      options: [{ packageJsonPath }],
+    },
+    {
+      code: `import nested from "nested-lib";`,
+      filename: fixtureFilename,
+      options: [{ packageJsonPath }],
+    },
+    {
+      code: `import localAlias from "@/utils";`,
+      filename: fixtureFilename,
+      options: [{ packageJsonPath }],
+    },
+    {
       code: `import generated from "virtual:generated-module";`,
       filename: fixtureFilename,
       options: [{ packageJsonPath, allow: ["virtual:generated-module"] }],

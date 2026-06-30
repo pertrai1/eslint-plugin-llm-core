@@ -1,0 +1,19 @@
+{
+  "name": "fixture-app",
+  "dependencies": {
+    "@declared/sdk": "1.0.0",
+    "left-pad": "1.0.0"
+  },
+  "devDependencies": {
+    "vitest": "1.0.0"
+  },
+  "peerDependencies": {
+    "react": "18.0.0"
+  },
+  "optionalDependencies": {
+    "optional-tool": "1.0.0"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}

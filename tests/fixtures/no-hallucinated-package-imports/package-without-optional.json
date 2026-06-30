@@ -1,0 +1,9 @@
+{
+  "name": "fixture-app-without-optional",
+  "dependencies": {
+    "left-pad": "1.0.0"
+  },
+  "optionalDependencies": {
+    "optional-tool": "1.0.0"
+  }
+}

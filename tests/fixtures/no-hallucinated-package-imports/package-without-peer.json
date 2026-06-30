@@ -1,0 +1,9 @@
+{
+  "name": "fixture-app-without-peer",
+  "dependencies": {
+    "left-pad": "1.0.0"
+  },
+  "peerDependencies": {
+    "react": "18.0.0"
+  }
+}

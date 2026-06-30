@@ -47,6 +47,10 @@ ruleTester.run("no-hallucinated-package-imports", rule, {
     {
       code: `import leftPad from "left-pad";`,
       filename: fixtureFilename,
+    },
+    {
+      code: `import leftPad from "left-pad";`,
+      filename: fixtureFilename,
       options: [{ packageJsonPath }],
     },
     {
@@ -85,6 +89,11 @@ ruleTester.run("no-hallucinated-package-imports", rule, {
       options: [{ packageJsonPath, allow: ["virtual:generated-module"] }],
     },
     {
+      code: `import internalMapping from "#internal/mapping";`,
+      filename: fixtureFilename,
+      options: [{ packageJsonPath }],
+    },
+    {
       code: `export { thing } from "left-pad";`,
       filename: fixtureFilename,
       options: [{ packageJsonPath }],
@@ -105,6 +114,11 @@ ruleTester.run("no-hallucinated-package-imports", rule, {
       options: [{ packageJsonPath }],
     },
     {
+      code: `const mod = await import(42);`,
+      filename: fixtureFilename,
+      options: [{ packageJsonPath }],
+    },
+    {
       code: `const mod = await import("made-up-package");`,
       filename: fixtureFilename,
       options: [{ packageJsonPath, checkDynamicImports: false }],
@@ -113,6 +127,16 @@ ruleTester.run("no-hallucinated-package-imports", rule, {
       code: `const mod = require("made-up-package");`,
       filename: fixtureFilename,
       options: [{ packageJsonPath }],
+    },
+    {
+      code: `const mod = require(packageName);`,
+      filename: fixtureFilename,
+      options: [{ packageJsonPath, checkRequire: true }],
+    },
+    {
+      code: `const mod = require(42);`,
+      filename: fixtureFilename,
+      options: [{ packageJsonPath, checkRequire: true }],
     },
   ],
   invalid: [

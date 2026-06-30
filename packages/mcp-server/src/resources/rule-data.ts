@@ -46,6 +46,7 @@ const CATEGORY_CONFIGS: RuleCategory[] = [
 // MCP resource still needs one of the public category labels for every rule.
 const ALL_ONLY_RULE_CATEGORIES: Record<string, RuleCategory> = {
   "no-hallucinated-local-imports": "hygiene",
+  "no-hallucinated-package-imports": "hygiene",
   "no-incorrect-sort": "best-practices",
 };
 

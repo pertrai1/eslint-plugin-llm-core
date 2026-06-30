@@ -75,8 +75,9 @@ describe("plugin configs", () => {
     ).toBe("error");
   });
 
-  it("registers no-hallucinated-local-imports in all config only", () => {
+  it("registers hallucinated import rules in all config only", () => {
     expect(plugin.rules["no-hallucinated-local-imports"]).toBeDefined();
+    expect(plugin.rules["no-hallucinated-package-imports"]).toBeDefined();
 
     const allConfig = plugin.configs.all[0];
     const recommendedConfig = plugin.configs.recommended[0];
@@ -84,8 +85,14 @@ describe("plugin configs", () => {
     expect(allConfig.rules?.["llm-core/no-hallucinated-local-imports"]).toBe(
       "error",
     );
+    expect(allConfig.rules?.["llm-core/no-hallucinated-package-imports"]).toBe(
+      "error",
+    );
     expect(
       recommendedConfig.rules?.["llm-core/no-hallucinated-local-imports"],
+    ).toBeUndefined();
+    expect(
+      recommendedConfig.rules?.["llm-core/no-hallucinated-package-imports"],
     ).toBeUndefined();
   });
 });

@@ -51,6 +51,9 @@ import noEmptyCatchRule, {
 import noExportedFunctionExpressionsRule, {
   instruction as noExportedFunctionExpressions,
 } from "../rules/no-exported-function-expressions";
+import noHallucinatedPackageImportsRule, {
+  instruction as noHallucinatedPackageImports,
+} from "../rules/no-hallucinated-package-imports";
 import noInlineDisableRule, {
   instruction as noInlineDisable,
 } from "../rules/no-inline-disable";
@@ -124,6 +127,7 @@ export const ruleInstructions: Record<string, RuleInstruction> = {
   "no-commented-out-code": noCommentedOutCode,
   "no-empty-catch": noEmptyCatch,
   "no-exported-function-expressions": noExportedFunctionExpressions,
+  "no-hallucinated-package-imports": noHallucinatedPackageImports,
   "no-inline-disable": noInlineDisable,
   "no-llm-artifacts": noLlmArtifacts,
   "no-magic-numbers": noMagicNumbers,
@@ -159,6 +163,9 @@ export const ruleDefaultOptions: Record<string, Record<string, unknown>> = {
   "no-empty-catch": getDefaultOptions(noEmptyCatchRule),
   "no-exported-function-expressions": getDefaultOptions(
     noExportedFunctionExpressionsRule,
+  ),
+  "no-hallucinated-package-imports": getDefaultOptions(
+    noHallucinatedPackageImportsRule,
   ),
   "no-inline-disable": getDefaultOptions(noInlineDisableRule),
   "no-llm-artifacts": getDefaultOptions(noLlmArtifactsRule),

@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.28.0
+
+### Minor Changes
+
+- 87c1131: Add `no-hallucinated-package-imports` to report undeclared package imports, re-exports, dynamic imports, and optional CommonJS requires.
+
 ## 0.27.0
 
 ### Minor Changes

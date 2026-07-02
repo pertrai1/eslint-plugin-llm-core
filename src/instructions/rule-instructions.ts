@@ -72,6 +72,9 @@ import noSwallowedErrorsRule, {
 import noTypeAssertionAnyRule, {
   instruction as noTypeAssertionAny,
 } from "../rules/no-type-assertion-any";
+import noUnboundedPromiseAllRule, {
+  instruction as noUnboundedPromiseAll,
+} from "../rules/no-unbounded-promise-all";
 import preferEarlyReturnRule, {
   instruction as preferEarlyReturn,
 } from "../rules/prefer-early-return";
@@ -134,6 +137,7 @@ export const ruleInstructions: Record<string, RuleInstruction> = {
   "no-redundant-logic": noRedundantLogic,
   "no-swallowed-errors": noSwallowedErrors,
   "no-type-assertion-any": noTypeAssertionAny,
+  "no-unbounded-promise-all": noUnboundedPromiseAll,
   "prefer-early-return": preferEarlyReturn,
   "prefer-nullish-coalescing": preferNullishCoalescing,
   "prefer-unknown-in-catch": preferUnknownInCatch,
@@ -173,6 +177,7 @@ export const ruleDefaultOptions: Record<string, Record<string, unknown>> = {
   "no-redundant-logic": getDefaultOptions(noRedundantLogicRule),
   "no-swallowed-errors": getDefaultOptions(noSwallowedErrorsRule),
   "no-type-assertion-any": getDefaultOptions(noTypeAssertionAnyRule),
+  "no-unbounded-promise-all": getDefaultOptions(noUnboundedPromiseAllRule),
   "prefer-early-return": getDefaultOptions(preferEarlyReturnRule),
   "prefer-nullish-coalescing": getDefaultOptions(preferNullishCoalescingRule),
   "prefer-unknown-in-catch": getDefaultOptions(preferUnknownInCatchRule),

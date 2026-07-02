@@ -50,6 +50,33 @@ ruleTester.run("no-unbounded-promise-all", rule, {
       await Promise.all([1, 2, 3].map((id) => fetchUser(id)));
     }`,
 
+    // Array.from({ length }) creates a bounded fixed-size collection.
+    `async function run(count: number) {
+      await Promise.all(Array.from({ length: count }).map((_, index) => fetchPage(index)));
+    }`,
+
+    // Batching can also use an existing loop variable.
+    `async function sendAll(users: User[]) {
+      let batch;
+      for (batch of chunks(users, 10)) {
+        await Promise.all(batch.map((user) => sendEmail(user)));
+      }
+    }`,
+
+    // Block-bodied limiter callbacks are still explicitly bounded.
+    `async function sendAll(users: User[]) {
+      const limit = pLimit(5);
+      await Promise.all(users.map((user) => {
+        const email = user.email;
+        return limit(() => sendEmail(email));
+      }));
+    }`,
+
+    // Unresolved identifiers are outside this rule's narrow syntactic scope.
+    `async function run() {
+      await Promise.all(jobs);
+    }`,
+
     // Non-array Promise.all inputs are outside the rule's narrow syntactic scope.
     `async function run(promises: Promise<string>[]) {
       return Promise.all(promises);
@@ -94,6 +121,26 @@ ruleTester.run("no-unbounded-promise-all", rule, {
       code: `async function sendAll(users: User[]) {
         const jobs = users.map((user) => sendEmail(user));
         await Promise.all(jobs);
+      }`,
+      errors: [{ messageId: "noUnboundedPromiseAll" as const }],
+    },
+
+    // Deferred map variables should resolve through an inner scope.
+    {
+      code: `function schedule(users: User[]) {
+        const jobs = users.map((user) => sendEmail(user));
+        async function flush() {
+          await Promise.all(jobs);
+        }
+        return flush;
+      }`,
+      errors: [{ messageId: "noUnboundedPromiseAll" as const }],
+    },
+
+    // Function references are not limiters unless wrapped explicitly.
+    {
+      code: `async function sendAll(users: User[]) {
+        await Promise.all(users.map(sendEmail));
       }`,
       errors: [{ messageId: "noUnboundedPromiseAll" as const }],
     },

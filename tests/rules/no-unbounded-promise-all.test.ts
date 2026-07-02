@@ -63,6 +63,15 @@ ruleTester.run("no-unbounded-promise-all", rule, {
       }
     }`,
 
+    // Nested loops should still recognize a map source from an outer bounded batch.
+    `async function sendAll(users: User[], queues: Queue[]) {
+      for (const batch of chunks(users, 10)) {
+        for (const queue of queues) {
+          await Promise.all(batch.map((user) => queue.send(user)));
+        }
+      }
+    }`,
+
     // Block-bodied limiter callbacks are still explicitly bounded.
     `async function sendAll(users: User[]) {
       const limit = pLimit(5);

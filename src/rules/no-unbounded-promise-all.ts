@@ -133,9 +133,12 @@ function isForOfLoopVariable(identifier: TSESTree.Identifier): boolean {
         return true;
       }
 
-      return (
-        left.type === AST_NODE_TYPES.Identifier && left.name === identifier.name
-      );
+      if (
+        left.type === AST_NODE_TYPES.Identifier &&
+        left.name === identifier.name
+      ) {
+        return true;
+      }
     }
 
     current = current.parent;

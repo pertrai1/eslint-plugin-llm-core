@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.29.0
+
+### Minor Changes
+
+- 6089e32: Add `no-unbounded-promise-all` to catch unbounded Promise fan-out over arbitrary collections.
+
 ## 0.28.0
 
 ### Minor Changes

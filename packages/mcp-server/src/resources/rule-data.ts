@@ -48,6 +48,7 @@ const ALL_ONLY_RULE_CATEGORIES: Record<string, RuleCategory> = {
   "no-hallucinated-local-imports": "hygiene",
   "no-hallucinated-package-imports": "hygiene",
   "no-incorrect-sort": "best-practices",
+  "no-unbounded-promise-all": "best-practices",
 };
 
 function bareRuleId(ruleId: string): string {

@@ -125,6 +125,39 @@ ruleTester.run("no-unbounded-promise-all", rule, {
       errors: [{ messageId: "noUnboundedPromiseAll" as const }],
     },
 
+    // Array literals with spread sources still represent unbounded collection fan-out.
+    {
+      code: `async function hydrate(ids: string[]) {
+        await Promise.all([...ids].map((id) => fetchUser(id)));
+      }`,
+      errors: [{ messageId: "noUnboundedPromiseAll" as const }],
+    },
+
+    // TypeScript assertion wrappers around the argument should not hide fan-out.
+    {
+      code: `async function sendAll(users: User[]) {
+        await Promise.all(users.map((user) => sendEmail(user)) as Promise<void>[]);
+      }`,
+      errors: [{ messageId: "noUnboundedPromiseAll" as const }],
+    },
+
+    // TypeScript satisfies wrappers around the argument should not hide fan-out.
+    {
+      code: `async function sendAll(users: User[]) {
+        await Promise.all(users.map((user) => sendEmail(user)) satisfies Promise<void>[]);
+      }`,
+      errors: [{ messageId: "noUnboundedPromiseAll" as const }],
+    },
+
+    // Deferred map initializers can also be hidden behind TypeScript wrappers.
+    {
+      code: `async function sendAll(users: User[]) {
+        const jobs = users.map((user) => sendEmail(user)) as Promise<void>[];
+        await Promise.all(jobs);
+      }`,
+      errors: [{ messageId: "noUnboundedPromiseAll" as const }],
+    },
+
     // Deferred map variables should still be reported when consumed later.
     {
       code: `async function sendAll(users: User[]) {

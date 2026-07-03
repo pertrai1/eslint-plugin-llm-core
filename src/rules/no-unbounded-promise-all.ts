@@ -97,19 +97,37 @@ function unwrapCallbackBody(
   return undefined;
 }
 
+function unwrapTransparentExpression(node: TSESTree.Node): TSESTree.Node {
+  let current = node;
+
+  while (
+    current.type === AST_NODE_TYPES.ChainExpression ||
+    current.type === AST_NODE_TYPES.TSAsExpression ||
+    current.type === AST_NODE_TYPES.TSNonNullExpression ||
+    current.type === AST_NODE_TYPES.TSSatisfiesExpression ||
+    current.type === AST_NODE_TYPES.TSTypeAssertion
+  ) {
+    current = current.expression;
+  }
+
+  return current;
+}
+
 function isLimiterCall(node: TSESTree.Node | undefined): boolean {
   if (!node) return false;
 
-  if (node.type === AST_NODE_TYPES.CallExpression) {
+  const expression = unwrapTransparentExpression(node);
+
+  if (expression.type === AST_NODE_TYPES.CallExpression) {
     return (
-      node.callee.type === AST_NODE_TYPES.Identifier &&
-      LIMITER_NAMES.has(node.callee.name)
+      expression.callee.type === AST_NODE_TYPES.Identifier &&
+      LIMITER_NAMES.has(expression.callee.name)
     );
   }
 
-  if (node.type !== AST_NODE_TYPES.BlockStatement) return false;
+  if (expression.type !== AST_NODE_TYPES.BlockStatement) return false;
 
-  return node.body.some(
+  return expression.body.some(
     (statement) =>
       statement.type === AST_NODE_TYPES.ReturnStatement &&
       isLimiterCall(statement.argument ?? undefined),
@@ -148,31 +166,48 @@ function isForOfLoopVariable(identifier: TSESTree.Identifier): boolean {
 }
 
 function isBoundedMapSource(node: TSESTree.Node): boolean {
-  if (node.type === AST_NODE_TYPES.ArrayExpression) return true;
-  if (isArrayFromLengthObject(node)) return true;
-  if (node.type === AST_NODE_TYPES.Identifier && isForOfLoopVariable(node)) {
+  const expression = unwrapTransparentExpression(node);
+
+  if (expression.type === AST_NODE_TYPES.ArrayExpression) {
+    return expression.elements.every(
+      (element) => element?.type !== AST_NODE_TYPES.SpreadElement,
+    );
+  }
+
+  if (isArrayFromLengthObject(expression)) return true;
+  if (
+    expression.type === AST_NODE_TYPES.Identifier &&
+    isForOfLoopVariable(expression)
+  ) {
     return true;
   }
 
   return false;
 }
 
-function isMapCall(node: TSESTree.Node): node is TSESTree.CallExpression {
-  return (
-    node.type === AST_NODE_TYPES.CallExpression &&
-    node.callee.type === AST_NODE_TYPES.MemberExpression &&
-    getStaticPropertyName(node.callee) === "map"
-  );
+function getMapCall(node: TSESTree.Node): TSESTree.CallExpression | null {
+  const expression = unwrapTransparentExpression(node);
+
+  if (
+    expression.type === AST_NODE_TYPES.CallExpression &&
+    expression.callee.type === AST_NODE_TYPES.MemberExpression &&
+    getStaticPropertyName(expression.callee) === "map"
+  ) {
+    return expression;
+  }
+
+  return null;
 }
 
 function isUnboundedMapCall(node: TSESTree.Node): boolean {
-  if (!isMapCall(node)) return false;
-  if (node.callee.type !== AST_NODE_TYPES.MemberExpression) return false;
+  const mapCall = getMapCall(node);
+  if (!mapCall) return false;
+  if (mapCall.callee.type !== AST_NODE_TYPES.MemberExpression) return false;
 
-  const source = node.callee.object;
+  const source = unwrapTransparentExpression(mapCall.callee.object);
   if (isBoundedMapSource(source)) return false;
 
-  const callbackBody = unwrapCallbackBody(node.arguments[0]);
+  const callbackBody = unwrapCallbackBody(mapCall.arguments[0]);
   return !isLimiterCall(callbackBody);
 }
 
@@ -235,11 +270,13 @@ export default createRule<[], MessageIds>({
   defaultOptions: [],
   create(context) {
     function isUnboundedPromiseArgument(argument: TSESTree.Node): boolean {
-      if (isUnboundedMapCall(argument)) return true;
+      const expression = unwrapTransparentExpression(argument);
 
-      if (argument.type !== AST_NODE_TYPES.Identifier) return false;
+      if (isUnboundedMapCall(expression)) return true;
 
-      const init = getVariableInit(context.sourceCode, argument, argument);
+      if (expression.type !== AST_NODE_TYPES.Identifier) return false;
+
+      const init = getVariableInit(context.sourceCode, expression, expression);
       return init ? isUnboundedMapCall(init) : false;
     }
 

@@ -75,6 +75,20 @@ describe("plugin configs", () => {
     ).toBe("error");
   });
 
+  it("registers no-unsafe-array-access in rule exports and best-practices configs", () => {
+    expect(plugin.rules["no-unsafe-array-access"]).toBeDefined();
+
+    const bestPracticesConfig = plugin.configs["best-practices"][0];
+    const recommendedConfig = plugin.configs.recommended[0];
+
+    expect(bestPracticesConfig.rules?.["llm-core/no-unsafe-array-access"]).toBe(
+      "error",
+    );
+    expect(recommendedConfig.rules?.["llm-core/no-unsafe-array-access"]).toBe(
+      "error",
+    );
+  });
+
   it("registers hallucinated import rules in all config only", () => {
     expect(plugin.rules["no-hallucinated-local-imports"]).toBeDefined();
     expect(plugin.rules["no-hallucinated-package-imports"]).toBeDefined();

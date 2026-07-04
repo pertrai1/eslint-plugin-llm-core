@@ -1,0 +1,116 @@
+import { RuleTester } from "@typescript-eslint/rule-tester";
+import rule from "../../src/rules/no-unsafe-array-access";
+import { describe, it, afterAll } from "vitest";
+
+RuleTester.afterAll = afterAll;
+RuleTester.describe = describe;
+RuleTester.it = it;
+
+const ruleTester = new RuleTester();
+
+ruleTester.run("no-unsafe-array-access", rule, {
+  valid: [
+    // A positive length guard proves the first element exists in the guarded block.
+    `function getFirst(items: string[]) {
+      if (items.length > 0) {
+        return items[0];
+      }
+      return undefined;
+    }`,
+
+    // Truthy length checks are a common non-empty guard.
+    `function getHead(results: Result[]) {
+      if (results.length) {
+        const [head, ...tail] = results;
+        return { head, tail };
+      }
+      return null;
+    }`,
+
+    // Early exits that rule out the empty case guard later access in the same block.
+    `function getLast(items: string[]) {
+      if (items.length === 0) return undefined;
+      return items[items.length - 1];
+    }`,
+
+    // Ternary positive branches can guard indexed access locally.
+    `function getFirst(items: string[]) {
+      return items.length !== 0 ? items[0] : undefined;
+    }`,
+
+    // Logical expressions can guard the right-hand side locally.
+    `function getFirst(items: string[]) {
+      return items.length && items[0];
+    }`,
+
+    // Destructuring defaults make the empty-array case explicit.
+    `function getFirst(items: string[], fallback: string) {
+      const [first = fallback] = items;
+      return first;
+    }`,
+
+    // Non-leading destructuring that does not read a required element is ignored.
+    `function clone(items: string[]) {
+      const [...copy] = items;
+      return copy;
+    }`,
+
+    // Optional element access intentionally returns undefined when no element exists.
+    `function maybeFirst(items?: string[]) {
+      return items?.[0];
+    }`,
+
+    // Dynamic indexes are outside this rule's narrow first/last-element scope.
+    `function getAt(items: string[], index: number) {
+      return items[index];
+    }`,
+
+    // Fixed array literals are statically non-empty here.
+    `const first = ["fallback"][0];`,
+  ],
+
+  invalid: [
+    // Direct first-element access without a non-empty guard.
+    {
+      code: `function getFirst(items: string[]) {
+        return items[0];
+      }`,
+      errors: [{ messageId: "unsafeArrayAccess" as const }],
+    },
+
+    // Last-element access is unsafe when the array may be empty.
+    {
+      code: `function getLast(items: string[]) {
+        return items[items.length - 1];
+      }`,
+      errors: [{ messageId: "unsafeArrayAccess" as const }],
+    },
+
+    // Destructuring the first element also reads undefined from empty arrays.
+    {
+      code: `function split(results: Result[]) {
+        const [head, ...tail] = results;
+        return { head, tail };
+      }`,
+      errors: [{ messageId: "unsafeArrayAccess" as const }],
+    },
+
+    // Checks after the access do not guard the access.
+    {
+      code: `function getFirst(items: string[]) {
+        const first = items[0];
+        if (items.length === 0) return undefined;
+        return first;
+      }`,
+      errors: [{ messageId: "unsafeArrayAccess" as const }],
+    },
+
+    // TypeScript wrappers should not hide the unsafe access pattern.
+    {
+      code: `function getFirst(items?: string[]) {
+        return items![0];
+      }`,
+      errors: [{ messageId: "unsafeArrayAccess" as const }],
+    },
+  ],
+});

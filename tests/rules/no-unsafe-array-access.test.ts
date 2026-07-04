@@ -67,6 +67,98 @@ ruleTester.run("no-unsafe-array-access", rule, {
 
     // Fixed array literals are statically non-empty here.
     `const first = ["fallback"][0];`,
+
+    // Reversed comparisons are also valid non-empty guards.
+    `function getFirst(items: string[]) {
+      if (0 < items.length) {
+        return items[0];
+      }
+      return undefined;
+    }`,
+
+    // Greater-than-or-equal guards can prove at least one element exists.
+    `function getFirst(items: string[]) {
+      if (1 <= items.length) {
+        const [first] = items;
+        return first;
+      }
+      return undefined;
+    }`,
+
+    // Computed length properties are still length checks.
+    `function getFirst(items: string[]) {
+      if (items["length"] >= 1) {
+        return items[0];
+      }
+      return undefined;
+    }`,
+
+    // Negated truthy guards can protect later access after an early throw.
+    `function getFirst(items: string[]) {
+      if (!items.length) {
+        throw new Error("Expected at least one item");
+      }
+      return (items as string[])[0];
+    }`,
+
+    // Less-than-one early returns also rule out empty arrays.
+    `function getFirst(items: string[]) {
+      if (items.length < 1) {
+        return undefined;
+      }
+      const [first] = items;
+      return first;
+    }`,
+
+    // Empty tests can guard the alternate ternary branch.
+    `function getFirst(items: string[]) {
+      return items.length === 0 ? undefined : items[0];
+    }`,
+
+    // Empty tests can guard the right-hand side of an OR expression.
+    `function getFirst(items: string[]) {
+      return items.length === 0 || items[0];
+    }`,
+
+    // A positive guard with an exiting alternate protects following statements.
+    `function getFirst(items: string[]) {
+      if (items.length > 0) {
+        logReady(items.length);
+      } else {
+        return undefined;
+      }
+      return items[0];
+    }`,
+
+    // Empty guards protect the explicit else branch.
+    `function getFirst(items: string[]) {
+      if (items.length === 0) {
+        return undefined;
+      } else {
+        return items[0];
+      }
+    }`,
+
+    // Reversed empty checks can guard following statements.
+    `function getFirst(items: string[]) {
+      if (0 === items.length) {
+        return undefined;
+      }
+      return items[0];
+    }`,
+
+    // Reversed less-than-one checks can guard following statements.
+    `function getFirst(items: string[]) {
+      if (1 > items.length) {
+        return undefined;
+      }
+      return items[0];
+    }`,
+
+    // Empty destructuring and non-identifier initializers are outside this rule.
+    `function ignoreEmpty() {
+      const [] = getItems();
+    }`,
   ],
 
   invalid: [
@@ -109,6 +201,31 @@ ruleTester.run("no-unsafe-array-access", rule, {
     {
       code: `function getFirst(items?: string[]) {
         return items![0];
+      }`,
+      errors: [{ messageId: "unsafeArrayAccess" as const }],
+    },
+
+    // Type assertions around the array object still read the first element.
+    {
+      code: `function getFirst(items: unknown) {
+        return (items as string[])[0];
+      }`,
+      errors: [{ messageId: "unsafeArrayAccess" as const }],
+    },
+
+    // Satisfies wrappers should not hide the unsafe access pattern.
+    {
+      code: `function getFirst(items: string[]) {
+        return (items satisfies string[])[0];
+      }`,
+      errors: [{ messageId: "unsafeArrayAccess" as const }],
+    },
+
+    // Empty checks for a different array do not guard this access.
+    {
+      code: `function getFirst(items: string[], fallbackItems: string[]) {
+        if (fallbackItems.length === 0) return undefined;
+        return items[0];
       }`,
       errors: [{ messageId: "unsafeArrayAccess" as const }],
     },

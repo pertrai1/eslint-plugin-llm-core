@@ -33,6 +33,39 @@ ruleTester.run("no-unsafe-array-access", rule, {
       return items[items.length - 1];
     }`,
 
+    // Early exits in an ancestor block guard nested statements in the same function.
+    `function getFirst(items: string[], shouldRead: boolean) {
+      if (items.length === 0) return undefined;
+      if (shouldRead) {
+        return items[0];
+      }
+      return undefined;
+    }`,
+
+    // Nested exit paths can prove the empty branch does not continue.
+    `function getFirst(items: string[], shouldThrow: boolean) {
+      if (items.length === 0) {
+        if (shouldThrow) {
+          throw new Error("Expected at least one item");
+        }
+        return undefined;
+      }
+      return items[0];
+    }`,
+
+    // Switch branches that all exit can also prove the empty branch does not continue.
+    `function getFirst(items: string[], mode: "throw" | "return") {
+      if (items.length === 0) {
+        switch (mode) {
+          case "throw":
+            throw new Error("Expected at least one item");
+          default:
+            return undefined;
+        }
+      }
+      return items[0];
+    }`,
+
     // Ternary positive branches can guard indexed access locally.
     `function getFirst(items: string[]) {
       return items.length !== 0 ? items[0] : undefined;
@@ -226,6 +259,26 @@ ruleTester.run("no-unsafe-array-access", rule, {
       code: `function getFirst(items: string[], fallbackItems: string[]) {
         if (fallbackItems.length === 0) return undefined;
         return items[0];
+      }`,
+      errors: [{ messageId: "unsafeArrayAccess" as const }],
+    },
+
+    // Positive control-flow guards do not apply inside a nested closure.
+    {
+      code: `function createGetter(items: string[]) {
+        if (items.length > 0) {
+          return () => items[0];
+        }
+        return () => undefined;
+      }`,
+      errors: [{ messageId: "unsafeArrayAccess" as const }],
+    },
+
+    // Earlier exits in the outer function do not guard deferred closure execution.
+    {
+      code: `function createGetter(items: string[]) {
+        if (items.length === 0) return () => undefined;
+        return () => items[0];
       }`,
       errors: [{ messageId: "unsafeArrayAccess" as const }],
     },

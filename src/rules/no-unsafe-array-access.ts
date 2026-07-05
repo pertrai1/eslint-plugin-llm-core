@@ -213,6 +213,22 @@ function isEmptyReversedLengthComparison(
   );
 }
 
+function statementSequenceAlwaysExits(
+  statements: TSESTree.Statement[],
+): boolean {
+  return statements.some(statementAlwaysExits);
+}
+
+function switchAlwaysExits(statement: TSESTree.SwitchStatement): boolean {
+  return (
+    statement.cases.length > 0 &&
+    statement.cases.some((switchCase) => switchCase.test === null) &&
+    statement.cases.every((switchCase) =>
+      statementSequenceAlwaysExits(switchCase.consequent),
+    )
+  );
+}
+
 function statementAlwaysExits(statement: TSESTree.Statement): boolean {
   if (
     statement.type === AST_NODE_TYPES.ReturnStatement ||
@@ -221,9 +237,30 @@ function statementAlwaysExits(statement: TSESTree.Statement): boolean {
     return true;
   }
 
+  if (statement.type === AST_NODE_TYPES.BlockStatement) {
+    return statementSequenceAlwaysExits(statement.body);
+  }
+
+  if (statement.type === AST_NODE_TYPES.IfStatement) {
+    return Boolean(
+      statement.alternate &&
+      statementAlwaysExits(statement.consequent) &&
+      statementAlwaysExits(statement.alternate),
+    );
+  }
+
+  if (statement.type === AST_NODE_TYPES.SwitchStatement) {
+    return switchAlwaysExits(statement);
+  }
+
+  return false;
+}
+
+function isFunctionBoundary(node: TSESTree.Node): boolean {
   return (
-    statement.type === AST_NODE_TYPES.BlockStatement &&
-    statement.body.some(statementAlwaysExits)
+    node.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+    node.type === AST_NODE_TYPES.FunctionDeclaration ||
+    node.type === AST_NODE_TYPES.FunctionExpression
   );
 }
 
@@ -252,7 +289,7 @@ function getEnclosingStatement(node: TSESTree.Node): TSESTree.Statement | null {
 
   while (current) {
     const parent: TSESTree.Node | undefined = current.parent;
-    if (!parent) return null;
+    if (!parent || isFunctionBoundary(parent)) return null;
 
     if (
       (parent.type === AST_NODE_TYPES.BlockStatement ||
@@ -268,29 +305,50 @@ function getEnclosingStatement(node: TSESTree.Node): TSESTree.Statement | null {
   return null;
 }
 
-function hasPreviousEarlyExitGuard(
-  node: TSESTree.Node,
+function hasEarlierEmptyExitInBlock(
+  block: TSESTree.BlockStatement | TSESTree.Program,
+  statement: TSESTree.Statement,
   arrayName: string,
 ): boolean {
-  const statement = getEnclosingStatement(node);
-  const parent = statement?.parent;
-  if (!statement || !parent) return false;
-
-  if (
-    parent.type !== AST_NODE_TYPES.BlockStatement &&
-    parent.type !== AST_NODE_TYPES.Program
-  ) {
-    return false;
-  }
-
-  const statementIndex = parent.body.indexOf(statement);
+  const statementIndex = block.body.indexOf(statement);
   if (statementIndex <= 0) return false;
 
-  return parent.body
+  return block.body
     .slice(0, statementIndex)
     .some((previousStatement) =>
       isEarlyEmptyExit(previousStatement, arrayName),
     );
+}
+
+function hasPreviousEarlyExitGuard(
+  node: TSESTree.Node,
+  arrayName: string,
+): boolean {
+  let statement = getEnclosingStatement(node);
+
+  while (statement) {
+    const parent = statement.parent;
+    if (
+      !parent ||
+      (parent.type !== AST_NODE_TYPES.BlockStatement &&
+        parent.type !== AST_NODE_TYPES.Program)
+    ) {
+      return false;
+    }
+
+    if (hasEarlierEmptyExitInBlock(parent, statement, arrayName)) {
+      return true;
+    }
+
+    if (parent.type === AST_NODE_TYPES.Program) return false;
+
+    const container = parent.parent;
+    if (!container || isFunctionBoundary(container)) return false;
+
+    statement = getEnclosingStatement(container);
+  }
+
+  return false;
 }
 
 function hasControlFlowGuard(node: TSESTree.Node, arrayName: string): boolean {
@@ -298,6 +356,8 @@ function hasControlFlowGuard(node: TSESTree.Node, arrayName: string): boolean {
   let parent: TSESTree.Node | undefined = current.parent;
 
   while (parent) {
+    if (isFunctionBoundary(parent)) return false;
+
     if (parent.type === AST_NODE_TYPES.IfStatement) {
       if (
         current === parent.consequent &&

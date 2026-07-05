@@ -1,5 +1,12 @@
 # eslint-plugin-llm-core-mcp
 
+## 0.27.4
+
+### Patch Changes
+
+- Updated dependencies [f5744b3]
+  - eslint-plugin-llm-core@0.30.0
+
 ## 0.27.3
 
 ### Patch Changes

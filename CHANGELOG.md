@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.30.0
+
+### Minor Changes
+
+- f5744b3: Add the `no-unsafe-array-access` rule to require non-empty guards before first/last element reads and leading array destructuring.
+
 ## 0.29.0
 
 ### Minor Changes

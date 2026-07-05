@@ -78,6 +78,9 @@ import noUnboundedPromiseAllRule, {
 import noUnsafeArrayAccessRule, {
   instruction as noUnsafeArrayAccess,
 } from "../rules/no-unsafe-array-access";
+import noWeakRandomnessForSecretsRule, {
+  instruction as noWeakRandomnessForSecrets,
+} from "../rules/no-weak-randomness-for-secrets";
 import preferEarlyReturnRule, {
   instruction as preferEarlyReturn,
 } from "../rules/prefer-early-return";
@@ -142,6 +145,7 @@ export const ruleInstructions: Record<string, RuleInstruction> = {
   "no-type-assertion-any": noTypeAssertionAny,
   "no-unbounded-promise-all": noUnboundedPromiseAll,
   "no-unsafe-array-access": noUnsafeArrayAccess,
+  "no-weak-randomness-for-secrets": noWeakRandomnessForSecrets,
   "prefer-early-return": preferEarlyReturn,
   "prefer-nullish-coalescing": preferNullishCoalescing,
   "prefer-unknown-in-catch": preferUnknownInCatch,
@@ -183,6 +187,9 @@ export const ruleDefaultOptions: Record<string, Record<string, unknown>> = {
   "no-type-assertion-any": getDefaultOptions(noTypeAssertionAnyRule),
   "no-unbounded-promise-all": getDefaultOptions(noUnboundedPromiseAllRule),
   "no-unsafe-array-access": getDefaultOptions(noUnsafeArrayAccessRule),
+  "no-weak-randomness-for-secrets": getDefaultOptions(
+    noWeakRandomnessForSecretsRule,
+  ),
   "prefer-early-return": getDefaultOptions(preferEarlyReturnRule),
   "prefer-nullish-coalescing": getDefaultOptions(preferNullishCoalescingRule),
   "prefer-unknown-in-catch": getDefaultOptions(preferUnknownInCatchRule),

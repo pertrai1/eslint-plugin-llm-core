@@ -28,6 +28,7 @@ export { default as "no-swallowed-errors" } from "./no-swallowed-errors";
 export { default as "no-type-assertion-any" } from "./no-type-assertion-any";
 export { default as "no-unbounded-promise-all" } from "./no-unbounded-promise-all";
 export { default as "no-unsafe-array-access" } from "./no-unsafe-array-access";
+export { default as "no-weak-randomness-for-secrets" } from "./no-weak-randomness-for-secrets";
 export { default as "prefer-early-return" } from "./prefer-early-return";
 export { default as "prefer-nullish-coalescing" } from "./prefer-nullish-coalescing";
 export { default as "prefer-unknown-in-catch" } from "./prefer-unknown-in-catch";

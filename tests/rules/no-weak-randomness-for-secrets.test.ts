@@ -35,6 +35,28 @@ ruleTester.run("no-weak-randomness-for-secrets", rule, {
       code: `const inviteCode = Math.random().toString(36);`,
       options: [{ sensitiveNamePattern: "sessionOnly" }],
     },
+
+    // Function-return checks can be disabled for projects with different naming rules.
+    {
+      code: `function generateToken() {
+        return Math.random().toString(36).slice(2);
+      }`,
+      options: [{ checkFunctionReturnNames: false }],
+    },
+
+    // Helper functions with non-sensitive names are outside the direct syntactic scope.
+    `function buildDisplayJitter() {
+      return Math.random() * 100;
+    }`,
+
+    // Sensitive functions that return cryptographic randomness are valid.
+    `function generateToken() {
+      const value = crypto.randomUUID();
+      return value;
+    }`,
+
+    // Declarations without direct sensitive identifiers are not reported.
+    `const [token] = [Math.random().toString(36)];`,
   ],
 
   invalid: [
@@ -70,9 +92,23 @@ ruleTester.run("no-weak-randomness-for-secrets", rule, {
 
     // Sensitive object properties are covered when assembling records.
     {
-      code: `const credentials = {
+      code: `const payload = {
         secret: new Date().getTime().toString(36),
       };`,
+      errors: [{ messageId: "weakRandomnessForSecret" as const }],
+    },
+
+    // Computed sensitive property names are covered.
+    {
+      code: `const payload = {
+        ["secret"]: Math.random().toString(36),
+      };`,
+      errors: [{ messageId: "weakRandomnessForSecret" as const }],
+    },
+
+    // Computed sensitive member assignments are covered.
+    {
+      code: `user["apiKey"] = Math.random().toString(36);`,
       errors: [{ messageId: "weakRandomnessForSecret" as const }],
     },
 
@@ -81,6 +117,24 @@ ruleTester.run("no-weak-randomness-for-secrets", rule, {
       code: `function generateToken() {
         return Math.random().toString(36).slice(2);
       }`,
+      errors: [{ messageId: "weakRandomnessForSecret" as const }],
+    },
+
+    // Nested returns from sensitive function names are covered.
+    {
+      code: `function createToken(flag) {
+        if (flag) {
+          return Math.random().toString(36).slice(2);
+        }
+        return crypto.randomUUID();
+      }`,
+      errors: [{ messageId: "weakRandomnessForSecret" as const }],
+    },
+
+    // The sensitive-name matcher falls back to defaults if the custom pattern is invalid.
+    {
+      code: `const token = Math.random().toString(36);`,
+      options: [{ sensitiveNamePattern: "[" }],
       errors: [{ messageId: "weakRandomnessForSecret" as const }],
     },
 

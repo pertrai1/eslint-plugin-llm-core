@@ -50,6 +50,7 @@ describe("resolveActiveRules", () => {
         "llm-core/bad-min-max-func": "error",
         "llm-core/bad-comparison-sequence": "error",
         "llm-core/max-function-length": ["error", { max: 40 }],
+        "llm-core/no-unsafe-array-access": "error",
         "llm-core/explicit-export-types": "off",
       },
       ts: {
@@ -85,6 +86,12 @@ describe("resolveActiveRules", () => {
           name: "max-function-length",
           instruction:
             "Keep functions under 40 lines — extract helpers when they grow",
+          scope: "all",
+        },
+        {
+          name: "no-unsafe-array-access",
+          instruction:
+            "Check array length before reading the first or last element, or make the undefined fallback explicit",
           scope: "all",
         },
       ],

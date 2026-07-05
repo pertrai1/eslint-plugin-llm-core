@@ -66,6 +66,20 @@ ruleTester.run("no-unsafe-array-access", rule, {
       return items[0];
     }`,
 
+    // Grouped switch labels share the next non-empty consequent.
+    `function getFirst(items: string[], mode: "throw" | "return" | "skip") {
+      if (items.length === 0) {
+        switch (mode) {
+          case "throw":
+          case "skip":
+            throw new Error("Expected at least one item");
+          default:
+            return undefined;
+        }
+      }
+      return items[0];
+    }`,
+
     // Ternary positive branches can guard indexed access locally.
     `function getFirst(items: string[]) {
       return items.length !== 0 ? items[0] : undefined;

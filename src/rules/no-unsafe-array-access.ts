@@ -215,16 +215,34 @@ function isEmptyReversedLengthComparison(
 
 function statementSequenceAlwaysExits(
   statements: TSESTree.Statement[],
+  fallbackStatements: TSESTree.Statement[] = [],
 ): boolean {
-  return statements.some(statementAlwaysExits);
+  const effectiveStatements =
+    statements.length > 0 ? statements : fallbackStatements;
+
+  return effectiveStatements.some(statementAlwaysExits);
+}
+
+function getNextNonEmptySwitchConsequent(
+  cases: TSESTree.SwitchCase[],
+  startIndex: number,
+): TSESTree.Statement[] {
+  return (
+    cases
+      .slice(startIndex + 1)
+      .find((switchCase) => switchCase.consequent.length > 0)?.consequent ?? []
+  );
 }
 
 function switchAlwaysExits(statement: TSESTree.SwitchStatement): boolean {
   return (
     statement.cases.length > 0 &&
     statement.cases.some((switchCase) => switchCase.test === null) &&
-    statement.cases.every((switchCase) =>
-      statementSequenceAlwaysExits(switchCase.consequent),
+    statement.cases.every((switchCase, index) =>
+      statementSequenceAlwaysExits(
+        switchCase.consequent,
+        getNextNonEmptySwitchConsequent(statement.cases, index),
+      ),
     )
   );
 }

@@ -17,7 +17,7 @@ This rule reports weak or predictable sources when the target name is security-s
 - variable declarations such as `const token = Math.random()`
 - assignments such as `user.apiKey = Math.random()`
 - object properties such as `{ secret: Date.now().toString(36) }`
-- sensitive generator functions such as `function generateToken() { return Math.random() }`
+- sensitive generator functions such as `function generateToken() { return Math.random() }` or `const generateToken = () => Math.random()`
 
 The default sensitive-name pattern covers `token`, `secret`, `password`, `sessionId`, `apiKey`, `nonce`, `salt`, `resetCode`, `verificationCode`, `authCode`, and `credential`. Non-security randomness is allowed by default so UI jitter, sampling, visual effects, and tests can still use `Math.random()`.
 
@@ -83,6 +83,7 @@ const displayJitter = Math.random() * 100;
 | `user.apiKey = Math.random().toString(36)`           | Yes       |
 | `{ secret: new Date().getTime().toString(36) }`      | Yes       |
 | `function generateToken() { return Math.random() }`  | Yes       |
+| `const generateToken = () => Math.random()`          | Yes       |
 | `const token = randomBytes(32).toString("hex")`      | No        |
 | `const sessionId = randomUUID()`                     | No        |
 | `crypto.getRandomValues(bytes)`                      | No        |
@@ -109,7 +110,7 @@ Defaults to `true`. Set to `false` to report `Math.random()` even when the targe
 
 ### `checkFunctionReturnNames`
 
-Defaults to `true`. Set to `false` to skip checks for sensitive function declarations such as `generateToken()` returning weak randomness.
+Defaults to `true`. Set to `false` to skip checks for sensitive function declarations or function-valued assignments such as `generateToken()` returning weak randomness.
 
 ## Error Messages
 

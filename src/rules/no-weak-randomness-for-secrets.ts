@@ -16,6 +16,11 @@ type NormalizedOptions = Required<Options[0]> & {
   sensitiveNameMatcher: RegExp;
 };
 
+type FunctionWithBody =
+  | TSESTree.FunctionDeclaration
+  | TSESTree.FunctionExpression
+  | TSESTree.ArrowFunctionExpression;
+
 const defaultSensitiveNamePattern =
   "(token|secret|password|sessionId|apiKey|nonce|salt|resetCode|verificationCode|authCode|credential)";
 
@@ -152,9 +157,18 @@ function isNewDateGetTimeCall(node: TSESTree.Node): boolean {
 function isObviousCounter(node: TSESTree.Node): boolean {
   return (
     (node.type === AST_NODE_TYPES.UpdateExpression &&
-      node.argument.type === AST_NODE_TYPES.Identifier) ||
+      node.argument.type === AST_NODE_TYPES.Identifier &&
+      /^(counter|sequence|seq|serial)$/i.test(node.argument.name)) ||
     (node.type === AST_NODE_TYPES.Identifier &&
       /^(counter|sequence|seq|serial)$/i.test(node.name))
+  );
+}
+
+function isFunctionWithBody(node: TSESTree.Node): node is FunctionWithBody {
+  return (
+    node.type === AST_NODE_TYPES.FunctionDeclaration ||
+    node.type === AST_NODE_TYPES.FunctionExpression ||
+    node.type === AST_NODE_TYPES.ArrowFunctionExpression
   );
 }
 
@@ -185,7 +199,20 @@ function nodeContainsReportableWeakSource(
   if (!node) return false;
 
   const current = unwrapTransparentExpression(node);
+  if (isFunctionWithBody(current)) return false;
+
   if (isReportableWeakSource(current, targetIsSensitive, options)) return true;
+
+  if (current.type === AST_NODE_TYPES.CallExpression) {
+    const callee = unwrapTransparentExpression(current.callee);
+    if (isFunctionWithBody(callee)) {
+      return functionReturnsReportableWeakSource(
+        callee,
+        targetIsSensitive,
+        options,
+      );
+    }
+  }
 
   for (const [key, value] of Object.entries(current)) {
     if (
@@ -243,31 +270,62 @@ function getAssignmentTargetName(left: TSESTree.Node): string | null {
   return null;
 }
 
-function returnContainsWeakSource(
+function returnContainsReportableWeakSource(
   statement: TSESTree.Statement,
+  targetIsSensitive: boolean,
   options: NormalizedOptions,
 ): boolean {
   if (statement.type === AST_NODE_TYPES.ReturnStatement) {
-    return nodeContainsReportableWeakSource(statement.argument, true, options);
+    return nodeContainsReportableWeakSource(
+      statement.argument,
+      targetIsSensitive,
+      options,
+    );
   }
 
   if (statement.type === AST_NODE_TYPES.BlockStatement) {
     return statement.body.some((child) =>
-      returnContainsWeakSource(child, options),
+      returnContainsReportableWeakSource(child, targetIsSensitive, options),
     );
   }
 
   if (statement.type === AST_NODE_TYPES.IfStatement) {
     return (
-      returnContainsWeakSource(statement.consequent, options) ||
+      returnContainsReportableWeakSource(
+        statement.consequent,
+        targetIsSensitive,
+        options,
+      ) ||
       Boolean(
         statement.alternate &&
-        returnContainsWeakSource(statement.alternate, options),
+        returnContainsReportableWeakSource(
+          statement.alternate,
+          targetIsSensitive,
+          options,
+        ),
       )
     );
   }
 
   return false;
+}
+
+function functionReturnsReportableWeakSource(
+  node: FunctionWithBody,
+  targetIsSensitive: boolean,
+  options: NormalizedOptions,
+): boolean {
+  if (node.body.type !== AST_NODE_TYPES.BlockStatement) {
+    return nodeContainsReportableWeakSource(
+      node.body,
+      targetIsSensitive,
+      options,
+    );
+  }
+
+  return node.body.body.some((statement) =>
+    returnContainsReportableWeakSource(statement, targetIsSensitive, options),
+  );
 }
 
 export default createRule<Options, MessageIds>({
@@ -315,6 +373,20 @@ export default createRule<Options, MessageIds>({
         return;
       }
 
+      const currentValue = value ? unwrapTransparentExpression(value) : null;
+      if (
+        currentValue &&
+        targetIsSensitive &&
+        isFunctionWithBody(currentValue)
+      ) {
+        if (!options.checkFunctionReturnNames) return;
+
+        if (functionReturnsReportableWeakSource(currentValue, true, options)) {
+          context.report({ node, messageId: "weakRandomnessForSecret" });
+        }
+        return;
+      }
+
       if (nodeContainsReportableWeakSource(value, targetIsSensitive, options)) {
         context.report({ node, messageId: "weakRandomnessForSecret" });
       }
@@ -342,11 +414,7 @@ export default createRule<Options, MessageIds>({
           return;
         }
 
-        if (
-          node.body.body.some((statement) =>
-            returnContainsWeakSource(statement, options),
-          )
-        ) {
+        if (functionReturnsReportableWeakSource(node, true, options)) {
           context.report({
             node: node.id ?? node,
             messageId: "weakRandomnessForSecret",

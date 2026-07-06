@@ -44,6 +44,21 @@ ruleTester.run("no-weak-randomness-for-secrets", rule, {
       options: [{ checkFunctionReturnNames: false }],
     },
 
+    // Function-return checks can also be disabled for equivalent function values.
+    {
+      code: `const generateToken = () => {
+        return Math.random().toString(36).slice(2);
+      };`,
+      options: [{ checkFunctionReturnNames: false }],
+    },
+
+    {
+      code: `const generateToken = function () {
+        return Math.random().toString(36).slice(2);
+      };`,
+      options: [{ checkFunctionReturnNames: false }],
+    },
+
     // Helper functions with non-sensitive names are outside the direct syntactic scope.
     `function buildDisplayJitter() {
       return Math.random() * 100;
@@ -57,6 +72,15 @@ ruleTester.run("no-weak-randomness-for-secrets", rule, {
 
     // Declarations without direct sensitive identifiers are not reported.
     `const [token] = [Math.random().toString(36)];`,
+
+    // Non-counter loop indexes are not treated as obvious counters.
+    "let i = 0;\nconst token = `${crypto.randomUUID()}-${i++}`;",
+
+    // IIFEs are checked by return value, not unrelated weak sources in the body.
+    `const token = (() => {
+      const displayJitter = Math.random() * 100;
+      return crypto.randomUUID();
+    })();`,
   ],
 
   invalid: [
@@ -128,6 +152,27 @@ ruleTester.run("no-weak-randomness-for-secrets", rule, {
         }
         return crypto.randomUUID();
       }`,
+      errors: [{ messageId: "weakRandomnessForSecret" as const }],
+    },
+
+    // Equivalent sensitive function values are checked by default.
+    {
+      code: `const generateToken = () => {
+        return Math.random().toString(36).slice(2);
+      };`,
+      errors: [{ messageId: "weakRandomnessForSecret" as const }],
+    },
+
+    {
+      code: `const generateToken = function () {
+        return Math.random().toString(36).slice(2);
+      };`,
+      errors: [{ messageId: "weakRandomnessForSecret" as const }],
+    },
+
+    // IIFEs that actually return weak randomness are still reported.
+    {
+      code: `const token = (() => Math.random().toString(36).slice(2))();`,
       errors: [{ messageId: "weakRandomnessForSecret" as const }],
     },
 

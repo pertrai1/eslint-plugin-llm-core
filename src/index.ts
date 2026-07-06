@@ -36,6 +36,7 @@ const bestPracticesRules: TSESLint.FlatConfig.Rules = {
   "llm-core/missing-throw": "error",
   "llm-core/no-async-array-callbacks": "error",
   "llm-core/no-async-promise-executor": "error",
+  "llm-core/no-dynamic-code-execution": "error",
   "llm-core/no-empty-catch": "error",
   "llm-core/no-floating-promise": "error",
   "llm-core/no-magic-numbers": "error",

@@ -45,6 +45,9 @@ import noAsyncPromiseExecutorRule, {
 import noCommentedOutCodeRule, {
   instruction as noCommentedOutCode,
 } from "../rules/no-commented-out-code";
+import noDynamicCodeExecutionRule, {
+  instruction as noDynamicCodeExecution,
+} from "../rules/no-dynamic-code-execution";
 import noEmptyCatchRule, {
   instruction as noEmptyCatch,
 } from "../rules/no-empty-catch";
@@ -134,6 +137,7 @@ export const ruleInstructions: Record<string, RuleInstruction> = {
   "no-async-array-callbacks": noAsyncArrayCallbacks,
   "no-async-promise-executor": noAsyncPromiseExecutor,
   "no-commented-out-code": noCommentedOutCode,
+  "no-dynamic-code-execution": noDynamicCodeExecution,
   "no-empty-catch": noEmptyCatch,
   "no-exported-function-expressions": noExportedFunctionExpressions,
   "no-hallucinated-package-imports": noHallucinatedPackageImports,
@@ -172,6 +176,7 @@ export const ruleDefaultOptions: Record<string, Record<string, unknown>> = {
   "no-async-array-callbacks": getDefaultOptions(noAsyncArrayCallbacksRule),
   "no-async-promise-executor": getDefaultOptions(noAsyncPromiseExecutorRule),
   "no-commented-out-code": getDefaultOptions(noCommentedOutCodeRule),
+  "no-dynamic-code-execution": getDefaultOptions(noDynamicCodeExecutionRule),
   "no-empty-catch": getDefaultOptions(noEmptyCatchRule),
   "no-exported-function-expressions": getDefaultOptions(
     noExportedFunctionExpressionsRule,

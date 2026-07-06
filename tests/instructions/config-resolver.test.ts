@@ -50,6 +50,7 @@ describe("resolveActiveRules", () => {
         "llm-core/bad-min-max-func": "error",
         "llm-core/bad-comparison-sequence": "error",
         "llm-core/max-function-length": ["error", { max: 40 }],
+        "llm-core/no-dynamic-code-execution": "error",
         "llm-core/no-unsafe-array-access": "error",
         "llm-core/no-weak-randomness-for-secrets": "error",
         "llm-core/explicit-export-types": "off",
@@ -87,6 +88,12 @@ describe("resolveActiveRules", () => {
           name: "max-function-length",
           instruction:
             "Keep functions under 40 lines — extract helpers when they grow",
+          scope: "all",
+        },
+        {
+          name: "no-dynamic-code-execution",
+          instruction:
+            "Do not execute strings as code with eval, Function constructors, or string timers; use explicit dispatch tables or callbacks instead",
           scope: "all",
         },
         {

@@ -1,5 +1,16 @@
 # eslint-plugin-llm-core-mcp
 
+## 0.28.0
+
+### Minor Changes
+
+- b9272e1: Add `no-weak-randomness-for-secrets` to catch predictable token, session, reset-code, nonce, salt, API-key, and credential generation.
+
+### Patch Changes
+
+- Updated dependencies [b9272e1]
+  - eslint-plugin-llm-core@0.31.0
+
 ## 0.27.4
 
 ### Patch Changes

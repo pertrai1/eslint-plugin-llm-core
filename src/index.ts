@@ -41,6 +41,7 @@ const bestPracticesRules: TSESLint.FlatConfig.Rules = {
   "llm-core/no-magic-numbers": "error",
   "llm-core/no-swallowed-errors": "error",
   "llm-core/no-unsafe-array-access": "error",
+  "llm-core/no-weak-randomness-for-secrets": "error",
   "llm-core/structured-logging": "error",
   "llm-core/throw-error-objects": "error",
   "llm-core/uninvoked-array-callback": "error",

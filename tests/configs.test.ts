@@ -89,6 +89,20 @@ describe("plugin configs", () => {
     );
   });
 
+  it("registers no-weak-randomness-for-secrets in rule exports and best-practices configs", () => {
+    expect(plugin.rules["no-weak-randomness-for-secrets"]).toBeDefined();
+
+    const bestPracticesConfig = plugin.configs["best-practices"][0];
+    const recommendedConfig = plugin.configs.recommended[0];
+
+    expect(
+      bestPracticesConfig.rules?.["llm-core/no-weak-randomness-for-secrets"],
+    ).toBe("error");
+    expect(
+      recommendedConfig.rules?.["llm-core/no-weak-randomness-for-secrets"],
+    ).toBe("error");
+  });
+
   it("registers hallucinated import rules in all config only", () => {
     expect(plugin.rules["no-hallucinated-local-imports"]).toBeDefined();
     expect(plugin.rules["no-hallucinated-package-imports"]).toBeDefined();

@@ -51,6 +51,7 @@ describe("resolveActiveRules", () => {
         "llm-core/bad-comparison-sequence": "error",
         "llm-core/max-function-length": ["error", { max: 40 }],
         "llm-core/no-unsafe-array-access": "error",
+        "llm-core/no-weak-randomness-for-secrets": "error",
         "llm-core/explicit-export-types": "off",
       },
       ts: {
@@ -92,6 +93,12 @@ describe("resolveActiveRules", () => {
           name: "no-unsafe-array-access",
           instruction:
             "Check array length before reading the first or last element, or make the undefined fallback explicit",
+          scope: "all",
+        },
+        {
+          name: "no-weak-randomness-for-secrets",
+          instruction:
+            "Use cryptographic randomness for tokens, secrets, sessions, nonces, salts, reset codes, API keys, and credentials",
           scope: "all",
         },
       ],

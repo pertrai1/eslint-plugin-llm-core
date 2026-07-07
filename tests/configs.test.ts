@@ -75,6 +75,20 @@ describe("plugin configs", () => {
     ).toBe("error");
   });
 
+  it("registers no-dynamic-code-execution in rule exports and best-practices configs", () => {
+    expect(plugin.rules["no-dynamic-code-execution"]).toBeDefined();
+
+    const bestPracticesConfig = plugin.configs["best-practices"][0];
+    const recommendedConfig = plugin.configs.recommended[0];
+
+    expect(
+      bestPracticesConfig.rules?.["llm-core/no-dynamic-code-execution"],
+    ).toBe("error");
+    expect(
+      recommendedConfig.rules?.["llm-core/no-dynamic-code-execution"],
+    ).toBe("error");
+  });
+
   it("registers no-unsafe-array-access in rule exports and best-practices configs", () => {
     expect(plugin.rules["no-unsafe-array-access"]).toBeDefined();
 

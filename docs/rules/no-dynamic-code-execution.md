@@ -16,8 +16,9 @@ This rule reports obvious, framework-agnostic dynamic execution patterns:
 - global member eval calls such as `window.eval(...)` and `globalThis.eval(...)`
 - `new Function(...)`
 - `Function(...)`
-- `globalThis.Function(...)`
+- global member Function calls such as `globalThis.Function(...)` and `window.Function(...)`
 - `setTimeout(...)` and `setInterval(...)` when the first argument is a string or template literal
+- global member timer calls such as `window.setTimeout(...)` and `globalThis.setInterval(...)` when the first argument is a string or template literal
 
 The rule intentionally does not try to prove whether a string is user-controlled. These APIs are unsafe-by-default and should be reviewed explicitly when they are truly unavoidable.
 
@@ -31,8 +32,10 @@ eval(userInput);
 const fn = new Function("ctx", generatedBody);
 
 const readEnv = globalThis.Function("return process.env");
+const readCookie = window.Function("return document.cookie");
 
 setTimeout("refreshToken()", 1000);
+window.setTimeout("refreshToken()", 1000);
 setInterval(`poll()`, 5000);
 ```
 
@@ -52,16 +55,19 @@ setInterval(() => poll(), 5000);
 
 ## What Counts as Dynamic Code Execution
 
-| Pattern                         | Triggers? | Notes                                |
-| ------------------------------- | --------- | ------------------------------------ |
-| `eval(userInput)`               | Yes       | Direct string execution              |
-| `window.eval(template)`         | Yes       | Global eval member call              |
-| `new Function("return value")`  | Yes       | Function constructor compiles string |
-| `Function("return value")`      | Yes       | Function constructor call            |
-| `setTimeout("run()", 1000)`     | Yes       | String timer compiles code           |
-| `setTimeout(() => run(), 1000)` | No        | Function callback                    |
-| `handlers[action]?.()`          | No        | Explicit dispatch table              |
-| `sandbox.eval(expression)`      | No        | Non-global object method             |
+| Pattern                                  | Triggers? | Notes                                |
+| ---------------------------------------- | --------- | ------------------------------------ |
+| `eval(userInput)`                        | Yes       | Direct string execution              |
+| `window.eval(template)`                  | Yes       | Global eval member call              |
+| `new Function("return value")`           | Yes       | Function constructor compiles string |
+| `Function("return value")`               | Yes       | Function constructor call            |
+| `globalThis.Function("return value")`    | Yes       | Global Function member call          |
+| `window.Function("return value")`        | Yes       | Global Function member call          |
+| `setTimeout("run()", 1000)`              | Yes       | String timer compiles code           |
+| `globalThis.setInterval("poll()", 1000)` | Yes       | Global string timer compiles code    |
+| `setTimeout(() => run(), 1000)`          | No        | Function callback                    |
+| `handlers[action]?.()`                   | No        | Explicit dispatch table              |
+| `sandbox.eval(expression)`               | No        | Non-global object method             |
 
 ## Error Messages
 

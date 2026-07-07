@@ -20,7 +20,7 @@ const actionHandlers = {
 } satisfies Record<ActionName, () => void>;
 
 export function runConfiguredAction(action: string): void {
-  if (action in actionHandlers) {
+  if (Object.prototype.hasOwnProperty.call(actionHandlers, action)) {
     actionHandlers[action as ActionName]();
     return;
   }

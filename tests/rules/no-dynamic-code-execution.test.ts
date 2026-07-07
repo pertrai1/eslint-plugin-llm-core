@@ -21,6 +21,26 @@ handlers[action]?.();`,
     // Object methods named eval are not global dynamic code execution APIs.
     `sandbox.eval(expression);`,
 
+    // Shadowed names are local APIs, not the global dynamic execution APIs.
+    `function run(eval: (input: string) => void) {
+  eval(userInput);
+}`,
+    `const Function = createFactory();
+Function("safe");`,
+    `function schedule(setTimeout: (callback: string, ms: number) => void) {
+  setTimeout("safe", 1000);
+}`,
+    `const window = {
+  eval(expression: string): void {},
+  Function(body: string): string {
+    return body;
+  },
+  setTimeout(callback: string, ms: number): void {},
+};
+window.eval(input);
+window.Function("return value");
+window.setTimeout("run()", 1000);`,
+
     // Referenced timer callbacks are safe from this rule's narrow string-timer check.
     `setTimeout(refreshToken, 1000);`,
   ],
@@ -55,6 +75,10 @@ handlers[action]?.();`,
       code: `const fn = globalThis.Function("return process.env")();`,
       errors: [{ messageId: "noDynamicCodeExecution" as const }],
     },
+    {
+      code: `const fn = window.Function("return document.cookie")();`,
+      errors: [{ messageId: "noDynamicCodeExecution" as const }],
+    },
 
     // String timers compile their first argument as code.
     {
@@ -63,6 +87,14 @@ handlers[action]?.();`,
     },
     {
       code: "setInterval(`poll()`, 5000);",
+      errors: [{ messageId: "noDynamicCodeExecution" as const }],
+    },
+    {
+      code: `window.setTimeout("refreshToken()", 1000);`,
+      errors: [{ messageId: "noDynamicCodeExecution" as const }],
+    },
+    {
+      code: "globalThis.setInterval(`poll()`, 5000);",
       errors: [{ messageId: "noDynamicCodeExecution" as const }],
     },
   ],

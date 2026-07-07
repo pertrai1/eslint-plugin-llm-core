@@ -1,10 +1,15 @@
-import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds = "noDynamicCodeExecution";
 
-function isIdentifierNamed(node: TSESTree.Node, name: string): boolean {
+type SourceCode = Readonly<TSESLint.SourceCode>;
+
+function isIdentifierNamed(
+  node: TSESTree.Node,
+  name: string,
+): node is TSESTree.Identifier {
   return node.type === AST_NODE_TYPES.Identifier && node.name === name;
 }
 
@@ -12,7 +17,35 @@ function isGlobalObjectName(name: string): boolean {
   return name === "window" || name === "globalThis";
 }
 
-function isStaticMemberNamed(
+function isReferenceToGlobal(
+  sourceCode: SourceCode,
+  id: TSESTree.Identifier,
+): boolean {
+  let scope: TSESLint.Scope.Scope | null = sourceCode.getScope(id);
+
+  while (scope) {
+    const variable = scope.variables.find(({ name }) => name === id.name);
+
+    if (variable) {
+      return variable.defs.length === 0;
+    }
+
+    scope = scope.upper;
+  }
+
+  return true;
+}
+
+function isGlobalIdentifierNamed(
+  sourceCode: SourceCode,
+  node: TSESTree.Node,
+  name: string,
+): node is TSESTree.Identifier {
+  return isIdentifierNamed(node, name) && isReferenceToGlobal(sourceCode, node);
+}
+
+function isStaticGlobalMemberNamed(
+  sourceCode: SourceCode,
   node: TSESTree.Node,
   objectName: string,
   propertyName: string,
@@ -20,12 +53,13 @@ function isStaticMemberNamed(
   return (
     node.type === AST_NODE_TYPES.MemberExpression &&
     !node.computed &&
-    isIdentifierNamed(node.object, objectName) &&
+    isGlobalIdentifierNamed(sourceCode, node.object, objectName) &&
     isIdentifierNamed(node.property, propertyName)
   );
 }
 
 function isGlobalMemberNamed(
+  sourceCode: SourceCode,
   node: TSESTree.Node,
   propertyName: string,
 ): boolean {
@@ -34,28 +68,35 @@ function isGlobalMemberNamed(
     !node.computed &&
     node.object.type === AST_NODE_TYPES.Identifier &&
     isGlobalObjectName(node.object.name) &&
+    isReferenceToGlobal(sourceCode, node.object) &&
     isIdentifierNamed(node.property, propertyName)
   );
 }
 
-function isEvalCallee(node: TSESTree.Node): boolean {
+function isEvalCallee(sourceCode: SourceCode, node: TSESTree.Node): boolean {
   return (
-    isIdentifierNamed(node, "eval") ||
-    isStaticMemberNamed(node, "window", "eval") ||
-    isStaticMemberNamed(node, "globalThis", "eval")
+    isGlobalIdentifierNamed(sourceCode, node, "eval") ||
+    isStaticGlobalMemberNamed(sourceCode, node, "window", "eval") ||
+    isStaticGlobalMemberNamed(sourceCode, node, "globalThis", "eval")
   );
 }
 
-function isFunctionConstructorCallee(node: TSESTree.Node): boolean {
+function isFunctionConstructorCallee(
+  sourceCode: SourceCode,
+  node: TSESTree.Node,
+): boolean {
   return (
-    isIdentifierNamed(node, "Function") || isGlobalMemberNamed(node, "Function")
+    isGlobalIdentifierNamed(sourceCode, node, "Function") ||
+    isGlobalMemberNamed(sourceCode, node, "Function")
   );
 }
 
-function isTimerCallee(node: TSESTree.Node): boolean {
+function isTimerCallee(sourceCode: SourceCode, node: TSESTree.Node): boolean {
   return (
-    isIdentifierNamed(node, "setTimeout") ||
-    isIdentifierNamed(node, "setInterval")
+    isGlobalIdentifierNamed(sourceCode, node, "setTimeout") ||
+    isGlobalIdentifierNamed(sourceCode, node, "setInterval") ||
+    isGlobalMemberNamed(sourceCode, node, "setTimeout") ||
+    isGlobalMemberNamed(sourceCode, node, "setInterval")
   );
 }
 
@@ -66,8 +107,11 @@ function isStringLikeNode(node: TSESTree.Node): boolean {
   );
 }
 
-function isStringTimerCall(node: TSESTree.CallExpression): boolean {
-  if (!isTimerCallee(node.callee)) {
+function isStringTimerCall(
+  sourceCode: SourceCode,
+  node: TSESTree.CallExpression,
+): boolean {
+  if (!isTimerCallee(sourceCode, node.callee)) {
     return false;
   }
 
@@ -105,12 +149,14 @@ export default createRule<[], MessageIds>({
   },
   defaultOptions: [],
   create(context) {
+    const sourceCode = context.sourceCode;
+
     return {
       CallExpression(node: TSESTree.CallExpression) {
         if (
-          isEvalCallee(node.callee) ||
-          isFunctionConstructorCallee(node.callee) ||
-          isStringTimerCall(node)
+          isEvalCallee(sourceCode, node.callee) ||
+          isFunctionConstructorCallee(sourceCode, node.callee) ||
+          isStringTimerCall(sourceCode, node)
         ) {
           context.report({
             node,
@@ -120,7 +166,7 @@ export default createRule<[], MessageIds>({
       },
 
       NewExpression(node: TSESTree.NewExpression) {
-        if (!isFunctionConstructorCallee(node.callee)) {
+        if (!isFunctionConstructorCallee(sourceCode, node.callee)) {
           return;
         }
 

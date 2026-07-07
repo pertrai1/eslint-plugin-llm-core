@@ -1,5 +1,16 @@
 # eslint-plugin-llm-core-mcp
 
+## 0.29.0
+
+### Minor Changes
+
+- 54c3202: Add the `no-dynamic-code-execution` rule to catch `eval`, `Function` constructors, and string-based timers with LLM-oriented remediation guidance.
+
+### Patch Changes
+
+- Updated dependencies [54c3202]
+  - eslint-plugin-llm-core@0.32.0
+
 ## 0.28.0
 
 ### Minor Changes

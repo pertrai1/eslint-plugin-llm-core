@@ -13,6 +13,9 @@ type NodeWithParent = TSESTree.Node & {
   parent?: NodeWithParent;
 };
 
+type TypeAssertionExpression =
+  TSESTree.TSAsExpression | TSESTree.TSTypeAssertion;
+
 const GENERIC_TS_EXPECT_ERROR_REASONS = new Set([
   "fixme",
   "ignore",
@@ -74,7 +77,7 @@ function isUnknownAssertion(node: TSESTree.Node): boolean {
   );
 }
 
-function hasUnknownDoubleAssertion(node: TSESTree.TSAsExpression): boolean {
+function hasUnknownDoubleAssertion(node: TypeAssertionExpression): boolean {
   return (
     node.typeAnnotation.type !== AST_NODE_TYPES.TSUnknownKeyword &&
     isUnknownAssertion(node.expression)
@@ -90,8 +93,12 @@ function formatComment(comment: TSESTree.Comment): string {
   return comment.type === "Line" ? `// ${value}` : `/* ${value} */`;
 }
 
+function isJSDocStyleBlockComment(comment: TSESTree.Comment): boolean {
+  return comment.type === "Block" && comment.value.trimStart().startsWith("*");
+}
+
 function getTsExpectErrorReason(commentText: string): string | null {
-  const match = /@ts-expect-error(?:\s+TS\d+:?)?\s*(.*)$/iu.exec(commentText);
+  const match = /^@ts-expect-error(?:\s+TS\d+:?)?\s*(.*)$/iu.exec(commentText);
   return match?.[1]?.trim() ?? null;
 }
 
@@ -172,8 +179,10 @@ export default createRule<[], MessageIds>({
     return {
       Program() {
         for (const comment of context.sourceCode.getAllComments()) {
+          if (isJSDocStyleBlockComment(comment)) continue;
+
           const text = normalizeComment(comment.value);
-          if (/@ts-ignore\b/u.test(text)) {
+          if (/^@ts-ignore\b/u.test(text)) {
             context.report({
               loc: comment.loc,
               messageId: "tsIgnoreDirective",
@@ -183,7 +192,7 @@ export default createRule<[], MessageIds>({
           }
 
           if (
-            /@ts-expect-error\b/u.test(text) &&
+            /^@ts-expect-error\b/u.test(text) &&
             !hasSpecificTsExpectErrorReason(text)
           ) {
             context.report({
@@ -209,6 +218,14 @@ export default createRule<[], MessageIds>({
         });
       },
       TSAsExpression(node: TSESTree.TSAsExpression) {
+        if (hasUnknownDoubleAssertion(node)) {
+          context.report({
+            node,
+            messageId: "doubleAssertion",
+          });
+        }
+      },
+      TSTypeAssertion(node: TSESTree.TSTypeAssertion) {
         if (hasUnknownDoubleAssertion(node)) {
           context.report({
             node,

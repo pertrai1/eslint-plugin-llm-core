@@ -19,6 +19,9 @@ ruleTester.run("no-type-system-bypass", rule, {
     "const maybeUser = users.find((user) => user.id === id);\nif (!maybeUser) throw new Error('missing');\nmaybeUser.name;",
     "// @ts-expect-error TS2345: upstream package types reject documented runtime option\ncallLibrary({ experimental: true });",
     "// TODO: remove once upstream package ships fixed types\ncallLibrary({ experimental: true });",
+    "// Don't use @ts-ignore in documentation examples\ncallLibrary({ experimental: true });",
+    "// Avoid @ts-expect-error in documentation examples\ncallLibrary({ experimental: true });",
+    "/**\n * Don't use @ts-expect-error in documentation examples.\n */\ncallLibrary({ experimental: true });",
     "type Maybe<T> = T | null | undefined;",
     "function wrap<T>(value: T): T[] { return [value]; }",
   ],
@@ -42,6 +45,10 @@ ruleTester.run("no-type-system-bypass", rule, {
     },
     {
       code: "const user = (<unknown>data) as User;",
+      errors: [{ messageId: "doubleAssertion" as const }],
+    },
+    {
+      code: "const user = <User>(<unknown>data);",
       errors: [{ messageId: "doubleAssertion" as const }],
     },
     {

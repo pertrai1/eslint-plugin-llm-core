@@ -32,6 +32,7 @@ callLibrary({ experimental: true });
 callLibrary({ experimental: true });
 
 const user = data as unknown as User;
+const legacyUser = <User>(<unknown>data);
 const name = user!.profile.name;
 let payload: any = loadPayload();
 function handle(payload: any): void {

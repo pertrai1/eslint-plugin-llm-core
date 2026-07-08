@@ -23,7 +23,7 @@ export default createRule<[], MessageIds>({
         "this reason (useUnknownInCatchVariables).",
         "",
         "How to fix:",
-        "  Before: catch (e: any) { console.log(e.message); }",
+        "  Before: catch (e: any) { reportErrorMessage(e.message); }",
         "",
         "  After:  catch (e: unknown) {",
         "            if (e instanceof Error) {",

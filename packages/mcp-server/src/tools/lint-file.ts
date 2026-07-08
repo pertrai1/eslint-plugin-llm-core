@@ -1,5 +1,5 @@
 import path from "node:path";
-import { readdir, realpath, stat } from "node:fs/promises";
+import { realpath, stat } from "node:fs/promises";
 import { loadESLint } from "eslint";
 import tsParser from "@typescript-eslint/parser";
 import { z } from "zod";
@@ -10,47 +10,16 @@ import { getRuleInstruction } from "eslint-plugin-llm-core/instructions";
 // public source of a rule's defaults, merged in so option-template placeholders
 // resolve even when a project enables a rule without explicit options.
 import plugin from "eslint-plugin-llm-core";
+import { countSourceFiles } from "./lint-file-limits.js";
+import {
+  NO_CONFIG_MESSAGE,
+  outsideRootResponse,
+} from "./lint-file-responses.js";
 
 const LLM_CORE_PREFIX = "llm-core/";
 
 // Default directory-lint cap (Assumption A1); validated/tuned by sub-task 3.7.
 const DEFAULT_MAX_FILES = 200;
-
-// Extensions ESLint may lint; used to estimate a directory's size for the cap.
-const LINTABLE_EXTENSIONS = new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".mjs",
-  ".cjs",
-]);
-
-// Directories excluded from the file-count estimate (never linted in practice).
-const SKIPPED_DIRECTORIES = new Set([
-  "node_modules",
-  ".git",
-  "dist",
-  "coverage",
-]);
-
-const NO_CONFIG_MESSAGE = [
-  "No ESLint configuration was discovered for this path.",
-  "",
-  "lint_file lints using your project's own ESLint config by default. To use",
-  "project-config findings, install and configure eslint-plugin-llm-core in",
-  "your project:",
-  "",
-  "  npm install --save-dev eslint eslint-plugin-llm-core",
-  "",
-  "Then add it to your flat config (eslint.config.js), for example:",
-  "",
-  '  import llmCore from "eslint-plugin-llm-core";',
-  "  export default [...llmCore.configs.recommended];",
-  "",
-  "Alternatively, start the MCP server with LLM_CORE_MCP_ENABLE_FALLBACK=1 to",
-  'enable read-only fallback findings labeled with source: "fallback".',
-].join("\n");
 
 function isNoConfigError(error: unknown): boolean {
   const maybeEslintError = error as { messageTemplate?: unknown };
@@ -71,47 +40,23 @@ function isWithinRoot(absoluteTarget: string, root: string): boolean {
   );
 }
 
-/**
- * Counts lintable source files under `dir`, short-circuiting once the count
- * exceeds `limit`. A conservative estimate for the directory guard — it ignores
- * ESLint's own ignore rules, so it may over-count, which only makes the guard
- * safer.
- */
-async function countSourceFiles(dir: string, limit: number): Promise<number> {
-  let count = 0;
-  const pending: string[] = [dir];
-
-  while (pending.length > 0) {
-    const current = pending.pop() as string;
-    const entries = await readdir(current, { withFileTypes: true });
-
-    for (const entry of entries) {
-      if (entry.isDirectory()) {
-        if (!SKIPPED_DIRECTORIES.has(entry.name)) {
-          pending.push(path.join(current, entry.name));
-        }
-      } else if (
-        entry.isFile() &&
-        LINTABLE_EXTENSIONS.has(path.extname(entry.name))
-      ) {
-        count += 1;
-        if (count > limit) {
-          return count;
-        }
-      }
-    }
-  }
-
-  return count;
-}
-
 interface RuleModuleWithDefaults {
   defaultOptions?: readonly unknown[];
 }
 
-const coreRules = (
-  plugin as unknown as { rules: Record<string, RuleModuleWithDefaults> }
-).rules;
+function isRuleModuleMap(
+  value: unknown,
+): value is Record<string, RuleModuleWithDefaults> {
+  return isPlainObject(value);
+}
+
+function getCoreRules(value: unknown): Record<string, RuleModuleWithDefaults> {
+  return isPlainObject(value) && isRuleModuleMap(value.rules)
+    ? value.rules
+    : {};
+}
+
+const coreRules = getCoreRules(plugin);
 
 /**
  * Options that configure the lint_file tool at registration time. Kept separate
@@ -175,7 +120,7 @@ type FlatESLintConstructor = new (options?: {
 
 type LintSource = "project-config" | "fallback";
 
-type FlatConfig = Record<string, unknown>;
+type FlatConfig = object;
 
 const inputSchema = {
   path: z
@@ -188,7 +133,7 @@ async function newFlatESLint(
 ): Promise<FlatESLintInstance> {
   // ESLint's exported types do not surface the flat-config overload; the cast
   // matches the runtime shape (mirrors src/instructions/config-resolver.ts).
-  const loadFlatESLint = loadESLint as unknown as (options: {
+  const loadFlatESLint = loadESLint as (options: {
     useFlatConfig: boolean;
   }) => Promise<FlatESLintConstructor>;
   const ESLint = await loadFlatESLint({ useFlatConfig: true });
@@ -208,10 +153,13 @@ async function createFallbackESLint(cwd: string): Promise<FlatESLintInstance> {
 }
 
 function createFallbackConfig(): FlatConfig[] {
-  const llmPlugin = plugin as unknown as {
-    configs: Record<string, FlatConfig[]>;
-  };
-  const recommended = llmPlugin.configs.recommended ?? [];
+  const configs =
+    isPlainObject(plugin) && isPlainObject(plugin.configs)
+      ? plugin.configs
+      : {};
+  const recommended = Array.isArray(configs.recommended)
+    ? configs.recommended
+    : [];
   const recommendedRules = (
     recommended[0] as { rules?: Record<string, unknown> } | undefined
   )?.rules;
@@ -363,17 +311,7 @@ export function registerLintFile(
       );
 
       if (!isWithinRoot(absoluteTarget, projectRoot)) {
-        return {
-          isError: true,
-          content: [
-            {
-              type: "text" as const,
-              text:
-                `Refusing to lint "${targetPath}": it resolves outside the ` +
-                `project root (${projectRoot}). Pass a path within the project root.`,
-            },
-          ],
-        };
+        return outsideRootResponse(targetPath, projectRoot);
       }
 
       const targetStat = await stat(absoluteTarget).catch(() => null);
@@ -382,17 +320,7 @@ export function registerLintFile(
         : absoluteTarget;
 
       if (targetStat && !isWithinRoot(realTarget, realProjectRoot)) {
-        return {
-          isError: true,
-          content: [
-            {
-              type: "text" as const,
-              text:
-                `Refusing to lint "${targetPath}": it resolves outside the ` +
-                `project root (${projectRoot}). Pass a path within the project root.`,
-            },
-          ],
-        };
+        return outsideRootResponse(targetPath, projectRoot);
       }
 
       if (targetStat?.isDirectory()) {

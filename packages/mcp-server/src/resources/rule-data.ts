@@ -2,7 +2,11 @@ import plugin from "eslint-plugin-llm-core";
 import { getRuleInstruction } from "eslint-plugin-llm-core/instructions";
 
 type RuleCategory =
-  "complexity" | "typescript" | "best-practices" | "style" | "hygiene";
+  | "complexity"
+  | "typescript"
+  | "best-practices"
+  | "style"
+  | "hygiene";
 
 interface RuleListEntry {
   name: string;
@@ -28,7 +32,33 @@ interface PluginLike {
   configs: Record<string, FlatConfigLike[]>;
 }
 
-const llmCorePlugin = plugin as unknown as PluginLike;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isRuleModuleMap(value: unknown): value is Record<string, RuleModule> {
+  return isRecord(value);
+}
+
+function isFlatConfigMap(
+  value: unknown,
+): value is Record<string, FlatConfigLike[]> {
+  return isRecord(value) && Object.values(value).every(Array.isArray);
+}
+
+function toPluginLike(value: unknown): PluginLike {
+  if (
+    !isRecord(value) ||
+    !isRuleModuleMap(value.rules) ||
+    !isFlatConfigMap(value.configs)
+  ) {
+    throw new Error("eslint-plugin-llm-core did not expose rules/configs.");
+  }
+
+  return { rules: value.rules, configs: value.configs };
+}
+
+const llmCorePlugin = toPluginLike(plugin);
 
 const CATEGORY_CONFIGS: RuleCategory[] = [
   "complexity",

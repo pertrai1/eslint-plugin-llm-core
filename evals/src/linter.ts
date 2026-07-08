@@ -3,7 +3,9 @@ import * as tsParser from "@typescript-eslint/parser";
 import type { LintViolation } from "./types";
 import * as pluginRules from "../../src/rules/index";
 
-const rulesMap = pluginRules as unknown as Record<string, unknown>;
+const rulesMap: Record<string, unknown> = Object.fromEntries(
+  Object.entries(pluginRules),
+);
 
 const rulesEnabled: Record<string, "error"> = Object.fromEntries(
   Object.keys(rulesMap).map((name) => [`llm-core/${name}`, "error"]),
@@ -11,7 +13,7 @@ const rulesEnabled: Record<string, "error"> = Object.fromEntries(
 
 const linterInstance = new Linter({ configType: "flat" });
 
-const flatConfig = [
+const flatConfig: Parameters<typeof linterInstance.verify>[1] = [
   {
     files: ["**/*.ts"],
     plugins: { "llm-core": { rules: rulesMap } },
@@ -24,11 +26,9 @@ const flatConfig = [
 ];
 
 export function lintCode(code: string): LintViolation[] {
-  const messages = linterInstance.verify(
-    code,
-    flatConfig as unknown as Parameters<typeof linterInstance.verify>[1],
-    { filename: "file.ts" },
-  );
+  const messages = linterInstance.verify(code, flatConfig, {
+    filename: "file.ts",
+  });
 
   return messages
     .filter((msg) => msg.ruleId !== null)

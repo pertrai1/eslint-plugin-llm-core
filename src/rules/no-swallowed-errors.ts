@@ -22,7 +22,7 @@ export default createRule<[], MessageIds>({
         "",
         "How to fix:",
         "  Choose one explicit outcome:",
-        "  Before: catch (error) { console.log(error); }",
+        "  Before: catch (error) { logOnly(error); }",
         "  After:  catch (error) { throw new Error('Failed to process', { cause: error }); }",
         "  After:  catch (error) { logger.error('Process failed', { error }); return { success: false, error }; }",
         "  After:  catch (error) { Sentry.captureException(error); }",

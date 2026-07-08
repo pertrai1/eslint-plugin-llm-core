@@ -14,6 +14,7 @@ ruleTester.run("no-debug-scaffolding", rule, {
     'console.warn("Deprecated API used", { route });',
     'console.info("Migration complete", { rows });',
     'console.log("Server started");',
+    "console.log(`Server started`);",
     'console.log("Processed batch", { batchId, count });',
     'logger.debug("Cache hit", { key });',
     'audit.log("User authenticated", { userId });',
@@ -34,6 +35,10 @@ ruleTester.run("no-debug-scaffolding", rule, {
     },
     {
       code: 'console.log("here");',
+      errors: [{ messageId: "temporaryConsole" as const }],
+    },
+    {
+      code: "console.log(`debug`);",
       errors: [{ messageId: "temporaryConsole" as const }],
     },
     {

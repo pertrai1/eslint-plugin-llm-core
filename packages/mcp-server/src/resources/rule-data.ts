@@ -2,7 +2,11 @@ import plugin from "eslint-plugin-llm-core";
 import { getRuleInstruction } from "eslint-plugin-llm-core/instructions";
 
 type RuleCategory =
-  "complexity" | "typescript" | "best-practices" | "style" | "hygiene";
+  | "complexity"
+  | "typescript"
+  | "best-practices"
+  | "style"
+  | "hygiene";
 
 interface RuleListEntry {
   name: string;

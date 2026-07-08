@@ -5,7 +5,9 @@ import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
 type MessageIds =
-  "missingLocalModule" | "missingNamedExport" | "missingDefaultExport";
+  | "missingLocalModule"
+  | "missingNamedExport"
+  | "missingDefaultExport";
 
 type ExportSurface = {
   named: Set<string>;

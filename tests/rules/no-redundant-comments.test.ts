@@ -20,9 +20,14 @@ ruleTester.run("no-redundant-comments", rule, {
 function validateUser(input: unknown) {
   return UserSchema.parse(input);
 }`,
-    "// eslint-disable-next-line no-console\nconsole.log(value);",
     "// Important: normalize Turkish dotted I before slug comparison\nconst slug = normalizeSlug(input);",
     "// This branch handles the retry path after a 429 response\nif (shouldRetry(response)) { retry(); }",
+    "// Get\ngetValue();",
+    "// User input\nvalidateUser(input);",
+    "/* Validate the user input */\nvalidateUser(input);",
+    "// Validate the user input\ncheckUser(input);",
+    "// Send the event\napi[getLogger()]('event');",
+    "// Return the result\n\nreturn result;",
   ],
   invalid: [
     {
@@ -43,6 +48,34 @@ function validateUser(input: unknown) {
     },
     {
       code: "// Process each item\nfor (const item of items) {\n  processItem(item);\n}",
+      errors: [{ messageId: "redundantComment" as const }],
+    },
+    {
+      code: "// Loop through each item\nfor (const item of items) {\n  processItem(item);\n}",
+      errors: [{ messageId: "redundantComment" as const }],
+    },
+    {
+      code: "// Iterate over item keys\nfor (const key in item) {\n  processKey(key);\n}",
+      errors: [{ messageId: "redundantComment" as const }],
+    },
+    {
+      code: "// Process remaining jobs\nwhile (hasJobs()) {\n  processJob();\n}",
+      errors: [{ messageId: "redundantComment" as const }],
+    },
+    {
+      code: "// Create the API client\nconst client = createClient();",
+      errors: [{ messageId: "redundantComment" as const }],
+    },
+    {
+      code: "// Send the webhook\napi.sendWebhook(payload);",
+      errors: [{ messageId: "redundantComment" as const }],
+    },
+    {
+      code: "// Send the webhook\napi['sendWebhook'](payload);",
+      errors: [{ messageId: "redundantComment" as const }],
+    },
+    {
+      code: "// Save the user\nawait saveUser(user);",
       errors: [{ messageId: "redundantComment" as const }],
     },
   ],

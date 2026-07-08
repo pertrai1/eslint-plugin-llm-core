@@ -69,6 +69,9 @@ import noMagicNumbersRule, {
 import noRedundantLogicRule, {
   instruction as noRedundantLogic,
 } from "../rules/no-redundant-logic";
+import noRedundantCommentsRule, {
+  instruction as noRedundantComments,
+} from "../rules/no-redundant-comments";
 import noSwallowedErrorsRule, {
   instruction as noSwallowedErrors,
 } from "../rules/no-swallowed-errors";
@@ -144,6 +147,7 @@ export const ruleInstructions: Record<string, RuleInstruction> = {
   "no-inline-disable": noInlineDisable,
   "no-llm-artifacts": noLlmArtifacts,
   "no-magic-numbers": noMagicNumbers,
+  "no-redundant-comments": noRedundantComments,
   "no-redundant-logic": noRedundantLogic,
   "no-swallowed-errors": noSwallowedErrors,
   "no-type-assertion-any": noTypeAssertionAny,
@@ -187,6 +191,7 @@ export const ruleDefaultOptions: Record<string, Record<string, unknown>> = {
   "no-inline-disable": getDefaultOptions(noInlineDisableRule),
   "no-llm-artifacts": getDefaultOptions(noLlmArtifactsRule),
   "no-magic-numbers": getDefaultOptions(noMagicNumbersRule),
+  "no-redundant-comments": getDefaultOptions(noRedundantCommentsRule),
   "no-redundant-logic": getDefaultOptions(noRedundantLogicRule),
   "no-swallowed-errors": getDefaultOptions(noSwallowedErrorsRule),
   "no-type-assertion-any": getDefaultOptions(noTypeAssertionAnyRule),

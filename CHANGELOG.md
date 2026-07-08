@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.35.0
+
+### Minor Changes
+
+- f12ba49: Add `no-type-system-bypass` to flag TypeScript suppression comments, double assertions, non-null assertions, and explicit `any` annotations.
+
 ## 0.34.0
 
 ### Minor Changes

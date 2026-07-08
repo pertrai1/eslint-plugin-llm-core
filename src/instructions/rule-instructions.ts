@@ -66,12 +66,12 @@ import noLlmArtifactsRule, {
 import noMagicNumbersRule, {
   instruction as noMagicNumbers,
 } from "../rules/no-magic-numbers";
-import noRedundantLogicRule, {
-  instruction as noRedundantLogic,
-} from "../rules/no-redundant-logic";
 import noRedundantCommentsRule, {
   instruction as noRedundantComments,
 } from "../rules/no-redundant-comments";
+import noRedundantLogicRule, {
+  instruction as noRedundantLogic,
+} from "../rules/no-redundant-logic";
 import noSwallowedErrorsRule, {
   instruction as noSwallowedErrors,
 } from "../rules/no-swallowed-errors";

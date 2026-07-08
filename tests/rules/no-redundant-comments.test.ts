@@ -28,6 +28,7 @@ function validateUser(input: unknown) {
     "// Validate the user input\ncheckUser(input);",
     "// Send the event\napi[getLogger()]('event');",
     "// Return the result\n\nreturn result;",
+    "doSomething(); // Return the result\nreturn fallback;",
   ],
   invalid: [
     {
@@ -44,6 +45,10 @@ function validateUser(input: unknown) {
     },
     {
       code: "// Set the user name\nuser.name = name;",
+      errors: [{ messageId: "redundantComment" as const }],
+    },
+    {
+      code: "// Assign the user name\nuser.name = name;",
       errors: [{ messageId: "redundantComment" as const }],
     },
     {
@@ -75,7 +80,7 @@ function validateUser(input: unknown) {
       errors: [{ messageId: "redundantComment" as const }],
     },
     {
-      code: "// Save the user\nawait saveUser(user);",
+      code: "async function run() {\n  // Save the user\n  await saveUser(user);\n}",
       errors: [{ messageId: "redundantComment" as const }],
     },
   ],

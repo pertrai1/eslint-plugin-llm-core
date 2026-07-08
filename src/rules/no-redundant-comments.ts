@@ -25,6 +25,7 @@ const COMMENT_EXCLUSION_PATTERNS = [
 ];
 
 const VERB_PREFIXES = [
+  "assign",
   "build",
   "calculate",
   "call",
@@ -185,6 +186,7 @@ export default createRule<[], MessageIds>({
   },
   defaultOptions: [],
   create(context) {
+    const sourceCode = context.sourceCode;
     const statementsByStartLine = new Map<number, CandidateNode>();
 
     function rememberNode(node: CandidateNode): void {
@@ -204,10 +206,14 @@ export default createRule<[], MessageIds>({
       VariableDeclaration: rememberNode,
       WhileStatement: rememberNode,
       "Program:exit"() {
-        const comments = context.sourceCode.getAllComments();
+        const comments = sourceCode.getAllComments();
 
         for (const comment of comments) {
           if (comment.type !== "Line") continue;
+          const lineText = sourceCode.lines[comment.loc.start.line - 1] ?? "";
+          if (lineText.slice(0, comment.loc.start.column).trim() !== "") {
+            continue;
+          }
 
           const commentText = normalizeComment(comment.value);
           if (shouldSkipComment(commentText)) continue;

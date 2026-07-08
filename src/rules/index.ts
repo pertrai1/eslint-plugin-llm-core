@@ -27,6 +27,7 @@ export { default as "no-magic-numbers" } from "./no-magic-numbers";
 export { default as "no-redundant-logic" } from "./no-redundant-logic";
 export { default as "no-swallowed-errors" } from "./no-swallowed-errors";
 export { default as "no-type-assertion-any" } from "./no-type-assertion-any";
+export { default as "no-type-system-bypass" } from "./no-type-system-bypass";
 export { default as "no-unbounded-promise-all" } from "./no-unbounded-promise-all";
 export { default as "no-unsafe-array-access" } from "./no-unsafe-array-access";
 export { default as "no-weak-randomness-for-secrets" } from "./no-weak-randomness-for-secrets";

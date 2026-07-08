@@ -75,6 +75,9 @@ import noSwallowedErrorsRule, {
 import noTypeAssertionAnyRule, {
   instruction as noTypeAssertionAny,
 } from "../rules/no-type-assertion-any";
+import noTypeSystemBypassRule, {
+  instruction as noTypeSystemBypass,
+} from "../rules/no-type-system-bypass";
 import noUnboundedPromiseAllRule, {
   instruction as noUnboundedPromiseAll,
 } from "../rules/no-unbounded-promise-all";
@@ -147,6 +150,7 @@ export const ruleInstructions: Record<string, RuleInstruction> = {
   "no-redundant-logic": noRedundantLogic,
   "no-swallowed-errors": noSwallowedErrors,
   "no-type-assertion-any": noTypeAssertionAny,
+  "no-type-system-bypass": noTypeSystemBypass,
   "no-unbounded-promise-all": noUnboundedPromiseAll,
   "no-unsafe-array-access": noUnsafeArrayAccess,
   "no-weak-randomness-for-secrets": noWeakRandomnessForSecrets,
@@ -190,6 +194,7 @@ export const ruleDefaultOptions: Record<string, Record<string, unknown>> = {
   "no-redundant-logic": getDefaultOptions(noRedundantLogicRule),
   "no-swallowed-errors": getDefaultOptions(noSwallowedErrorsRule),
   "no-type-assertion-any": getDefaultOptions(noTypeAssertionAnyRule),
+  "no-type-system-bypass": getDefaultOptions(noTypeSystemBypassRule),
   "no-unbounded-promise-all": getDefaultOptions(noUnboundedPromiseAllRule),
   "no-unsafe-array-access": getDefaultOptions(noUnsafeArrayAccessRule),
   "no-weak-randomness-for-secrets": getDefaultOptions(

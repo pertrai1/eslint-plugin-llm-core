@@ -13,6 +13,7 @@ ruleTester.run("no-type-system-bypass", rule, {
     "const user = data as User;",
     "const value = data as unknown;",
     "const result = data as any;", // Covered by no-type-assertion-any.
+    "const values: Array<any> = [];", // Covered by no-any-in-generic.
     "const items: string[] = [];",
     "function parse(input: unknown): User { return UserSchema.parse(input); }",
     "const maybeUser = users.find((user) => user.id === id);\nif (!maybeUser) throw new Error('missing');\nmaybeUser.name;",

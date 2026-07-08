@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.34.0
+
+### Minor Changes
+
+- 3042105: Add `no-debug-scaffolding` to flag debugger statements and temporary console debug probes left behind during development.
+
 ## 0.33.0
 
 ### Minor Changes

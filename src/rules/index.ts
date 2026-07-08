@@ -25,6 +25,7 @@ export { default as "no-incorrect-sort" } from "./no-incorrect-sort";
 export { default as "no-inline-disable" } from "./no-inline-disable";
 export { default as "no-llm-artifacts" } from "./no-llm-artifacts";
 export { default as "no-magic-numbers" } from "./no-magic-numbers";
+export { default as "no-redundant-comments" } from "./no-redundant-comments";
 export { default as "no-redundant-logic" } from "./no-redundant-logic";
 export { default as "no-swallowed-errors" } from "./no-swallowed-errors";
 export { default as "no-type-assertion-any" } from "./no-type-assertion-any";

@@ -63,6 +63,7 @@ const hygieneRules: TSESLint.FlatConfig.Rules = {
   "llm-core/no-inline-disable": "error",
   "llm-core/no-commented-out-code": "error",
   "llm-core/no-debug-scaffolding": "error",
+  "llm-core/no-redundant-comments": "error",
 };
 
 const recommendedRules: TSESLint.FlatConfig.Rules = {

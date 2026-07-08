@@ -62,6 +62,18 @@ ruleTester.run("no-debug-scaffolding", rule, {
       errors: [{ messageId: "rawConsoleDump" as const }],
     },
     {
+      code: "console.log(user?.id);",
+      errors: [{ messageId: "rawConsoleDump" as const }],
+    },
+    {
+      code: "console.log(user.id as string);",
+      errors: [{ messageId: "rawConsoleDump" as const }],
+    },
+    {
+      code: "console.log(user!.id);",
+      errors: [{ messageId: "rawConsoleDump" as const }],
+    },
+    {
       code: 'console.log("TODO remove", result);',
       errors: [{ messageId: "temporaryConsole" as const }],
     },

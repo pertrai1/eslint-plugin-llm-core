@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.33.0
+
+### Minor Changes
+
+- 57ebbed: Add `no-redundant-comments` to flag comments that only narrate adjacent code without adding intent.
+
 ## 0.32.0
 
 ### Minor Changes

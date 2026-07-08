@@ -33,6 +33,8 @@ console.log("here");
 console.debug("response", response);
 console.trace("trace", value);
 console.log(user);
+console.log(user?.id);
+console.log(user.id as string);
 console.log({ user });
 console.log(getState());
 console.log("TODO remove", result);

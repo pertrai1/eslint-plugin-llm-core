@@ -74,13 +74,31 @@ function isTemporaryMarker(text: string): boolean {
   return TEMPORARY_MARKERS.some((pattern) => pattern.test(normalized));
 }
 
+function unwrapTransparentExpression(node: TSESTree.Node): TSESTree.Node {
+  let current = node;
+
+  while (
+    current.type === AST_NODE_TYPES.ChainExpression ||
+    current.type === AST_NODE_TYPES.TSAsExpression ||
+    current.type === AST_NODE_TYPES.TSNonNullExpression ||
+    current.type === AST_NODE_TYPES.TSSatisfiesExpression ||
+    current.type === AST_NODE_TYPES.TSTypeAssertion
+  ) {
+    current = current.expression;
+  }
+
+  return current;
+}
+
 function isRawDumpArgument(node: TSESTree.Node): boolean {
+  const unwrapped = unwrapTransparentExpression(node);
+
   return (
-    node.type === AST_NODE_TYPES.Identifier ||
-    node.type === AST_NODE_TYPES.MemberExpression ||
-    node.type === AST_NODE_TYPES.CallExpression ||
-    node.type === AST_NODE_TYPES.ObjectExpression ||
-    node.type === AST_NODE_TYPES.ArrayExpression
+    unwrapped.type === AST_NODE_TYPES.Identifier ||
+    unwrapped.type === AST_NODE_TYPES.MemberExpression ||
+    unwrapped.type === AST_NODE_TYPES.CallExpression ||
+    unwrapped.type === AST_NODE_TYPES.ObjectExpression ||
+    unwrapped.type === AST_NODE_TYPES.ArrayExpression
   );
 }
 

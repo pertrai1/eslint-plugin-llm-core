@@ -14,7 +14,8 @@ type NodeWithParent = TSESTree.Node & {
 };
 
 type TypeAssertionExpression =
-  TSESTree.TSAsExpression | TSESTree.TSTypeAssertion;
+  | TSESTree.TSAsExpression
+  | TSESTree.TSTypeAssertion;
 
 const GENERIC_TS_EXPECT_ERROR_REASONS = new Set([
   "fixme",

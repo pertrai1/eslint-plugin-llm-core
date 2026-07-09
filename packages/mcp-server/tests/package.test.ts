@@ -1,13 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, realpath } from "node:fs/promises";
 import { constants } from "node:fs";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
 const PACKAGE_JSON = fileURLToPath(new URL("../package.json", import.meta.url));
 const PLUGIN_PACKAGE_JSON = fileURLToPath(
   new URL("../../eslint-plugin/package.json", import.meta.url),
 );
+const PLUGIN_DIST_INDEX = fileURLToPath(
+  new URL("../../eslint-plugin/dist/index.js", import.meta.url),
+);
 const README = fileURLToPath(new URL("../README.md", import.meta.url));
+const requireFromMcpPackage = createRequire(PACKAGE_JSON);
 
 describe("MCP package metadata", () => {
   it("pins the core plugin dependency to the current lockstep version", async () => {
@@ -22,6 +27,16 @@ describe("MCP package metadata", () => {
 
     expect(pkg.dependencies?.["eslint-plugin-llm-core"]).toBe(
       pluginPkg.version,
+    );
+  });
+
+  it("resolves the core plugin through the local workspace link", async () => {
+    const resolvedPluginEntry = requireFromMcpPackage.resolve(
+      "eslint-plugin-llm-core",
+    );
+
+    await expect(realpath(resolvedPluginEntry)).resolves.toBe(
+      await realpath(PLUGIN_DIST_INDEX),
     );
   });
 

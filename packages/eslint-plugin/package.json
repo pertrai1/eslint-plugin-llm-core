@@ -1,0 +1,99 @@
+{
+  "name": "eslint-plugin-llm-core",
+  "version": "0.35.0",
+  "description": "ESLint rules that catch the patterns LLM agents get wrong \u2014 and teach them to self-correct",
+  "license": "MIT",
+  "author": "Rob Simpson <rsimpson2@me.com>",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./instructions": {
+      "types": "./dist/instructions/index.d.ts",
+      "import": "./dist/instructions/index.js",
+      "require": "./dist/instructions/index.js"
+    }
+  },
+  "bin": {
+    "llm-core-instructions": "./dist/cli/generate-instructions.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "eslint-plugin",
+    "llm",
+    "ai",
+    "linting",
+    "typescript",
+    "code-quality",
+    "static-analysis",
+    "chatgpt",
+    "copilot",
+    "claude",
+    "ai-generated-code"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pertrai1/eslint-plugin-llm-core.git"
+  },
+  "homepage": "https://github.com/pertrai1/eslint-plugin-llm-core#readme",
+  "bugs": {
+    "url": "https://github.com/pertrai1/eslint-plugin-llm-core/issues"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "eval": "tsx ../../evals/src/run-eval.ts",
+    "eval:treatment": "tsx ../../evals/src/run-eval.ts --mode treatment",
+    "eval:control": "tsx ../../evals/src/run-eval.ts --mode control",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "update:eslint-docs": "eslint-doc-generator --config-emoji all,\ud83c\udf10 --config-emoji best-practices,\ud83c\udfc6 --config-emoji complexity,\ud83e\uddee --config-emoji hygiene,\ud83e\uddf9 --config-emoji recommended,\u2705 --config-emoji style,\ud83c\udfa8 --config-emoji typescript,\u2328\ufe0f --ignore-config bestPractices && prettier --write README.md \"docs/rules/**/*.md\""
+  },
+  "peerDependencies": {
+    "@typescript-eslint/utils": "^8.0.0",
+    "eslint": "^8.57.0 || ^9.0.0 || ^10.0.0"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.109.1",
+    "@changesets/cli": "^2.27.0",
+    "@commitlint/cli": "^21.0.1",
+    "@commitlint/config-conventional": "^21.0.1",
+    "@types/node": "^26.0.1",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/rule-tester": "^8.0.0",
+    "@typescript-eslint/utils": "^8.0.0",
+    "@vitest/coverage-v8": "^4.1.2",
+    "eslint": "^10.1.0",
+    "eslint-config-prettier": "^10.0.0",
+    "eslint-doc-generator": "^3.3.2",
+    "eslint-plugin-eslint-plugin": "^7.3.2",
+    "husky": "^9.0.0",
+    "lint-staged": "^17.0.2",
+    "prettier": "^3.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^4.1.2"
+  }
+}

@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 /**
- * Build-time script: reads docs/rules/*.md from the repo root and generates
+ * Build-time script: reads packages/eslint-plugin/docs/rules/*.md from the repo
+ * root and generates
  * src/embedded-docs.ts so rule documentation ships inside the MCP package's
  * dist/ without relying on the unpublished docs/ directory.
  *
@@ -13,7 +14,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const REPO_ROOT = join(__dirname, "..", "..", "..");
-const DOCS_DIR = join(REPO_ROOT, "docs", "rules");
+const DOCS_DIR = join(REPO_ROOT, "packages", "eslint-plugin", "docs", "rules");
 const OUTPUT_FILE = join(__dirname, "..", "src", "embedded-docs.ts");
 
 async function main(): Promise<void> {

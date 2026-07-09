@@ -1,12 +1,12 @@
 ---
-applyTo: "docs/rules/**/*.md"
+applyTo: "packages/eslint-plugin/docs/rules/**/*.md"
 ---
 
 # Rule Documentation
 
 ## Doc File Structure
 
-Each rule needs a `docs/rules/<rule-name>.md` with this structure:
+Each rule needs a `packages/eslint-plugin/docs/rules/<rule-name>.md` with this structure:
 
 ```markdown
 # llm-core/<rule-name>

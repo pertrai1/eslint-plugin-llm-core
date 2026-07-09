@@ -59,9 +59,9 @@ Every box must be checked. If a checklist item doesn't apply, check it and note 
 - [x] `npm run test` passes (new tests added if applicable)
 - [x] `npm run lint` passes
 - [x] `npm run update:eslint-docs` ran (if rules were added or changed)
-- [x] Docs added/updated (if adding a new rule: `docs/rules/<rule-name>.md`)
-- [x] Rule exported in `src/rules/index.ts` (if adding a new rule)
-- [x] Rule added to `recommendedRules` in `src/index.ts` (if applicable)
+- [x] Docs added/updated (if adding a new rule: `packages/eslint-plugin/docs/rules/<rule-name>.md`)
+- [x] Rule exported in `packages/eslint-plugin/src/rules/index.ts` (if adding a new rule)
+- [x] Rule added to `recommendedRules` in `packages/eslint-plugin/src/index.ts` (if applicable)
 ```
 
 ### 4. Agent Disclosure

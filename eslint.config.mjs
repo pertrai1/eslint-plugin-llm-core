@@ -6,7 +6,9 @@ export default [
   {
     ignores: [
       "dist/",
+      "**/dist/",
       "coverage/",
+      "**/coverage/",
       "node_modules/",
       "evals/",
       // Fixtures contain deliberate rule violations for the MCP lint_file
@@ -20,11 +22,20 @@ export default [
   eslintPlugin.configs.recommended,
   eslintConfigPrettier,
   {
-    files: ["src/**/*.ts", "tests/**/*.ts", "vitest.config.ts"],
+    files: [
+      "packages/eslint-plugin/src/**/*.ts",
+      "packages/eslint-plugin/tests/**/*.ts",
+      "packages/eslint-plugin/vitest.config.ts",
+      "vitest.config.ts",
+    ],
     languageOptions: {
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["vitest.config.ts", "commitlint.config.ts"],
+          allowDefaultProject: [
+            "packages/eslint-plugin/vitest.config.ts",
+            "vitest.config.ts",
+            "commitlint.config.ts",
+          ],
         },
         tsconfigRootDir: import.meta.dirname,
       },

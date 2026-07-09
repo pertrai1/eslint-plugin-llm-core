@@ -1,5 +1,5 @@
 ---
-applyTo: "tests/rules/**/*.ts"
+applyTo: "packages/eslint-plugin/tests/rules/**/*.ts"
 ---
 
 # Rule Tests

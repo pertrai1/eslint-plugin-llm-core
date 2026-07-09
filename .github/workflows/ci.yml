@@ -103,12 +103,12 @@ jobs:
       - name: Verify docs are up to date
         run: |
           npm run update:eslint-docs
-          if ! git diff --quiet docs/ README.md; then
+          if ! git diff --quiet packages/eslint-plugin/docs/ packages/eslint-plugin/README.md; then
             echo "::error::Rule docs are stale. Run 'npm run update:eslint-docs' and commit the formatted changes."
-            git diff --stat docs/ README.md
+            git diff --stat packages/eslint-plugin/docs/ packages/eslint-plugin/README.md
             exit 1
           fi
       - name: Verify package contents
         run: |
-          npm pack --dry-run 2>&1
+          npm --workspace eslint-plugin-llm-core pack --dry-run 2>&1
           npm --workspace eslint-plugin-llm-core-mcp pack --dry-run 2>&1

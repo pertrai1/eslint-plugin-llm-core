@@ -1,7 +1,7 @@
 import { Linter } from "eslint";
 import * as tsParser from "@typescript-eslint/parser";
 import type { LintViolation } from "./types";
-import * as pluginRules from "../../src/rules/index";
+import * as pluginRules from "../../packages/eslint-plugin/src/rules/index";
 
 const rulesMap = pluginRules as unknown as Record<string, unknown>;
 

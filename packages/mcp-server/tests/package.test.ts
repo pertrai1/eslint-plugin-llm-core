@@ -4,8 +4,8 @@ import { constants } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const PACKAGE_JSON = fileURLToPath(new URL("../package.json", import.meta.url));
-const ROOT_PACKAGE_JSON = fileURLToPath(
-  new URL("../../../package.json", import.meta.url),
+const PLUGIN_PACKAGE_JSON = fileURLToPath(
+  new URL("../../eslint-plugin/package.json", import.meta.url),
 );
 const README = fileURLToPath(new URL("../README.md", import.meta.url));
 
@@ -14,11 +14,15 @@ describe("MCP package metadata", () => {
     const pkg = JSON.parse(await readFile(PACKAGE_JSON, "utf8")) as {
       dependencies?: Record<string, string>;
     };
-    const rootPkg = JSON.parse(await readFile(ROOT_PACKAGE_JSON, "utf8")) as {
+    const pluginPkg = JSON.parse(
+      await readFile(PLUGIN_PACKAGE_JSON, "utf8"),
+    ) as {
       version?: string;
     };
 
-    expect(pkg.dependencies?.["eslint-plugin-llm-core"]).toBe(rootPkg.version);
+    expect(pkg.dependencies?.["eslint-plugin-llm-core"]).toBe(
+      pluginPkg.version,
+    );
   });
 
   it("wires the llm-core-mcp bin to the built stdio server", async () => {

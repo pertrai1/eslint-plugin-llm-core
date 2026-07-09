@@ -107,7 +107,7 @@ jobs:
           fetch-depth: 0
       - name: Check for changeset when src/ is modified
         run: |
-          SRC_CHANGED=$(git diff --name-only origin/main...HEAD -- src/ 'packages/*/src/' package.json 'packages/*/package.json' | wc -l | tr -d ' ')
+          SRC_CHANGED=$(git diff --name-only origin/main...HEAD -- src/ 'packages/*/src/' 'packages/*/package.json' | wc -l | tr -d ' ')
           if [ "$SRC_CHANGED" -eq 0 ]; then
             echo "✓ No src/ changes — changeset not required"
             exit 0
@@ -146,6 +146,12 @@ jobs:
 
             BEFORE=$(git show "origin/main:$manifest" | node -e "let input = ''; process.stdin.on('data', (chunk) => input += chunk); process.stdin.on('end', () => console.log(JSON.parse(input).version ?? ''));")
             AFTER=$(node -e "const fs = require('node:fs'); console.log(JSON.parse(fs.readFileSync(process.argv[1], 'utf8')).version ?? '');" "$manifest")
+            IS_PRIVATE=$(node -e "const fs = require('node:fs'); console.log(Boolean(JSON.parse(fs.readFileSync(process.argv[1], 'utf8')).private));" "$manifest")
+
+            if [ "$IS_PRIVATE" = "true" ]; then
+              echo "✓ $manifest is private; skipping version guard"
+              continue
+            fi
 
             if [ "$BEFORE" != "$AFTER" ]; then
               echo "::error::$manifest version changed from $BEFORE to $AFTER. Versions are managed by Changesets CI — do not bump versions in feature PRs."

@@ -148,10 +148,10 @@ do not bulk-read every record.
 
 Domain-specific instructions are loaded automatically by `applyTo` globs in `.github/instructions/`:
 
-| File                     | Applies to            | Covers                                                        |
-| ------------------------ | --------------------- | ------------------------------------------------------------- |
-| `rule-implementation.md` | `src/rules/**/*.ts`   | Rule file pattern, message format, scope, acceptance criteria |
-| `rule-tests.md`          | `tests/rules/**/*.ts` | Test file pattern, quality rules, TDD flow                    |
-| `rule-docs.md`           | `docs/rules/**/*.md`  | Doc structure, auto-generated headers                         |
-| `plugin-config.md`       | `src/index.ts`        | Category objects, recommended, TypeScript-only rules          |
-| `pull-request.md`        | `**` (all files)      | PR template, checklist, agent disclosure                      |
+| File                     | Applies to                                   | Covers                                                        |
+| ------------------------ | -------------------------------------------- | ------------------------------------------------------------- |
+| `rule-implementation.md` | `packages/eslint-plugin/src/rules/**/*.ts`   | Rule file pattern, message format, scope, acceptance criteria |
+| `rule-tests.md`          | `packages/eslint-plugin/tests/rules/**/*.ts` | Test file pattern, quality rules, TDD flow                    |
+| `rule-docs.md`           | `packages/eslint-plugin/docs/rules/**/*.md`  | Doc structure, auto-generated headers                         |
+| `plugin-config.md`       | `packages/eslint-plugin/src/index.ts`        | Category objects, recommended, TypeScript-only rules          |
+| `pull-request.md`        | `**` (all files)                             | PR template, checklist, agent disclosure                      |

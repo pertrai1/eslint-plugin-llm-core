@@ -1,12 +1,12 @@
 ---
-applyTo: "src/rules/**/*.ts"
+applyTo: "packages/eslint-plugin/src/rules/**/*.ts"
 ---
 
 # Rule Implementation
 
 ## Rule File Pattern
 
-Every rule uses `createRule` from `src/utils/create-rule.ts`. One rule per file, filename matches rule name.
+Every rule uses `createRule` from `packages/eslint-plugin/src/utils/create-rule.ts`. One rule per file, filename matches rule name.
 
 ```typescript
 import { TSESTree } from "@typescript-eslint/utils";
@@ -84,7 +84,7 @@ Before implementing a new rule, verify it satisfies all of the following:
 
 ## Registering the Rule
 
-After creating the rule file, export it from `src/rules/index.ts`:
+After creating the rule file, export it from `packages/eslint-plugin/src/rules/index.ts`:
 
 ```typescript
 export { default as "rule-name" } from "./rule-name";

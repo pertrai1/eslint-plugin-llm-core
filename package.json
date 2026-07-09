@@ -1,88 +1,31 @@
 {
-  "name": "eslint-plugin-llm-core",
-  "workspaces": [
-    ".",
-    "packages/*"
-  ],
-  "version": "0.35.0",
-  "description": "ESLint rules that catch the patterns LLM agents get wrong — and teach them to self-correct",
+  "name": "eslint-plugin-llm-core-monorepo",
+  "private": true,
+  "description": "Monorepo for eslint-plugin-llm-core and related tooling",
   "license": "MIT",
   "author": "Rob Simpson <rsimpson2@me.com>",
   "type": "commonjs",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
-    },
-    "./instructions": {
-      "types": "./dist/instructions/index.d.ts",
-      "import": "./dist/instructions/index.js",
-      "require": "./dist/instructions/index.js"
-    }
-  },
-  "bin": {
-    "llm-core-instructions": "./dist/cli/generate-instructions.js"
-  },
-  "files": [
-    "dist",
-    "README.md"
+  "workspaces": [
+    "packages/*"
   ],
-  "keywords": [
-    "eslint",
-    "eslintplugin",
-    "eslint-plugin",
-    "llm",
-    "ai",
-    "linting",
-    "typescript",
-    "code-quality",
-    "static-analysis",
-    "chatgpt",
-    "copilot",
-    "claude",
-    "ai-generated-code"
-  ],
-  "engines": {
-    "node": ">=20"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true,
-    "registry": "https://registry.npmjs.org/"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/pertrai1/eslint-plugin-llm-core.git"
-  },
-  "homepage": "https://github.com/pertrai1/eslint-plugin-llm-core#readme",
-  "bugs": {
-    "url": "https://github.com/pertrai1/eslint-plugin-llm-core/issues"
-  },
   "scripts": {
-    "build": "npm run build:core && npm --workspace eslint-plugin-llm-core-mcp run build",
-    "build:core": "tsc -p tsconfig.build.json",
+    "build": "npm --workspace eslint-plugin-llm-core run build && npm --workspace eslint-plugin-llm-core-mcp run build",
+    "build:core": "npm --workspace eslint-plugin-llm-core run build",
     "eval": "tsx evals/src/run-eval.ts",
     "eval:treatment": "tsx evals/src/run-eval.ts --mode treatment",
     "eval:control": "tsx evals/src/run-eval.ts --mode control",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run test:core && npm --workspace eslint-plugin-llm-core-mcp test",
-    "test:core": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage && npm --workspace eslint-plugin-llm-core-mcp test",
-    "update:eslint-docs": "eslint-doc-generator && prettier --write README.md \"docs/rules/**/*.md\"",
+    "test": "npm --workspace eslint-plugin-llm-core test && npm --workspace eslint-plugin-llm-core-mcp test",
+    "test:core": "npm --workspace eslint-plugin-llm-core test",
+    "test:watch": "npm --workspace eslint-plugin-llm-core run test:watch",
+    "test:coverage": "npm --workspace eslint-plugin-llm-core run test:coverage && npm --workspace eslint-plugin-llm-core-mcp test",
+    "update:eslint-docs": "npm --workspace eslint-plugin-llm-core run update:eslint-docs",
     "prepare": "husky",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "npm run build && changeset publish"
-  },
-  "peerDependencies": {
-    "@typescript-eslint/utils": "^8.0.0",
-    "eslint": "^8.57.0 || ^9.0.0 || ^10.0.0"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.109.1",

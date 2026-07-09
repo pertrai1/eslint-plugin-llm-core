@@ -1,12 +1,12 @@
 ---
-applyTo: "src/index.ts"
+applyTo: "packages/eslint-plugin/src/index.ts"
 ---
 
 # Plugin Configuration
 
 ## Config Structure
 
-Rules are organized into category objects in `src/index.ts`. Each category maps to a granular config that users can adopt independently.
+Rules are organized into category objects in `packages/eslint-plugin/src/index.ts`. Each category maps to a granular config that users can adopt independently.
 
 | Category Object      | Config Name      | Purpose                                   |
 | -------------------- | ---------------- | ----------------------------------------- |
@@ -29,7 +29,7 @@ const bestPracticesRules: TSESLint.FlatConfig.Rules = {
 
 The `recommended` config is composed from all category objects. Adding a rule to a category object automatically includes it in `recommended`.
 
-The `all` config auto-expands from `src/rules/index.ts` -- no manual registration needed.
+The `all` config auto-expands from `packages/eslint-plugin/src/rules/index.ts` -- no manual registration needed.
 
 ## TypeScript-Only Rules
 

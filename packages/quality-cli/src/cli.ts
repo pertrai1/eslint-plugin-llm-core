@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { parseCliArgs } from "./cli-args.js";
+import { shouldUseColor } from "./color.js";
 import {
   formatJsonReport,
   formatSarifReport,
@@ -19,10 +20,13 @@ async function main(): Promise<void> {
     const result = await runQualityScan(parsed.options);
     const output =
       parsed.options.reporter === "json"
-        ? formatJsonReport(result)
+        ? formatJsonReport(result, { compact: parsed.options.compact })
         : parsed.options.reporter === "sarif"
-          ? formatSarifReport(result)
-          : `${formatTextReport(result)}\n`;
+          ? formatSarifReport(result, { compact: parsed.options.compact })
+          : `${formatTextReport(result, {
+              cwd: parsed.options.cwd,
+              color: shouldUseColor(parsed.options),
+            })}\n`;
 
     process.stdout.write(output);
     process.exitCode = result.exitCode;

@@ -2,6 +2,8 @@ export type QualityCommand = "scan" | "ci";
 
 export type QualityReporter = "text" | "json" | "sarif";
 
+export type QualityColorMode = "auto" | "always" | "never";
+
 export type QualityEngine = "eslint" | "knip";
 
 export type QualitySeverity = "error" | "warning" | "notice";
@@ -32,6 +34,8 @@ export type QualityScanOptions = {
   targets: string[];
   engines: QualityEngine[];
   failOnFindings: boolean;
+  compact: boolean;
+  color: QualityColorMode;
 };
 
 export type QualityScanResult = {

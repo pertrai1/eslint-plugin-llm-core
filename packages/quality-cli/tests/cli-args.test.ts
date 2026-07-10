@@ -15,6 +15,8 @@ describe("parseCliArgs", () => {
         targets: ["src"],
         engines: ["eslint", "knip"],
         failOnFindings: false,
+        compact: false,
+        color: "auto",
       },
     });
   });
@@ -34,7 +36,35 @@ describe("parseCliArgs", () => {
         targets: [],
         engines: ["eslint"],
         failOnFindings: true,
+        compact: false,
+        color: "auto",
       },
+    });
+  });
+
+  it("parses compact machine output and explicit color flags", () => {
+    expect(parseCliArgs(["scan", "--json", "--compact"], "/repo")).toEqual({
+      kind: "run",
+      options: {
+        command: "scan",
+        reporter: "json",
+        cwd: "/repo",
+        targets: [],
+        engines: ["eslint", "knip"],
+        failOnFindings: false,
+        compact: true,
+        color: "auto",
+      },
+    });
+
+    expect(parseCliArgs(["scan", "--color"], "/repo")).toMatchObject({
+      kind: "run",
+      options: { color: "always" },
+    });
+
+    expect(parseCliArgs(["scan", "--no-color"], "/repo")).toMatchObject({
+      kind: "run",
+      options: { color: "never" },
     });
   });
 
@@ -50,6 +80,8 @@ describe("parseCliArgs", () => {
         targets: [],
         engines: ["eslint", "knip"],
         failOnFindings: false,
+        compact: false,
+        color: "auto",
       },
     });
   });

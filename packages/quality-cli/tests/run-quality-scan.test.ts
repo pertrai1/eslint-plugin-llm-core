@@ -31,6 +31,8 @@ describe("runQualityScan", () => {
         targets: ["src"],
         engines: ["eslint", "knip"],
         failOnFindings: true,
+        compact: false,
+        color: "auto",
       },
       fakeExecutor(),
     );
@@ -59,6 +61,8 @@ describe("runQualityScan", () => {
         targets: ["src"],
         engines: ["eslint"],
         failOnFindings: true,
+        compact: false,
+        color: "auto",
       },
       fakeExecutor(
         { eslint: 1 },
@@ -105,6 +109,8 @@ describe("runQualityScan", () => {
         targets: ["src"],
         engines: ["eslint"],
         failOnFindings: false,
+        compact: false,
+        color: "auto",
       },
       fakeExecutor({ eslint: 2 }),
     );

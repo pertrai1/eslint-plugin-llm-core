@@ -30,6 +30,8 @@ export function parseCliArgs(args: string[], cwd = process.cwd()): ParsedCli {
   const engines = new Set<QualityEngine>();
   const targets: string[] = [];
   let failOnFindings = commandArg === "ci";
+  let compact = false;
+  let color: QualityScanOptions["color"] = "auto";
 
   for (let index = 0; index < rest.length; index += 1) {
     const arg = rest[index];
@@ -46,6 +48,21 @@ export function parseCliArgs(args: string[], cwd = process.cwd()): ParsedCli {
 
     if (arg === "--no-exit-code") {
       failOnFindings = false;
+      continue;
+    }
+
+    if (arg === "--compact") {
+      compact = true;
+      continue;
+    }
+
+    if (arg === "--color") {
+      color = "always";
+      continue;
+    }
+
+    if (arg === "--no-color") {
+      color = "never";
       continue;
     }
 
@@ -91,6 +108,8 @@ export function parseCliArgs(args: string[], cwd = process.cwd()): ParsedCli {
       targets,
       engines: engines.size > 0 ? [...engines] : DEFAULT_ENGINES,
       failOnFindings,
+      compact,
+      color,
     },
   };
 }
@@ -119,8 +138,11 @@ Commands:
 Options:
   --json              Print normalized JSON.
   --sarif             Print SARIF 2.1.0.
+  --compact           Print compact JSON/SARIF instead of pretty output.
   --engine <engine>   Limit engines. Repeat or comma-separate: eslint,knip.
   --fail-on-findings  Exit non-zero when findings are present.
   --no-exit-code      Always exit zero unless a tool execution fails.
+  --color             Force colored text output.
+  --no-color          Disable colored text output.
   -h, --help          Show help.
 `;

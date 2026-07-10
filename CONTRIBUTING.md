@@ -1,6 +1,7 @@
 # Contributing to eslint-plugin-llm-core
 
-Thanks for your interest in contributing! This plugin helps LLM agents write cleaner code, and community contributions are welcome.
+Thanks for your interest in contributing! This monorepo contains the core ESLint
+plugin plus companion tooling that helps LLM agents write cleaner code.
 
 ## Getting Started
 
@@ -14,29 +15,46 @@ npm run test
 
 ## Development Commands
 
-| Command                      | Description                     |
-| ---------------------------- | ------------------------------- |
-| `npm run build`              | Compile TypeScript to `dist/`   |
-| `npm run test`               | Run tests with vitest           |
-| `npm run test:watch`         | Run tests in watch mode         |
-| `npm run test:coverage`      | Run tests with coverage report  |
-| `npm run lint`               | Run ESLint                      |
-| `npm run format`             | Run Prettier                    |
-| `npm run update:eslint-docs` | Regenerate rule docs and README |
+| Command                      | Description                                   |
+| ---------------------------- | --------------------------------------------- |
+| `npm run build`              | Compile all workspace packages to `dist/`     |
+| `npm run test`               | Run tests for all workspace packages          |
+| `npm run test:core`          | Run only the ESLint plugin tests              |
+| `npm run test:watch`         | Run ESLint plugin tests in watch mode         |
+| `npm run test:coverage`      | Run coverage for the plugin and package tests |
+| `npm run lint`               | Run ESLint across the workspace               |
+| `npm run format`             | Run Prettier                                  |
+| `npm run update:eslint-docs` | Regenerate plugin rule docs and README        |
+
+Package-specific commands use npm workspaces:
+
+```bash
+npm --workspace eslint-plugin-llm-core test
+npm --workspace eslint-plugin-llm-core-mcp test
+npm --workspace llm-core-quality test
+```
+
+## Package Layout
+
+| Path                     | Package name                 | Purpose                                      |
+| ------------------------ | ---------------------------- | -------------------------------------------- |
+| `packages/eslint-plugin` | `eslint-plugin-llm-core`     | ESLint rules, configs, instruction generator |
+| `packages/mcp-server`    | `eslint-plugin-llm-core-mcp` | MCP stdio server for lint guidance           |
+| `packages/quality-cli`   | `llm-core-quality`           | ESLint + Knip quality-gate CLI               |
 
 ## Adding a New Rule
 
 1. **Propose it first** — Open an issue using the "New Rule Proposal" template. The proposal must satisfy the [rule acceptance criteria](AGENTS.md#rule-acceptance-criteria) in `AGENTS.md`.
 
-2. **Create the rule file** — `src/rules/my-rule.ts` using `createRule` from `src/utils/create-rule.ts`. Look at existing rules for the pattern.
+2. **Create the rule file** — `packages/eslint-plugin/src/rules/my-rule.ts` using `createRule` from `packages/eslint-plugin/src/utils/create-rule.ts`. Look at existing rules for the pattern.
 
-3. **Export the rule** — Add it to `src/rules/index.ts`.
+3. **Export the rule** — Add it to `packages/eslint-plugin/src/rules/index.ts`.
 
-4. **Add to recommended** (if applicable) — Add it to `recommendedRules` in `src/index.ts`. Most rules that catch real bugs or common LLM mistakes belong here.
+4. **Add to recommended** (if applicable) — Add it to `recommendedRules` in `packages/eslint-plugin/src/index.ts`. Most rules that catch real bugs or common LLM mistakes belong here.
 
-5. **Write tests** — `tests/rules/my-rule.test.ts` using `RuleTester` from `@typescript-eslint/rule-tester`. Cover both valid and invalid cases thoroughly.
+5. **Write tests** — `packages/eslint-plugin/tests/rules/my-rule.test.ts` using `RuleTester` from `@typescript-eslint/rule-tester`. Cover both valid and invalid cases thoroughly.
 
-6. **Write docs** — `docs/rules/my-rule.md` with Rule Details, Examples (Incorrect/Correct), What This Rule Catches, and Error Messages sections. Don't include `Options` or `Config` headers for rules with no options — the doc generator handles config headers automatically.
+6. **Write docs** — `packages/eslint-plugin/docs/rules/my-rule.md` with Rule Details, Examples (Incorrect/Correct), What This Rule Catches, and Error Messages sections. Don't include `Options` or `Config` headers for rules with no options — the doc generator handles config headers automatically.
 
 7. **Regenerate docs** — Run `npm run update:eslint-docs` to update the README rules table and doc headers.
 
@@ -102,7 +120,19 @@ Use these repo docs:
 
 ## Versioning
 
-This project uses [Changesets](https://github.com/changesets/changesets) for versioning. You don't need to create a changeset — maintainers will handle that when merging.
+This project uses [Changesets](https://github.com/changesets/changesets) for
+versioning. You don't need to create a changeset — maintainers will handle that
+when merging.
+
+Packages are released independently. Changes that alter a package's published
+behavior or documentation should be described against the affected package:
+
+- Rule, config, generated-instruction, or plugin README changes affect
+  `eslint-plugin-llm-core`.
+- MCP server tools, resources, fallback behavior, or MCP README changes affect
+  `eslint-plugin-llm-core-mcp`.
+- Quality CLI command, reporter, engine, exit-code, or CLI README changes affect
+  `llm-core-quality`.
 
 ## Questions?
 

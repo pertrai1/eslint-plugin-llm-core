@@ -2,6 +2,21 @@
 
 MCP stdio server for just-in-time guidance from `eslint-plugin-llm-core`.
 
+## Installation
+
+Most MCP clients should launch the server with `npx`:
+
+```bash
+npx -y eslint-plugin-llm-core-mcp
+```
+
+For local development or pinned project usage:
+
+```bash
+npm install --save-dev eslint-plugin-llm-core-mcp
+npx llm-core-mcp
+```
+
 The server exposes:
 
 - `lint_file`: lints a file or directory with the target project's own ESLint
@@ -30,6 +45,51 @@ Register the server with an MCP-capable client using `npx`:
 `lint_file` first uses the project ESLint configuration it discovers from the
 target path. Project configuration always takes precedence, and project-config
 findings are labeled with `source: "project-config"`.
+
+## Tools
+
+### `lint_file`
+
+Lints a file or directory inside the project root and returns only
+`llm-core/*` violations, each with its teaching guidance attached.
+
+Input:
+
+```json
+{
+  "path": "src/index.ts"
+}
+```
+
+Directory targets are capped to prevent broad accidental scans. Narrow the path
+when the tool asks for a smaller target.
+
+### `get_active_instructions`
+
+Returns generated lint guidance for the active ESLint config. Call it when an
+agent needs project-specific rule guidance without keeping every rule in the
+prompt for the full session.
+
+Input:
+
+```json
+{}
+```
+
+Optional explicit config:
+
+```json
+{
+  "configPath": "eslint.config.mjs"
+}
+```
+
+## Resources
+
+- `llm-core://rules` lists rule names, descriptions, categories, and instruction
+  availability.
+- `llm-core://rules/{ruleName}` returns the embedded markdown documentation for
+  one rule, for example `llm-core://rules/no-floating-promise`.
 
 ## Optional Zero-Config Fallback
 
@@ -65,7 +125,7 @@ After building the package, confirm the stdio server starts:
 
 ```bash
 npm --workspace eslint-plugin-llm-core-mcp run build
-node packages/mcp-server/dist/server.js
+npx llm-core-mcp
 ```
 
 The process waits for MCP JSON-RPC messages on stdin. Stop it with `Ctrl-C`.
@@ -78,7 +138,7 @@ npx -y eslint-plugin-llm-core-mcp
 
 ## Versioning
 
-`eslint-plugin-llm-core-mcp` versions in lockstep with
-`eslint-plugin-llm-core` under the existing Changesets release flow. Changes
-that affect either package should add a changeset entry for both packages when
-compatibility depends on matching versions.
+`eslint-plugin-llm-core-mcp` has its own package version and depends on a
+specific compatible `eslint-plugin-llm-core` version. Changes that affect MCP
+behavior and plugin rule metadata together should add changeset entries for both
+packages when compatibility depends on releasing them together.

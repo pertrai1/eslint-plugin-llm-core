@@ -96,7 +96,9 @@ export function parseCliArgs(args: string[], cwd = process.cwd()): ParsedCli {
 }
 
 function addEngines(engines: Set<QualityEngine>, value: string): void {
-  for (const engine of value.split(",")) {
+  for (const rawEngine of value.split(",")) {
+    const engine = rawEngine.trim();
+
     if (engine !== "eslint" && engine !== "knip") {
       throw new Error(`Unknown engine: ${engine}`);
     }

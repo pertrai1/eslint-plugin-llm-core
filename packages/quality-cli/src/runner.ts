@@ -112,7 +112,6 @@ function buildExecutionPath(cwd: string): string {
     path.join(cwd, "node_modules", ".bin"),
     path.join(cwd, "..", "..", "node_modules", ".bin"),
     path.resolve(moduleDir, "..", "node_modules", ".bin"),
-    path.resolve(moduleDir, "..", "..", ".bin"),
     path.resolve(moduleDir, "..", "..", "..", "node_modules", ".bin"),
     process.env.PATH ?? "",
   ];

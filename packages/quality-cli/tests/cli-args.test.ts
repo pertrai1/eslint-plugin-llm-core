@@ -38,6 +38,22 @@ describe("parseCliArgs", () => {
     });
   });
 
+  it("trims comma-separated engine names", () => {
+    const parsed = parseCliArgs(["scan", "--engine", "eslint, knip"], "/repo");
+
+    expect(parsed).toEqual({
+      kind: "run",
+      options: {
+        command: "scan",
+        reporter: "text",
+        cwd: "/repo",
+        targets: [],
+        engines: ["eslint", "knip"],
+        failOnFindings: false,
+      },
+    });
+  });
+
   it("rejects unknown engines", () => {
     expect(() => parseCliArgs(["scan", "--engine", "oxlint"], "/repo")).toThrow(
       "Unknown engine: oxlint",

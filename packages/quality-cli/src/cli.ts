@@ -6,6 +6,7 @@ import {
   formatTextReport,
 } from "./reporters.js";
 import { runQualityScan } from "./runner.js";
+import type { QualityScanOptions } from "./types.js";
 
 async function main(): Promise<void> {
   try {
@@ -19,10 +20,13 @@ async function main(): Promise<void> {
     const result = await runQualityScan(parsed.options);
     const output =
       parsed.options.reporter === "json"
-        ? formatJsonReport(result)
+        ? formatJsonReport(result, { compact: parsed.options.compact })
         : parsed.options.reporter === "sarif"
-          ? formatSarifReport(result)
-          : `${formatTextReport(result)}\n`;
+          ? formatSarifReport(result, { compact: parsed.options.compact })
+          : `${formatTextReport(result, {
+              cwd: parsed.options.cwd,
+              color: shouldUseColor(parsed.options),
+            })}\n`;
 
     process.stdout.write(output);
     process.exitCode = result.exitCode;
@@ -31,6 +35,20 @@ async function main(): Promise<void> {
     process.stderr.write(`llm-core-quality: ${message}\n`);
     process.exitCode = 1;
   }
+}
+
+function shouldUseColor(options: QualityScanOptions): boolean {
+  if (options.color === "always") {
+    return true;
+  }
+
+  if (options.color === "never") {
+    return false;
+  }
+
+  return Boolean(
+    process.stdout.isTTY && !process.env.NO_COLOR && process.env.CI !== "true",
+  );
 }
 
 await main();

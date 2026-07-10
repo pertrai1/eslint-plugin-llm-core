@@ -13,6 +13,7 @@ export {
 } from "./runner.js";
 export type {
   CommandExecutor,
+  QualityColorMode,
   QualityCommand,
   QualityEngine,
   QualityFinding,

@@ -30,8 +30,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/pertrai1/eslint-plugin-llm-core",
-    "directory": "packages/quality-cli"
+    "url": "git+https://github.com/pertrai1/eslint-plugin-llm-core.git"
+  },
+  "homepage": "https://github.com/pertrai1/eslint-plugin-llm-core#readme",
+  "bugs": {
+    "url": "https://github.com/pertrai1/eslint-plugin-llm-core/issues"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

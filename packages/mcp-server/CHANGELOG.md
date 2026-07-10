@@ -1,5 +1,13 @@
 # eslint-plugin-llm-core-mcp
 
+## 0.29.4
+
+### Patch Changes
+
+- 6f053d8: Build and test the MCP server against the local workspace copy of `eslint-plugin-llm-core`.
+- Updated dependencies [6747353]
+  - eslint-plugin-llm-core@0.35.1
+
 ## 0.29.3
 
 ### Patch Changes

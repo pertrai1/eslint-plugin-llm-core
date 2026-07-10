@@ -1,7 +1,7 @@
 {
   "name": "eslint-plugin-llm-core",
-  "version": "0.35.0",
-  "description": "ESLint rules that catch the patterns LLM agents get wrong \u2014 and teach them to self-correct",
+  "version": "0.35.1",
+  "description": "ESLint rules that catch the patterns LLM agents get wrong — and teach them to self-correct",
   "license": "MIT",
   "author": "Rob Simpson <rsimpson2@me.com>",
   "type": "commonjs",
@@ -68,7 +68,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "update:eslint-docs": "eslint-doc-generator --config-emoji all,\ud83c\udf10 --config-emoji best-practices,\ud83c\udfc6 --config-emoji complexity,\ud83e\uddee --config-emoji hygiene,\ud83e\uddf9 --config-emoji recommended,\u2705 --config-emoji style,\ud83c\udfa8 --config-emoji typescript,\u2328\ufe0f --ignore-config bestPractices && prettier --write README.md \"docs/rules/**/*.md\""
+    "update:eslint-docs": "eslint-doc-generator --config-emoji all,🌐 --config-emoji best-practices,🏆 --config-emoji complexity,🧮 --config-emoji hygiene,🧹 --config-emoji recommended,✅ --config-emoji style,🎨 --config-emoji typescript,⌨️ --ignore-config bestPractices && prettier --write README.md \"docs/rules/**/*.md\""
   },
   "peerDependencies": {
     "@typescript-eslint/utils": "^8.0.0",

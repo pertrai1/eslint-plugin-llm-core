@@ -6,7 +6,7 @@ LLMs generate code that _works_ but drifts: arrow functions everywhere, magic nu
 
 This plugin catches those patterns at lint time and provides error messages designed for LLM comprehension: **what's wrong**, **why it matters**, and **a concrete fix**. The result is AI-generated code that reads like it was written by a senior engineer.
 
-![Demo](../../docs/assets/demo.gif)
+![Demo](https://raw.githubusercontent.com/pertrai1/eslint-plugin-llm-core/main/docs/assets/demo.gif)
 
 ## Why this plugin?
 
@@ -45,7 +45,7 @@ How to fix:
 
 This structure gives LLMs everything they need in one pass — the violation, the reasoning, and a concrete transformation. In practice, this reduces the back-and-forth iterations needed to resolve violations compared to standard ESLint messages.
 
-For the per-rule decision record explaining why each rule belongs in this plugin, see [Rule Rationale](docs/rule-rationale.md).
+For the per-rule decision record explaining why each rule belongs in this plugin, see [Rule Rationale](https://github.com/pertrai1/eslint-plugin-llm-core/blob/main/docs/rule-rationale.md).
 
 ### Strict Mode by Default
 
@@ -117,6 +117,11 @@ export default [
 ```
 
 ## Rules
+
+The rule table is generated from the source rules and links to the per-rule docs
+in this package directory. If you are reading this README outside the repository,
+the same docs are available in
+[`packages/eslint-plugin/docs/rules`](https://github.com/pertrai1/eslint-plugin-llm-core/tree/main/packages/eslint-plugin/docs/rules).
 
 <!-- begin auto-generated rules list -->
 
@@ -377,29 +382,32 @@ npm --workspace eslint-plugin-llm-core-mcp run build
 npx -y eslint-plugin-llm-core-mcp
 ```
 
-The MCP package versions in lockstep with `eslint-plugin-llm-core` through the
-existing Changesets release flow.
+The MCP package has its own package version and depends on a compatible
+`eslint-plugin-llm-core` version through the existing Changesets release flow.
 
-## Agent Skills
+## Repository Agent Skills
 
-Beyond ESLint rules, this plugin ships **agent skills** — markdown instruction files that LLM agents can load when performing specific tasks. Skills complement the lint rules by catching patterns that require judgment rather than pattern matching.
+Beyond ESLint rules, this repository includes **agent skills** — markdown
+instruction files that LLM agents can load when performing specific tasks.
+Skills complement the lint rules by catching patterns that require judgment
+rather than pattern matching.
 
 ### Available Skills
 
-| Skill                                    | Description                                                                                                                    |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| [test-reviewer](skills/test-reviewer.md) | Detects tests that duplicate production logic, use shallow assertions, skip edge cases, or assert on mocks instead of behavior |
+| Skill                                                                                                 | Description                                                                                                                    |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| [test-reviewer](https://github.com/pertrai1/eslint-plugin-llm-core/blob/main/skills/test-reviewer.md) | Detects tests that duplicate production logic, use shallow assertions, skip edge cases, or assert on mocks instead of behavior |
 
 ### Usage
 
-Copy the skill file into your agent's skill directory:
+Copy the skill file from the repository into your agent's skill directory:
 
 ```bash
 # Claude Code
-cp node_modules/eslint-plugin-llm-core/skills/test-reviewer.md .claude/skills/
+cp skills/test-reviewer.md .claude/skills/
 
 # Cursor
-cp node_modules/eslint-plugin-llm-core/skills/test-reviewer.md .cursor/skills/
+cp skills/test-reviewer.md .cursor/skills/
 
 # Or wherever your agent tool looks for skills
 ```
@@ -409,13 +417,15 @@ The skill is a standalone markdown file with no dependencies. Adapt it to your p
 ## Contributing
 
 ```bash
-npm install
+npm ci
 npm run build
 npm run test
 npm run lint
 ```
 
-See [AGENTS.md](AGENTS.md) for architecture details and how to add new rules.
+Run these commands from the repository root. See
+[AGENTS.md](https://github.com/pertrai1/eslint-plugin-llm-core/blob/main/AGENTS.md)
+for architecture details and how to add new rules.
 
 ## Roadmap
 

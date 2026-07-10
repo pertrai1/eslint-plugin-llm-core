@@ -61,6 +61,8 @@ const formatSarif = formatSarifReport as (
   options?: { compact?: boolean },
 ) => string;
 
+const ANSI_PATTERN = /\u001B\[[0-?]*[ -/]*[@-~]/g;
+
 describe("reporters", () => {
   it("formats grouped text findings with relative paths and a severity summary", () => {
     const output = formatText(RESULT_WITH_FINDINGS, {
@@ -75,7 +77,7 @@ describe("reporters", () => {
     expect(output).toContain("package.json");
     expect(output).not.toContain("/repo/src/index.ts");
     expect(output).toContain(
-      "error    @typescript-eslint/no-explicit-any  Unexpected any  3:10",
+      "error    @typescript-eslint/no-explicit-…  Unexpected any  3:10",
     );
     expect(output).toContain(
       "warning  unusedDependencies                Unused dependency lodash",
@@ -97,6 +99,50 @@ describe("reporters", () => {
 
     expect(colored).toContain("\u001B[");
     expect(plain).not.toContain("\u001B[");
+  });
+
+  it("keeps colored severity columns aligned and truncates long rule ids", () => {
+    const result: QualityScanResult = {
+      ok: false,
+      exitCode: 1,
+      findings: [
+        {
+          engine: "eslint",
+          severity: "error",
+          message: "Short rule finding",
+          filePath: "/repo/src/index.ts",
+          ruleId: "short",
+        },
+        {
+          engine: "eslint",
+          severity: "warning",
+          message: "Long rule finding",
+          filePath: "/repo/src/index.ts",
+          ruleId: "very-long-rule-name-that-exceeds-the-column-cap",
+        },
+      ],
+      invocations: [
+        {
+          engine: "eslint",
+          command: "eslint",
+          args: [],
+          exitCode: 1,
+          stdout: "[]",
+          stderr: "",
+        },
+      ],
+    };
+
+    const stripped = formatText(result, { cwd: "/repo", color: true }).replace(
+      ANSI_PATTERN,
+      "",
+    );
+
+    expect(stripped).toContain("error    short");
+    expect(stripped).toContain("very-long-rule-name-that-exceed…");
+    expect(stripped).not.toContain(
+      "very-long-rule-name-that-exceeds-the-column-cap",
+    );
   });
 
   it("formats normalized JSON with pretty and compact modes", () => {

@@ -67,18 +67,15 @@ function formatFindingGroups(
   colors: ReturnType<typeof createColors>,
 ): string[] {
   const lines: string[] = [];
-  const maxRuleLength = Math.min(
-    32,
-    Math.max(...findings.map((finding) => formatRuleId(finding).length)),
-  );
+  const maxRuleLength = Math.min(32, Math.max(...findings.map(ruleIdLength)));
   const grouped = groupFindingsByFile(findings, cwd);
 
   for (const [filePath, fileFindings] of grouped) {
     lines.push(colors.underline(filePath));
 
     for (const finding of fileFindings) {
-      const severity = colorSeverity(finding.severity, colors).padEnd(7);
-      const rule = formatRuleId(finding).padEnd(maxRuleLength);
+      const severity = colorSeverity(finding.severity.padEnd(7), colors);
+      const rule = formatRuleColumn(finding, maxRuleLength);
       const location = formatLineColumn(finding);
       lines.push(
         `  ${severity}  ${colors.cyan(rule)}  ${finding.message}${location ? `  ${colors.dim(location)}` : ""}`,
@@ -179,22 +176,47 @@ function formatEngineName(engine: QualityEngine): string {
 }
 
 function colorSeverity(
-  severity: QualitySeverity,
+  severity: string,
   colors: ReturnType<typeof createColors>,
 ): string {
-  if (severity === "error") {
+  if (severity.trimEnd() === "error") {
     return colors.red(severity);
   }
 
-  if (severity === "warning") {
+  if (severity.trimEnd() === "warning") {
     return colors.yellow(severity);
   }
 
   return colors.cyan(severity);
 }
 
+function formatRuleColumn(
+  finding: QualityFinding,
+  maxRuleLength: number,
+): string {
+  return truncateRuleId(formatRuleId(finding), maxRuleLength).padEnd(
+    maxRuleLength,
+  );
+}
+
+function ruleIdLength(finding: QualityFinding): number {
+  return Math.min(32, formatRuleId(finding).length);
+}
+
 function formatRuleId(finding: QualityFinding): string {
   return finding.ruleId ?? finding.engine;
+}
+
+function truncateRuleId(ruleId: string, maxLength: number): string {
+  if (ruleId.length <= maxLength) {
+    return ruleId;
+  }
+
+  if (maxLength <= 1) {
+    return ruleId.slice(0, maxLength);
+  }
+
+  return `${ruleId.slice(0, maxLength - 1)}…`;
 }
 
 function formatLineColumn(finding: QualityFinding): string {

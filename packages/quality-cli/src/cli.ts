@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import { parseCliArgs } from "./cli-args.js";
+import { shouldUseColor } from "./color.js";
 import {
   formatJsonReport,
   formatSarifReport,
   formatTextReport,
 } from "./reporters.js";
 import { runQualityScan } from "./runner.js";
-import type { QualityScanOptions } from "./types.js";
 
 async function main(): Promise<void> {
   try {
@@ -35,20 +35,6 @@ async function main(): Promise<void> {
     process.stderr.write(`llm-core-quality: ${message}\n`);
     process.exitCode = 1;
   }
-}
-
-function shouldUseColor(options: QualityScanOptions): boolean {
-  if (options.color === "always") {
-    return true;
-  }
-
-  if (options.color === "never") {
-    return false;
-  }
-
-  return Boolean(
-    process.stdout.isTTY && !process.env.NO_COLOR && process.env.CI !== "true",
-  );
 }
 
 await main();

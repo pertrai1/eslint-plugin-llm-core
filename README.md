@@ -21,7 +21,7 @@ llm-core-quality scan --json
 llm-core-quality scan --sarif
 
 # Compact machine output for scripts
-# Use --compact with JSON/SARIF output; shorthand examples include scan --compact.
+# Use --compact with JSON/SARIF output.
 llm-core-quality scan --json --compact
 llm-core-quality scan --sarif --compact
 

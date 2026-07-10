@@ -1,6 +1,6 @@
 {
   "name": "llm-core-quality",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Quality CLI that orchestrates eslint-plugin-llm-core, ESLint, and Knip checks",
   "license": "MIT",
   "author": "Rob Simpson <rsimpson2@me.com>",

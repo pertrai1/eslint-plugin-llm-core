@@ -39,8 +39,10 @@ jobs:
         run: |
           CURRENT_VERSION=$(node -p "require('./packages/eslint-plugin/package.json').version")
           MCP_VERSION=$(node -p "require('./packages/mcp-server/package.json').version")
+          QUALITY_VERSION=$(node -p "require('./packages/quality-cli/package.json').version")
           NPM_VERSION=$(npm view eslint-plugin-llm-core version 2>/dev/null || echo "0.0.0")
           MCP_NPM_VERSION=$(npm view eslint-plugin-llm-core-mcp version 2>/dev/null || echo "0.0.0")
+          QUALITY_NPM_VERSION=$(npm view llm-core-quality version 2>/dev/null || echo "0.0.0")
           published=false
           if [ "$CURRENT_VERSION" != "$NPM_VERSION" ]; then
             echo "Publishing $CURRENT_VERSION (npm has $NPM_VERSION)"
@@ -55,6 +57,13 @@ jobs:
             published=true
           else
             echo "MCP version $MCP_VERSION already published, skipping"
+          fi
+          if [ "$QUALITY_VERSION" != "$QUALITY_NPM_VERSION" ]; then
+            echo "Publishing quality CLI $QUALITY_VERSION (npm has $QUALITY_NPM_VERSION)"
+            npx -y "$NPM_PUBLISH_CLI" publish --workspace llm-core-quality --access public --provenance
+            published=true
+          else
+            echo "Quality CLI version $QUALITY_VERSION already published, skipping"
           fi
           echo "published=$published" >> "$GITHUB_OUTPUT"
           echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"

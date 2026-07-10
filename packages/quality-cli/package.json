@@ -1,0 +1,51 @@
+{
+  "name": "llm-core-quality",
+  "version": "0.0.0",
+  "description": "Quality CLI that orchestrates eslint-plugin-llm-core, ESLint, and Knip checks",
+  "license": "MIT",
+  "author": "Rob Simpson <rsimpson2@me.com>",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "llm-core-quality": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pertrai1/eslint-plugin-llm-core",
+    "directory": "packages/quality-cli"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "eslint": "^10.1.0",
+    "eslint-plugin-llm-core": "0.35.1",
+    "knip": "^6.26.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
+  }
+}

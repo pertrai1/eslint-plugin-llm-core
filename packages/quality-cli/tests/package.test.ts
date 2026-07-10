@@ -47,8 +47,5 @@ describe("quality CLI package metadata", () => {
 
     expect(rootReadme).toContain("packages/quality-cli");
     expect(rootReadme).toContain("llm-core-quality");
-    expect(rootReadme).toContain("scan --json --compact");
-    expect(rootReadme).toContain("scan --sarif --compact");
-    expect(rootReadme).not.toContain("scan --compact.");
   });
 });

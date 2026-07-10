@@ -34,6 +34,8 @@ jobs:
       - name: Publish to npm
         id: publish
         if: steps.changesets.outputs.hasChangesets == 'false'
+        env:
+          NPM_PUBLISH_CLI: npm@11.18.0
         run: |
           CURRENT_VERSION=$(node -p "require('./packages/eslint-plugin/package.json').version")
           MCP_VERSION=$(node -p "require('./packages/mcp-server/package.json').version")
@@ -42,14 +44,14 @@ jobs:
           published=false
           if [ "$CURRENT_VERSION" != "$NPM_VERSION" ]; then
             echo "Publishing $CURRENT_VERSION (npm has $NPM_VERSION)"
-            npm publish --workspace eslint-plugin-llm-core --access public --provenance
+            npx -y "$NPM_PUBLISH_CLI" publish --workspace eslint-plugin-llm-core --access public --provenance
             published=true
           else
             echo "Core version $CURRENT_VERSION already published, skipping"
           fi
           if [ "$MCP_VERSION" != "$MCP_NPM_VERSION" ]; then
             echo "Publishing MCP $MCP_VERSION (npm has $MCP_NPM_VERSION)"
-            npm publish --workspace eslint-plugin-llm-core-mcp --access public --provenance
+            npx -y "$NPM_PUBLISH_CLI" publish --workspace eslint-plugin-llm-core-mcp --access public --provenance
             published=true
           else
             echo "MCP version $MCP_VERSION already published, skipping"

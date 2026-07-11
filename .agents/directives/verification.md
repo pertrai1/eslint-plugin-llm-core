@@ -246,8 +246,8 @@ Do not say a task is "done" until you provide structured evidence of correctness
 
 **Storage:**
 
-- In **autonomous loops**, write this evidence summary directly to `.agents/verification.md` or populate it in the PR description/comments via API/CLI, ensuring it is preserved durably in the repository rather than printed only as ephemeral stdout.
-- In **interactive sessions**, output it to the user or save to `.agents/verification.md` for later reference.
+- In **autonomous loops**, prefer populating the PR description/comments via API/CLI so evidence is durable without dirtying the tracked tree. If PR/comment storage is unavailable, use an ignored project scratch path only when one is already defined; otherwise record in the final response or handoff that durable verification storage was unavailable. Do not create tracked `.agents/verification.md` artifacts unless the user explicitly requests committed verification files.
+- In **interactive sessions**, output verification to the user or add it to the PR body/comment. Do not save tracked verification artifacts by default.
 
 You must provide:
 
@@ -264,7 +264,7 @@ For generator, CLI, or MCP work, include one manual acceptance check with visibl
 
 ## Quality Gate Feedback
 
-Run the project-native gates selected by `directives/adaptive-routing.md`.
+Run the project-native gates selected by `.agents/directives/adaptive-routing.md`.
 Treat test, lint, type-check, build, static-analysis, and review-bot output as
 implementation feedback, not ceremony.
 

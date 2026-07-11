@@ -216,7 +216,7 @@ Produce a brief summary:
 **Execution and Storage:**
 
 - In **interactive sessions**, present this list in chat for user approval.
-- In **autonomous loops**, do not output this to standard output; instead, write this cleanup report directly to `.agents/cleanup-suggestions.md` (or submit it as a PR comment via API) for later review. Do not perform the actual deletions/modifications autonomously unless explicitly configured to run in an automatic prune/force mode.
+- In **autonomous loops**, do not output this to standard output; instead, write this cleanup report directly to `.agents/cleanup-suggestions.md` (or submit it as a PR comment via API) for later review. If neither storage target is available, use the Storage fallback order above; if no durable storage is available, record in the final handoff that the cleanup report was skipped because storage was unavailable. Do not perform the actual deletions/modifications autonomously unless explicitly configured to run in an automatic prune/force mode.
 
 ---
 

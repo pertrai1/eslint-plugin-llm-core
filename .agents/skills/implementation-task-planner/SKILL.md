@@ -40,8 +40,8 @@ Load this skill when the user asks to:
 
 Do not load this skill for:
 
-- creating the PRD itself — use `skills/product-requirements-writer/SKILL.md`
-- reviewing code against a spec — use `skills/spec-reviewer/SKILL.md`
+- creating the PRD itself — use `.agents/skills/product-requirements-writer/SKILL.md`
+- reviewing code against a spec — use `.agents/skills/spec-reviewer/SKILL.md`
 - implementing tasks immediately unless the user explicitly switches to execution
 - tiny edits where a task list adds more ceremony than clarity
 
@@ -65,7 +65,7 @@ Read the PRD/spec/issue/acceptance criteria. Identify:
 - test and verification implications
 - open questions that block planning
 
-If requirements are too vague to plan safely, ask a concise clarifying question or route back to `skills/product-requirements-writer/SKILL.md`.
+If requirements are too vague to plan safely, ask a concise clarifying question or route back to `.agents/skills/product-requirements-writer/SKILL.md`.
 
 ### 2. Inspect Repo Structure Before Naming Files
 

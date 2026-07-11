@@ -48,8 +48,8 @@ Load this skill when all are true:
 
 Do not load this skill when:
 
-- requirements are still vague — use `skills/product-requirements-writer/SKILL.md`
-  or `skills/implementation-task-planner/SKILL.md` first
+- requirements are still vague — use `.agents/skills/product-requirements-writer/SKILL.md`
+  or `.agents/skills/implementation-task-planner/SKILL.md` first
 - one coherent system model is required before any safe edit can happen
 - tasks would edit the same files concurrently or compete for the same mutable
   resources
@@ -91,7 +91,7 @@ Before completion:
 
 1. Inspect the combined diff.
 2. Check changed-file overlap and integration risk.
-3. Run the selected review skills from `directives/adaptive-routing.md`.
+3. Run the selected review skills from `.agents/directives/adaptive-routing.md`.
 4. Run relevant project verification and quality gates.
 5. Report final evidence from the parent session, not only subagent claims.
 
@@ -165,13 +165,13 @@ For non-trivial delegated implementation, review in this order:
 Use existing routed reviewer skills only when their normal routing triggers match
 the touched surface or risk:
 
-- `skills/spec-reviewer/SKILL.md` for spec-governed work
-- `skills/test-reviewer/SKILL.md` for tests and eval scenarios
-- `skills/code-reviewer/SKILL.md` for baseline diff review when a PR, branch,
+- `.agents/skills/spec-reviewer/SKILL.md` for spec-governed work
+- `.agents/skills/test-reviewer/SKILL.md` for tests and eval scenarios
+- `.agents/skills/code-reviewer/SKILL.md` for baseline diff review when a PR, branch,
   local diff, or review checkpoint is in scope
-- `skills/architecture-boundary-reviewer/SKILL.md` for imports, exports, moves,
+- `.agents/skills/architecture-boundary-reviewer/SKILL.md` for imports, exports, moves,
   package boundaries, or shared utilities
-- `skills/production-readiness-reviewer/SKILL.md` for production-sensitive work
+- `.agents/skills/production-readiness-reviewer/SKILL.md` for production-sensitive work
 
 Do not load every reviewer by default. Implementer self-review is useful but never
 replaces parent-side or routed reviewer validation when the risk calls for it.

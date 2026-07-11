@@ -46,7 +46,7 @@ of internal model attention.
 For tiny low-risk edits, one sentence is enough:
 
 ```md
-Route: Light Path; using `directives/adaptive-routing.md`; no additional directives or skills required.
+Route: Light Path; using `.agents/directives/adaptive-routing.md`; no additional directives or skills required.
 ```
 
 Before major edits, output a short route decision:
@@ -55,7 +55,7 @@ Before major edits, output a short route decision:
 ## Workflow Route
 
 - Intent: <feature | bug-fix | refactor | docs | review | exploration | policy-change | mechanical>
-- Path: <Light | Full | Debugging | Boundary | Workspace Isolation | Review | Exploration | Policy> or combined paths
+- Path: <Light | Full | Debugging | Boundary | Review | Exploration | Policy> or combined paths; add Workspace Isolation when required
 - Risk: <low | medium | high> with reason
 - Required directives: <paths>
 - Required skills: <paths, if any>
@@ -84,7 +84,7 @@ block.
    Isolation to the base path.
 5. **Prefer evidence over ritual.** Do not emit boilerplate sections with no
    information. Show the proof that matches the selected path.
-6. **Compact context at boundaries.** Use `directives/context-handoff.md` when
+6. **Compact context at boundaries.** Use `.agents/directives/context-handoff.md` when
    switching major phases, handing work to another session/agent, or continuing
    long-running work where stale context could drift.
 7. **Ask only when necessary.** If classification is uncertain and affects safety
@@ -125,21 +125,21 @@ covers. The path column shows where the situation commonly appears; it is not a
 filter that prevents loading a matched skill when paths are combined or escalated.
 If no row matches, state that no specialist skill is required.
 
-| Situation / intent                                                                                                                                                          | Common path(s)              | Required skill                                   |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------ |
-| Vague feature idea, product request, or unclear requirement needs a PRD/spec                                                                                                | Exploration / Full / Policy | `skills/product-requirements-writer/SKILL.md`    |
-| PRD, issue, spec, or acceptance criteria needs implementation tasks                                                                                                         | Exploration / Full / Policy | `skills/implementation-task-planner/SKILL.md`    |
-| Executing an existing implementation plan with multiple mostly independent tasks using delegated subagents or isolated worker sessions                                      | Full / Debugging / Policy   | `skills/subagent-driven-development/SKILL.md`    |
-| Bug, regression, failing test, failing CI/build/lint/type-check, or unexpected behavior                                                                                     | Debugging                   | `skills/systematic-debugging/SKILL.md`           |
-| Reviewing a PR, branch, diff, or local changes                                                                                                                              | Review                      | `skills/code-reviewer/SKILL.md`                  |
-| Writing, changing, or reviewing tests/eval scenarios                                                                                                                        | Full / Review               | `skills/test-reviewer/SKILL.md`                  |
-| Implementation must be checked against a written spec/PRD                                                                                                                   | Full / Review               | `skills/spec-reviewer/SKILL.md`                  |
-| Imports, exports, package boundaries, folders, services, shared utilities, or dependency direction change                                                                   | Boundary / Review           | `skills/architecture-boundary-reviewer/SKILL.md` |
-| TypeScript/JavaScript refactor, cleanup, shared utilities, dead-code, duplication, complexity, or static-analysis health concern                                            | Full / Review               | `skills/codebase-health-reviewer/SKILL.md`       |
-| Persistence, external services, async jobs, auth/security/privacy, infra/config/deploy, critical user paths, performance/scale, or cross-service compatibility              | Full / Debugging / Review   | `skills/production-readiness-reviewer/SKILL.md`  |
-| Agent harness hooks, start/stop hooks, pre-action hooks, post-change automation, or deterministic agent workflow scripts are added or reviewed                              | Full / Review / Policy      | `skills/harness-hooks-reviewer/SKILL.md`         |
-| MCP servers/tools, agent-accessible internal APIs, structured search, docs/ticketing/analytics connectors, tool schemas, or write-capable agent tools are added or reviewed | Full / Review / Policy      | `skills/mcp-integration-reviewer/SKILL.md`       |
-| Full Path work reaches post-REFACTOR pre-verification checkpoint                                                                                                            | Full                        | `skills/self-audit/SKILL.md`                     |
+| Situation / intent                                                                                                                                                          | Common path(s)              | Required skill                                           |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------- |
+| Vague feature idea, product request, or unclear requirement needs a PRD/spec                                                                                                | Exploration / Full / Policy | `.agents/skills/product-requirements-writer/SKILL.md`    |
+| PRD, issue, spec, or acceptance criteria needs implementation tasks                                                                                                         | Exploration / Full / Policy | `.agents/skills/implementation-task-planner/SKILL.md`    |
+| Executing an existing implementation plan with multiple mostly independent tasks using delegated subagents or isolated worker sessions                                      | Full / Debugging / Policy   | `.agents/skills/subagent-driven-development/SKILL.md`    |
+| Bug, regression, failing test, failing CI/build/lint/type-check, or unexpected behavior                                                                                     | Debugging                   | `.agents/skills/systematic-debugging/SKILL.md`           |
+| Reviewing a PR, branch, diff, or local changes                                                                                                                              | Review                      | `.agents/skills/code-reviewer/SKILL.md`                  |
+| Writing, changing, or reviewing tests/eval scenarios                                                                                                                        | Full / Review               | `.agents/skills/test-reviewer/SKILL.md`                  |
+| Implementation must be checked against a written spec/PRD                                                                                                                   | Full / Review               | `.agents/skills/spec-reviewer/SKILL.md`                  |
+| Imports, exports, package boundaries, folders, services, shared utilities, or dependency direction change                                                                   | Boundary / Review           | `.agents/skills/architecture-boundary-reviewer/SKILL.md` |
+| TypeScript/JavaScript refactor, cleanup, shared utilities, dead-code, duplication, complexity, or static-analysis health concern                                            | Full / Review               | `.agents/skills/codebase-health-reviewer/SKILL.md`       |
+| Persistence, external services, async jobs, auth/security/privacy, infra/config/deploy, critical user paths, performance/scale, or cross-service compatibility              | Full / Debugging / Review   | `.agents/skills/production-readiness-reviewer/SKILL.md`  |
+| Agent harness hooks, start/stop hooks, pre-action hooks, post-change automation, or deterministic agent workflow scripts are added or reviewed                              | Full / Review / Policy      | `.agents/skills/harness-hooks-reviewer/SKILL.md`         |
+| MCP servers/tools, agent-accessible internal APIs, structured search, docs/ticketing/analytics connectors, tool schemas, or write-capable agent tools are added or reviewed | Full / Review / Policy      | `.agents/skills/mcp-integration-reviewer/SKILL.md`       |
+| Full Path work reaches post-REFACTOR pre-verification checkpoint                                                                                                            | Full                        | `.agents/skills/self-audit/SKILL.md`                     |
 
 ---
 
@@ -218,25 +218,25 @@ Use for normal implementation work:
 
 Required directives:
 
-- `directives/codebase-navigation.md`
-- `directives/task-framing.md` when non-trivial, ambiguous, high-risk, or cross-cutting
-- `directives/type-driven-development.md` for typed projects or public contracts
-- `directives/test-driven-development.md` for behavior-changing code
-- `directives/agent-permissions.md` when work touches protected files, risky commands, package manager operations, deployment, infrastructure, secrets, CI, or repo policy
-- `directives/verification.md`
-- `directives/context-handoff.md` when switching major phases or handing off work
+- `.agents/directives/codebase-navigation.md`
+- `.agents/directives/task-framing.md` when non-trivial, ambiguous, high-risk, or cross-cutting
+- `.agents/directives/type-driven-development.md` for typed projects or public contracts
+- `.agents/directives/test-driven-development.md` for behavior-changing code
+- `.agents/directives/agent-permissions.md` when work touches protected files, risky commands, package manager operations, deployment, infrastructure, secrets, CI, or repo policy
+- `.agents/directives/verification.md`
+- `.agents/directives/context-handoff.md` when switching major phases or handing off work
 
 Required skills:
 
-- `skills/product-requirements-writer/SKILL.md` when turning a feature idea or vague request into a PRD/spec before planning
-- `skills/implementation-task-planner/SKILL.md` when turning a PRD/spec/issue into an implementation task list
-- `skills/subagent-driven-development/SKILL.md` when executing an existing implementation plan through delegated subagents or isolated worker sessions
-- `skills/self-audit/SKILL.md` after REFACTOR for Full Path work
-- `skills/test-reviewer/SKILL.md` when tests are added or substantially changed
-- `skills/spec-reviewer/SKILL.md` when reviewing implementation against a written spec or preparing spec-governed work for merge
-- `skills/production-readiness-reviewer/SKILL.md` before merge/review when a change touches persistence, external services, async jobs, auth/security/privacy, infra/config/deploy, critical user paths, performance/scale, or cross-service compatibility
-- `skills/harness-hooks-reviewer/SKILL.md` when the implementation adds or changes agent harness hooks or deterministic agent automation
-- `skills/mcp-integration-reviewer/SKILL.md` when the implementation adds or changes MCP servers/tools, agent tool schemas, or agent-accessible internal API bridges
+- `.agents/skills/product-requirements-writer/SKILL.md` when turning a feature idea or vague request into a PRD/spec before planning
+- `.agents/skills/implementation-task-planner/SKILL.md` when turning a PRD/spec/issue into an implementation task list
+- `.agents/skills/subagent-driven-development/SKILL.md` when executing an existing implementation plan through delegated subagents or isolated worker sessions
+- `.agents/skills/self-audit/SKILL.md` after REFACTOR for Full Path work
+- `.agents/skills/test-reviewer/SKILL.md` when tests are added or substantially changed
+- `.agents/skills/spec-reviewer/SKILL.md` when reviewing implementation against a written spec or preparing spec-governed work for merge
+- `.agents/skills/production-readiness-reviewer/SKILL.md` before merge/review when a change touches persistence, external services, async jobs, auth/security/privacy, infra/config/deploy, critical user paths, performance/scale, or cross-service compatibility
+- `.agents/skills/harness-hooks-reviewer/SKILL.md` when the implementation adds or changes agent harness hooks or deterministic agent automation
+- `.agents/skills/mcp-integration-reviewer/SKILL.md` when the implementation adds or changes MCP servers/tools, agent tool schemas, or agent-accessible internal API bridges
 
 ### Debugging Path
 
@@ -250,12 +250,12 @@ Use for:
 
 Required:
 
-- `skills/systematic-debugging/SKILL.md`
+- `.agents/skills/systematic-debugging/SKILL.md`
 - reproduce the failure before changing code
 - add or identify a failing regression test when behavior changed
-- use `directives/test-driven-development.md` for the fix when production behavior changes
-- use `directives/verification.md` for fix proof and no-regression evidence
-- use `directives/context-handoff.md` after reproduction, before a risky fix, or before resuming in a new session
+- use `.agents/directives/test-driven-development.md` for the fix when production behavior changes
+- use `.agents/directives/verification.md` for fix proof and no-regression evidence
+- use `.agents/directives/context-handoff.md` after reproduction, before a risky fix, or before resuming in a new session
 
 ### Boundary Path
 
@@ -270,10 +270,10 @@ Add this path whenever the task touches:
 
 Required:
 
-- `directives/architecture-boundaries.md`
-- `skills/architecture-boundary-reviewer/SKILL.md` before merge/review
-- boundary proof in `directives/verification.md`
-- compact changed dependency-edge evidence with `directives/context-handoff.md` before boundary review or session transfer
+- `.agents/directives/architecture-boundaries.md`
+- `.agents/skills/architecture-boundary-reviewer/SKILL.md` before merge/review
+- boundary proof in `.agents/directives/verification.md`
+- compact changed dependency-edge evidence with `.agents/directives/context-handoff.md` before boundary review or session transfer
 
 ### Workspace Isolation Path
 
@@ -287,7 +287,7 @@ checkout that may be shared or unsafe to edit in place, especially when:
 
 Required:
 
-- `directives/workspace-isolation.md`
+- `.agents/directives/workspace-isolation.md`
 - detect existing isolation before creating anything
 - prefer native workspace tools over manual `git worktree`
 - ask before creating a new isolated workspace when preference is unknown
@@ -299,16 +299,16 @@ Use when the user asks to review a PR, branch, diff, or local changes.
 
 Required skills:
 
-- `skills/code-reviewer/SKILL.md` for baseline PR/branch/diff/local-change review
-- `skills/test-reviewer/SKILL.md` for tests
-- `skills/spec-reviewer/SKILL.md` for spec-backed work
-- `skills/architecture-boundary-reviewer/SKILL.md` for imports/exports/packages/shared code
-- `skills/codebase-health-reviewer/SKILL.md` for TypeScript/JavaScript refactors, cleanup, shared utilities, or Fallow-relevant changes
-- `skills/production-readiness-reviewer/SKILL.md` for production-sensitive changes involving persistence, external services, async jobs, auth/security/privacy, infra/config/deploy, critical user paths, performance/scale, or cross-service compatibility
-- `skills/harness-hooks-reviewer/SKILL.md` for agent harness hooks or deterministic agent automation
-- `skills/mcp-integration-reviewer/SKILL.md` for MCP servers/tools, agent tool schemas, or agent-accessible internal API bridges
+- `.agents/skills/code-reviewer/SKILL.md` for baseline PR/branch/diff/local-change review
+- `.agents/skills/test-reviewer/SKILL.md` for tests
+- `.agents/skills/spec-reviewer/SKILL.md` for spec-backed work
+- `.agents/skills/architecture-boundary-reviewer/SKILL.md` for imports/exports/packages/shared code
+- `.agents/skills/codebase-health-reviewer/SKILL.md` for TypeScript/JavaScript refactors, cleanup, shared utilities, or Fallow-relevant changes
+- `.agents/skills/production-readiness-reviewer/SKILL.md` for production-sensitive changes involving persistence, external services, async jobs, auth/security/privacy, infra/config/deploy, critical user paths, performance/scale, or cross-service compatibility
+- `.agents/skills/harness-hooks-reviewer/SKILL.md` for agent harness hooks or deterministic agent automation
+- `.agents/skills/mcp-integration-reviewer/SKILL.md` for MCP servers/tools, agent tool schemas, or agent-accessible internal API bridges
 
-Do not edit code during Review Path unless the user asks for fixes. Use `directives/context-handoff.md` for compact PR/review handoffs when review findings will be fixed later or transferred to another session.
+Do not edit code during Review Path unless the user asks for fixes. Use `.agents/directives/context-handoff.md` for compact PR/review handoffs when review findings will be fixed later or transferred to another session.
 
 ### Exploration Path
 
@@ -317,13 +317,13 @@ think through an approach.
 
 Required:
 
-- `directives/exploration-mode.md`
-- `directives/codebase-navigation.md` when repo context is needed
-- `skills/product-requirements-writer/SKILL.md` when the exploration output is a PRD/spec
-- `skills/implementation-task-planner/SKILL.md` when the exploration output is an implementation task list
+- `.agents/directives/exploration-mode.md`
+- `.agents/directives/codebase-navigation.md` when repo context is needed
+- `.agents/skills/product-requirements-writer/SKILL.md` when the exploration output is a PRD/spec
+- `.agents/skills/implementation-task-planner/SKILL.md` when the exploration output is an implementation task list
 
 Do not edit files during Exploration Path unless the user explicitly switches to
-implementation. Use `directives/context-handoff.md` when exploration produces decisions, constraints, or risks that an implementation session should inherit.
+implementation. Use `.agents/directives/context-handoff.md` when exploration produces decisions, constraints, or risks that an implementation session should inherit.
 
 ### Policy Path
 
@@ -337,14 +337,14 @@ Use for changes to:
 
 Required:
 
-- `directives/task-framing.md`
+- `.agents/directives/task-framing.md`
 - proposal before major edits when tradeoffs exist
 - bump the frontmatter `version` for every existing `directives/*.md` or `skills/*/SKILL.md` file changed in the PR; use patch for wording/behavior tightening, minor for new heuristics/routing/evidence coverage, and major for incompatible routing/schema/path changes; raw deletions are rejected, so deprecate with a major version bump before deletion
-- `directives/session-decisions.md` if the accepted change establishes or changes durable policy
-- `directives/verification.md` before PR
-- `directives/context-handoff.md` for multi-phase directive/workflow changes or new-session handoff
-- `skills/harness-hooks-reviewer/SKILL.md` when policy changes affect agent harness hooks or deterministic automation
-- `skills/mcp-integration-reviewer/SKILL.md` when policy changes affect MCP/tool surfaces exposed to agents
+- `.agents/directives/session-decisions.md` if the accepted change establishes or changes durable policy
+- `.agents/directives/verification.md` before PR
+- `.agents/directives/context-handoff.md` for multi-phase directive/workflow changes or new-session handoff
+- `.agents/skills/harness-hooks-reviewer/SKILL.md` when policy changes affect agent harness hooks or deterministic automation
+- `.agents/skills/mcp-integration-reviewer/SKILL.md` when policy changes affect MCP/tool surfaces exposed to agents
 
 ---
 
@@ -354,10 +354,10 @@ Escalate to Full Path or add a specialized path when any of these are true:
 
 | Risk trigger                                                                                                               | Add                                                                                                                |
 | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Auth, permissions, security, privacy, payments, data loss                                                                  | Full Path + Production Readiness Review + stronger verification; load `directives/agent-permissions.md`            |
+| Auth, permissions, security, privacy, payments, data loss                                                                  | Full Path + Production Readiness Review + stronger verification; load `.agents/directives/agent-permissions.md`    |
 | Database schema, migrations, persistence, queues                                                                           | Full Path + Production Readiness Review + explicit rollback/edge-case proof                                        |
 | External services, async jobs, infra/config/deploy, critical user paths, performance/scale, or cross-service compatibility | Full Path + Production Readiness Review                                                                            |
-| Protected files, risky commands, package manager operations, deploys, infra, secrets, CI, or repo policy changes           | Load `directives/agent-permissions.md`; escalate per its protocol before proceeding                                |
+| Protected files, risky commands, package manager operations, deploys, infra, secrets, CI, or repo policy changes           | Load `.agents/directives/agent-permissions.md`; escalate per its protocol before proceeding                        |
 | Agent harness hooks or deterministic agent automation                                                                      | Policy/Full/Review Path + Harness Hooks Review                                                                     |
 | MCP servers/tools, agent-accessible APIs, or write-capable agent tools                                                     | Policy/Full/Review Path + MCP Integration Review; add Production Readiness Review for sensitive production systems |
 | Public API, exported types, package entry points                                                                           | Full Path + Integration Proof + Boundary Path                                                                      |

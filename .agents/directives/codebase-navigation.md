@@ -174,7 +174,7 @@ the target change, not as general look-and-copy context.
 ### Optional tool-assisted architecture check
 
 If the task may change imports, exports, packages, services, shared code, or
-folder boundaries, load `directives/architecture-boundaries.md` before Execute.
+folder boundaries, load `.agents/directives/architecture-boundaries.md` before Execute.
 
 For TypeScript/JavaScript projects with Fallow available, use targeted checks
 when they answer boundary questions faster than manual search:

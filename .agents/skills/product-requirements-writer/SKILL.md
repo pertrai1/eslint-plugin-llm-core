@@ -40,8 +40,8 @@ Load this skill when the user asks to:
 
 Do not load this skill for:
 
-- reviewing whether implementation matches an existing spec — use `skills/spec-reviewer/SKILL.md`
-- generating implementation tasks from an existing PRD — use `skills/implementation-task-planner/SKILL.md`
+- reviewing whether implementation matches an existing spec — use `.agents/skills/spec-reviewer/SKILL.md`
+- generating implementation tasks from an existing PRD — use `.agents/skills/implementation-task-planner/SKILL.md`
 - fixing bugs, CI, tests, or runtime behavior directly
 - tiny tasks where a PRD would add ceremony without improving decisions
 
@@ -188,11 +188,11 @@ If file editing is in scope, save the PRD under the project root as:
 tasks/prd-[feature-name].md
 ```
 
-Use lowercase hyphenated names. If the repo already has a planning/spec directory, follow that convention instead and mention the chosen path.
+Use lowercase hyphenated names. If the repo already has a planning/spec directory, follow that convention instead. Only report a repository path after the file has actually been written. If file editing is not in scope or no artifact is saved, label the PRD as generated in chat and do not imply that a repository file exists.
 
 ### 6. Stop Before Implementation
 
-After producing the PRD, stop. Do not generate implementation tasks unless the user asks or routing selects `skills/implementation-task-planner/SKILL.md` as a separate follow-on step. Do not edit product code.
+After producing the PRD, stop. Do not generate implementation tasks unless the user asks or routing selects `.agents/skills/implementation-task-planner/SKILL.md` as a separate follow-on step. Do not edit product code.
 
 ## Output Format
 
@@ -208,10 +208,20 @@ I need a few details before writing the PRD:
    D. Other: <short prompt>
 ```
 
-When producing the PRD in chat, include:
+When producing and saving the PRD, include:
 
 ```md
 Created PRD: `tasks/prd-[feature-name].md`
+
+<brief summary of the PRD>
+
+Open questions: <none or short list>
+```
+
+When producing the PRD in chat without saving a file, include:
+
+```md
+Generated PRD in chat (not saved to a repository file)
 
 <brief summary of the PRD>
 

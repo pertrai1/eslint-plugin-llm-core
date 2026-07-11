@@ -31,7 +31,7 @@ Use TDD by default for behavior-changing code:
 - Review changes that affect runtime behavior
 
 TDD is not required for purely mechanical or non-behavioral work selected by
-`directives/adaptive-routing.md`, such as docs-only edits, formatting-only
+`.agents/directives/adaptive-routing.md`, such as docs-only edits, formatting-only
 changes, generated files, metadata-only updates, or mechanical renames with no
 behavior/API change. Those tasks still need the relevant quality gates.
 
@@ -79,7 +79,7 @@ RED because the change seems obvious.
 Before writing behavior-changing implementation code:
 
 1. Write a test that describes ONE behavior
-2. Load `skills/test-reviewer/SKILL.md` and apply it as the test-quality lens:
+2. Load `.agents/skills/test-reviewer/SKILL.md` and apply it as the test-quality lens:
    the test should assert observable behavior, use strong assertions, avoid
    implementation mirroring, and cover relevant edge/error cases
 3. Run the test — it MUST fail (RED)
@@ -180,7 +180,7 @@ failure.
 
 2. RED Phase:
    - Write a test for that behavior
-   - Review the test with `skills/test-reviewer/SKILL.md` before opening implementation code
+   - Review the test with `.agents/skills/test-reviewer/SKILL.md` before opening implementation code
    - Run test: MUST fail
    - If it passes, the test is wrong — fix it
 

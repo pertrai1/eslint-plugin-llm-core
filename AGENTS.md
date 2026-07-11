@@ -58,7 +58,7 @@ The root file provides project-specific context plus compact routing pointers: c
 
 Workflow path selection, directive loading, skill loading, rule selection, and evidence requirements live in `.agents/directives/adaptive-routing.md`.
 
-After routing, report:
+After routing, briefly state the selected path and directive/skill files:
 `Route: <path>; using <directive/skill files>; rules: <rule files or none>; evidence: <checks>.`
 
 When adaptive routing selects Full Path or another route that invokes the full
@@ -122,6 +122,18 @@ Load the relevant skill selected by adaptive routing before performing any task 
 | Production Readiness Reviewer  | Before merging/reviewing production-sensitive changes: persistence, external services, async jobs, auth/security/privacy, infra/config/deploy, critical user paths, performance/scale, or cross-service compatibility | `.agents/skills/production-readiness-reviewer/SKILL.md`  |
 | Harness Hooks Reviewer         | Before adding/reviewing agent harness hooks, start/stop hooks, pre-action hooks, or deterministic agent automation                                                                                                    | `.agents/skills/harness-hooks-reviewer/SKILL.md`         |
 | MCP Integration Reviewer       | Before adding/reviewing MCP servers/tools, agent tool schemas, internal API bridges, or write-capable agent tools                                                                                                     | `.agents/skills/mcp-integration-reviewer/SKILL.md`       |
+
+## Agent Responsibilities
+
+Repository-required agents are responsible for loading the matching skill before
+work in that domain and applying its review lens to the final diff:
+
+- **Reviewer agents** (`code-reviewer`, `test-reviewer`, `spec-reviewer`) check PRs, tests, and spec alignment before merge readiness.
+- **Planning agents** (`product-requirements-writer`, `implementation-task-planner`) turn unclear requests or accepted requirements into PRDs and implementation tasks without drifting into code.
+- **Execution coordinator** (`subagent-driven-development`) manages delegated implementation slices and parent-owned integration review.
+- **Safety reviewers** (`architecture-boundary-reviewer`, `codebase-health-reviewer`, `production-readiness-reviewer`) check dependency edges, maintainability, and production-sensitive risks.
+- **Integration reviewers** (`harness-hooks-reviewer`, `mcp-integration-reviewer`) check agent automation hooks, MCP tools, schemas, and write-capable tool surfaces.
+- **Debug/self-check agents** (`systematic-debugging`, `self-audit`) root-cause failures and triage weakest assumptions before verification.
 
 ## Task Framing (Mandatory for Non-Trivial Work)
 

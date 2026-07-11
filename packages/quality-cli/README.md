@@ -64,7 +64,8 @@ llm-core-quality ci --json --compact
 | -------------------- | -------------------------------------------------------------------- |
 | `--json`             | Print normalized JSON output.                                        |
 | `--sarif`            | Print SARIF 2.1.0 output for code-scanning integrations.             |
-| `--compact`          | Print compact JSON/SARIF instead of pretty-printed output.           |
+| `--compact`          | Print compact output; text hides llm-core rule details.              |
+| `--production`       | Run Knip in production mode, excluding tests and dev-only code.      |
 | `--engine <engine>`  | Limit engines. Repeat or comma-separate `eslint` and `knip`.         |
 | `--fail-on-findings` | Exit non-zero when findings are present.                             |
 | `--no-exit-code`     | Exit zero for findings while still failing on tool execution errors. |

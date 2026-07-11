@@ -50,7 +50,7 @@ const RESULT_WITH_FINDINGS: QualityScanResult = {
 
 const formatText = formatTextReport as (
   result: QualityScanResult,
-  options?: { cwd?: string; color?: boolean },
+  options?: { cwd?: string; color?: boolean; compact?: boolean },
 ) => string;
 const formatJson = formatJsonReport as (
   result: QualityScanResult,
@@ -85,6 +85,55 @@ describe("reporters", () => {
     expect(output).toContain("errors:   1");
     expect(output).toContain("warnings: 1");
     expect(output).toContain("status:   fail");
+  });
+
+  it("omits llm-core rule detail in compact text output", () => {
+    const output = formatText(
+      {
+        ok: false,
+        exitCode: 1,
+        findings: [
+          {
+            engine: "eslint",
+            severity: "error",
+            message:
+              "What: Promise.all is unbounded.\n\nWhy: Large inputs can exhaust memory.\n\nHow to fix: Limit concurrency.",
+            filePath: "/repo/src/index.ts",
+            ruleId: "llm-core/no-unbounded-promise-all",
+            line: 12,
+            column: 5,
+          },
+          {
+            engine: "eslint",
+            severity: "error",
+            message: "Unexpected any",
+            filePath: "/repo/src/index.ts",
+            ruleId: "@typescript-eslint/no-explicit-any",
+            line: 20,
+            column: 10,
+          },
+        ],
+        invocations: [
+          {
+            engine: "eslint",
+            command: "eslint",
+            args: [],
+            exitCode: 1,
+            stdout: "[]",
+            stderr: "",
+          },
+        ],
+      },
+      { cwd: "/repo", color: false, compact: true },
+    );
+
+    expect(output).toContain("llm-core/no-unbounded-promise-a…  12:5");
+    expect(output).not.toContain("What: Promise.all is unbounded");
+    expect(output).not.toContain("Why: Large inputs can exhaust memory");
+    expect(output).not.toContain("How to fix: Limit concurrency");
+    expect(output).toContain(
+      "@typescript-eslint/no-explicit-…  Unexpected any  20:10",
+    );
   });
 
   it("colors text output only when enabled", () => {

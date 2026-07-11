@@ -36,6 +36,7 @@ export type QualityScanOptions = {
   failOnFindings: boolean;
   compact: boolean;
   color: QualityColorMode;
+  production: boolean;
 };
 
 export type QualityScanResult = {

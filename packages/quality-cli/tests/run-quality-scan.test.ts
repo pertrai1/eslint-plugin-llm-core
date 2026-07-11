@@ -33,6 +33,7 @@ describe("runQualityScan", () => {
         failOnFindings: true,
         compact: false,
         color: "auto",
+        production: false,
       },
       fakeExecutor(),
     );
@@ -49,6 +50,33 @@ describe("runQualityScan", () => {
       "--reporter",
       "json",
       "--no-exit-code",
+      "--cache",
+    ]);
+  });
+
+  it("passes production mode to Knip only", async () => {
+    const result = await runQualityScan(
+      {
+        command: "scan",
+        reporter: "json",
+        cwd: "/repo",
+        targets: ["src"],
+        engines: ["eslint", "knip"],
+        failOnFindings: false,
+        compact: false,
+        color: "auto",
+        production: true,
+      },
+      fakeExecutor(),
+    );
+
+    expect(result.invocations[0]?.args).toEqual(["src", "--format", "json"]);
+    expect(result.invocations[1]?.args).toEqual([
+      "--reporter",
+      "json",
+      "--no-exit-code",
+      "--cache",
+      "--production",
     ]);
   });
 
@@ -63,6 +91,7 @@ describe("runQualityScan", () => {
         failOnFindings: true,
         compact: false,
         color: "auto",
+        production: false,
       },
       fakeExecutor(
         { eslint: 1 },
@@ -100,6 +129,58 @@ describe("runQualityScan", () => {
     ]);
   });
 
+  it("describes Knip category findings with actionable item names", async () => {
+    const result = await runQualityScan(
+      {
+        command: "scan",
+        reporter: "text",
+        cwd: "/repo",
+        targets: [],
+        engines: ["knip"],
+        failOnFindings: false,
+        compact: false,
+        color: "auto",
+        production: false,
+      },
+      fakeExecutor(
+        { knip: 1 },
+        {
+          knip: JSON.stringify({
+            issues: [
+              {
+                file: "src/unused.ts",
+                files: [{ name: "src/unused.ts" }],
+              },
+              {
+                file: "package.json",
+                dependencies: [{ name: "lodash", line: 12, col: 6 }],
+              },
+            ],
+          }),
+        },
+      ),
+    );
+
+    expect(result.findings).toEqual([
+      {
+        engine: "knip",
+        severity: "warning",
+        message: "Unused file: src/unused.ts",
+        filePath: "src/unused.ts",
+        ruleId: "files",
+      },
+      {
+        engine: "knip",
+        severity: "warning",
+        message: "Unused dependency: lodash",
+        filePath: "package.json",
+        ruleId: "dependencies",
+        line: 12,
+        column: 6,
+      },
+    ]);
+  });
+
   it("fails on tool execution errors even when findings are allowed", async () => {
     const result = await runQualityScan(
       {
@@ -111,6 +192,7 @@ describe("runQualityScan", () => {
         failOnFindings: false,
         compact: false,
         color: "auto",
+        production: false,
       },
       fakeExecutor({ eslint: 2 }),
     );

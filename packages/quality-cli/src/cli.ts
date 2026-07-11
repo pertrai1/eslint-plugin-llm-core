@@ -26,6 +26,7 @@ async function main(): Promise<void> {
           : `${formatTextReport(result, {
               cwd: parsed.options.cwd,
               color: shouldUseColor(parsed.options),
+              compact: parsed.options.compact,
             })}\n`;
 
     process.stdout.write(output);

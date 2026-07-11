@@ -12,6 +12,7 @@ import type {
 export type TextReportOptions = {
   cwd?: string;
   color?: boolean;
+  compact?: boolean;
 };
 
 export type MachineReportOptions = {
@@ -38,7 +39,11 @@ export function formatTextReport(
 
   if (result.findings.length > 0) {
     lines.push("");
-    lines.push(...formatFindingGroups(result.findings, options.cwd, colors));
+    lines.push(
+      ...formatFindingGroups(result.findings, options.cwd, colors, {
+        compact: options.compact ?? false,
+      }),
+    );
   }
 
   lines.push("");
@@ -65,6 +70,7 @@ function formatFindingGroups(
   findings: QualityFinding[],
   cwd: string | undefined,
   colors: ReturnType<typeof createColors>,
+  options: { compact: boolean },
 ): string[] {
   const lines: string[] = [];
   const maxRuleLength = Math.min(32, Math.max(...findings.map(ruleIdLength)));
@@ -77,8 +83,9 @@ function formatFindingGroups(
       const severity = colorSeverity(finding.severity.padEnd(7), colors);
       const rule = formatRuleColumn(finding, maxRuleLength);
       const location = formatLineColumn(finding);
+      const message = formatFindingMessage(finding, options);
       lines.push(
-        `  ${severity}  ${colors.cyan(rule)}  ${finding.message}${location ? `  ${colors.dim(location)}` : ""}`,
+        `  ${severity}  ${colors.cyan(rule)}${message ? `  ${message}` : ""}${location ? `  ${colors.dim(location)}` : ""}`,
       );
     }
 
@@ -188,6 +195,21 @@ function colorSeverity(
   }
 
   return colors.cyan(severity);
+}
+
+function formatFindingMessage(
+  finding: QualityFinding,
+  options: { compact: boolean },
+): string {
+  if (options.compact && isLlmCoreRule(finding)) {
+    return "";
+  }
+
+  return finding.message;
+}
+
+function isLlmCoreRule(finding: QualityFinding): boolean {
+  return finding.ruleId?.startsWith("llm-core/") ?? false;
 }
 
 function formatRuleColumn(

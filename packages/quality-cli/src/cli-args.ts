@@ -32,6 +32,7 @@ export function parseCliArgs(args: string[], cwd = process.cwd()): ParsedCli {
   let failOnFindings = commandArg === "ci";
   let compact = false;
   let color: QualityScanOptions["color"] = "auto";
+  let production = false;
 
   for (let index = 0; index < rest.length; index += 1) {
     const arg = rest[index];
@@ -58,6 +59,11 @@ export function parseCliArgs(args: string[], cwd = process.cwd()): ParsedCli {
 
     if (arg === "--color") {
       color = "always";
+      continue;
+    }
+
+    if (arg === "--production") {
+      production = true;
       continue;
     }
 
@@ -110,6 +116,7 @@ export function parseCliArgs(args: string[], cwd = process.cwd()): ParsedCli {
       failOnFindings,
       compact,
       color,
+      production,
     },
   };
 }
@@ -138,7 +145,8 @@ Commands:
 Options:
   --json              Print normalized JSON.
   --sarif             Print SARIF 2.1.0.
-  --compact           Print compact JSON/SARIF instead of pretty output.
+  --compact           Print compact output; text hides llm-core rule details.
+  --production        Run Knip in production mode, excluding tests and dev-only code.
   --engine <engine>   Limit engines. Repeat or comma-separate: eslint,knip.
   --fail-on-findings  Exit non-zero when findings are present.
   --no-exit-code      Always exit zero unless a tool execution fails.

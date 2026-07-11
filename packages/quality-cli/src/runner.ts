@@ -17,13 +17,20 @@ export const DEFAULT_ENGINES: QualityEngine[] = ["eslint", "knip"];
 export function buildEngineArgs(
   engine: QualityEngine,
   targets: string[],
+  options: { production?: boolean } = {},
 ): string[] {
   if (engine === "eslint") {
     const eslintTargets = targets.length > 0 ? targets : ["."];
     return [...eslintTargets, "--format", "json"];
   }
 
-  return ["--reporter", "json", "--no-exit-code"];
+  return [
+    "--reporter",
+    "json",
+    "--no-exit-code",
+    "--cache",
+    ...(options.production ? ["--production"] : []),
+  ];
 }
 
 export function buildEngineCommand(engine: QualityEngine): string {
@@ -84,7 +91,9 @@ export async function runQualityScan(
     const invocation = await executor(
       engine,
       buildEngineCommand(engine),
-      buildEngineArgs(engine, options.targets),
+      buildEngineArgs(engine, options.targets, {
+        production: options.production,
+      }),
       options.cwd,
     );
     invocations.push(invocation);
@@ -160,7 +169,31 @@ function extractEslintFindings(stdout: string): QualityFinding[] {
   );
 }
 
-type KnipIssue = {
+type KnipIssueCategory =
+  | "binaries"
+  | "catalog"
+  | "dependencies"
+  | "devDependencies"
+  | "duplicates"
+  | "enumMembers"
+  | "exports"
+  | "files"
+  | "namespaceMembers"
+  | "optionalPeerDependencies"
+  | "types"
+  | "unlisted"
+  | "unresolved";
+
+type KnipIssueItem = {
+  name?: string;
+  symbol?: string;
+  file?: string;
+  filePath?: string;
+  line?: number;
+  col?: number;
+};
+
+type KnipIssue = Partial<Record<KnipIssueCategory, KnipIssueItem[]>> & {
   type?: string;
   file?: string;
   filePath?: string;
@@ -173,22 +206,95 @@ type KnipReport = {
   issues?: KnipIssue[];
 };
 
+const KNIP_CATEGORY_LABELS: Record<KnipIssueCategory, string> = {
+  binaries: "Unused binary",
+  catalog: "Unused catalog entry",
+  dependencies: "Unused dependency",
+  devDependencies: "Unused dev dependency",
+  duplicates: "Duplicate dependency",
+  enumMembers: "Unused enum member",
+  exports: "Unused export",
+  files: "Unused file",
+  namespaceMembers: "Unused namespace member",
+  optionalPeerDependencies: "Unused optional peer dependency",
+  types: "Unused type",
+  unlisted: "Unlisted dependency",
+  unresolved: "Unresolved dependency",
+};
+
+const KNIP_CATEGORIES = Object.keys(
+  KNIP_CATEGORY_LABELS,
+) as KnipIssueCategory[];
+
 function extractKnipFindings(stdout: string): QualityFinding[] {
   const parsed = parseJson<KnipReport>(stdout, {});
   const issues = Array.isArray(parsed.issues) ? parsed.issues : [];
 
-  return issues.map((issue) => ({
-    engine: "knip" as const,
-    severity: "warning" as const,
-    message: issue.message ?? describeKnipIssue(issue),
-    filePath: issue.filePath ?? issue.file,
-    ruleId: issue.type,
-  }));
+  return issues.flatMap((issue) => {
+    const findings = KNIP_CATEGORIES.flatMap((category) =>
+      describeKnipCategoryFindings(issue, category),
+    );
+
+    if (findings.length > 0) {
+      return findings;
+    }
+
+    return [describeLegacyKnipIssue(issue)];
+  });
 }
 
-function describeKnipIssue(issue: KnipIssue): string {
+function describeKnipCategoryFindings(
+  issue: KnipIssue,
+  category: KnipIssueCategory,
+): QualityFinding[] {
+  const items = issue[category];
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return [];
+  }
+
+  return items.map((item) => {
+    const label = KNIP_CATEGORY_LABELS[category];
+    const name = describeKnipItemName(item, issue);
+
+    return {
+      engine: "knip" as const,
+      severity: "warning" as const,
+      message: `${label}: ${name}`,
+      filePath: item.filePath ?? item.file ?? issue.filePath ?? issue.file,
+      ruleId: category,
+      line: item.line,
+      column: item.col,
+    };
+  });
+}
+
+function describeLegacyKnipIssue(issue: KnipIssue): QualityFinding {
   const label = issue.symbol ?? issue.name ?? issue.file ?? "project issue";
-  return issue.type ? `${issue.type}: ${label}` : `Knip reported ${label}`;
+
+  return {
+    engine: "knip" as const,
+    severity: "warning" as const,
+    message:
+      issue.message ??
+      (issue.type ? `${issue.type}: ${label}` : `Knip reported ${label}`),
+    filePath: issue.filePath ?? issue.file,
+    ruleId: issue.type,
+  };
+}
+
+function describeKnipItemName(item: KnipIssueItem, issue: KnipIssue): string {
+  return (
+    item.symbol ??
+    item.name ??
+    item.filePath ??
+    item.file ??
+    issue.symbol ??
+    issue.name ??
+    issue.filePath ??
+    issue.file ??
+    "project issue"
+  );
 }
 
 function toSeverity(severity: number | undefined): QualitySeverity {

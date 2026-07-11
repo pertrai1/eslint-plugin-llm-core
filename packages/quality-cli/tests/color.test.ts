@@ -61,5 +61,6 @@ function optionsWithColor(
     engines: ["eslint"],
     failOnFindings: false,
     compact: false,
+    production: false,
   };
 }

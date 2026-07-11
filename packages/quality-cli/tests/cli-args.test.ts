@@ -17,6 +17,7 @@ describe("parseCliArgs", () => {
         failOnFindings: false,
         compact: false,
         color: "auto",
+        production: false,
       },
     });
   });
@@ -38,7 +39,15 @@ describe("parseCliArgs", () => {
         failOnFindings: true,
         compact: false,
         color: "auto",
+        production: false,
       },
+    });
+  });
+
+  it("parses production mode", () => {
+    expect(parseCliArgs(["scan", "--production"], "/repo")).toMatchObject({
+      kind: "run",
+      options: { production: true },
     });
   });
 
@@ -54,6 +63,7 @@ describe("parseCliArgs", () => {
         failOnFindings: false,
         compact: true,
         color: "auto",
+        production: false,
       },
     });
 
@@ -82,6 +92,7 @@ describe("parseCliArgs", () => {
         failOnFindings: false,
         compact: false,
         color: "auto",
+        production: false,
       },
     });
   });

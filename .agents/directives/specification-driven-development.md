@@ -2,6 +2,13 @@
 name: specification-driven-development
 description: Requires written specifications for features or changes large enough that build-and-see would risk rework.
 version: 1.0.0
+required: false
+category: workflow
+tools:
+  - claude
+  - copilot
+  - codex
+  - cursor
 triggers:
   - new-feature
   - api-addition

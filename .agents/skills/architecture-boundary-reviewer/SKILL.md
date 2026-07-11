@@ -1,7 +1,14 @@
 ---
 name: "architecture-boundary-reviewer"
-description: "Use this skill when reviewing whether code changes preserve architectural boundaries, dependency direction, public APIs, and package/service DAG constraints."
+description: "Load when changes touch imports, exports, public APIs, file moves, packages, services, layers, shared code, dependency direction, cycles, or the user asks if architecture boundaries still hold."
 version: 1.0.0
+required: false
+category: review
+tools:
+  - claude
+  - copilot
+  - codex
+  - cursor
 routing:
   triggers:
     - imports

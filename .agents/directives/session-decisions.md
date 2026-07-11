@@ -2,6 +2,11 @@
 name: session-decisions
 description: Captures durable decisions for repo policy, architecture, workflow, and cross-cutting conventions.
 version: 1.0.0
+required: false
+category: memory
+tools:
+  - claude
+  - codex
 triggers:
   - policy-change
   - architecture-decision

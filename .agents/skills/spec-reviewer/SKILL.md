@@ -1,7 +1,14 @@
 ---
 name: "spec-reviewer"
-description: "Use this skill when reviewing implementation against a written specification. Detects missing requirements, spec-code divergence, incomplete scenarios, and design drift."
-version: 1.0.0
+description: "Load when the user asks whether implementation matches a spec, requirements doc, acceptance criteria, or design plan, or says check what is missing, incomplete, or divergent before merge."
+version: 1.1.0
+required: false
+category: review
+tools:
+  - claude
+  - copilot
+  - codex
+  - cursor
 routing:
   triggers:
     - written-spec
@@ -12,6 +19,26 @@ routing:
     - full-path
     - review-path
 ---
+
+## Review Depth
+
+Default to the lightest useful review.
+
+### Fast Path
+
+Use only when the change is small, localized, low-risk, and project gates are already passing or not relevant.
+
+Output:
+
+- Top 1-3 material findings only
+- `No material findings` if clean
+- Verification gaps only when they affect merge confidence
+
+Do not emit the full checklist when there are no findings.
+
+### Deep Path
+
+Use the full review process when the change is high-risk, cross-cutting, production-sensitive, security/data-sensitive, behavior-changing without adequate tests, has failing or missing gates, or is explicitly requested.
 
 # Spec Reviewer
 

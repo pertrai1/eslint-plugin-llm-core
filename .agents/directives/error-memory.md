@@ -2,6 +2,11 @@
 name: error-memory
 description: Captures repeated mistakes in durable error memory only when recurrence and prevention criteria are met.
 version: 1.0.0
+required: false
+category: memory
+tools:
+  - claude
+  - codex
 triggers:
   - repeated-mistakes
   - error-memory

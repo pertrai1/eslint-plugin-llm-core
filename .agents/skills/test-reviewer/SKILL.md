@@ -1,7 +1,14 @@
 ---
 name: "test-reviewer"
-description: "Use this skill when writing or reviewing tests. Detects tests that duplicate production logic, use shallow assertions, skip edge cases, or assert on mocks instead of behavior."
-version: 1.0.0
+description: "Load when the user asks to write or review tests, TDD cases, eval scenarios, coverage, assertions, or mocks, or says tests are shallow, flaky, brittle, or too close to implementation."
+version: 1.1.0
+required: true
+category: testing
+tools:
+  - claude
+  - copilot
+  - codex
+  - cursor
 routing:
   triggers:
     - tests
@@ -13,6 +20,26 @@ routing:
     - full-path
     - review-path
 ---
+
+## Review Depth
+
+Default to the lightest useful review.
+
+### Fast Path
+
+Use only when the change is small, localized, low-risk, and project gates are already passing or not relevant.
+
+Output:
+
+- Top 1-3 material findings only
+- `No material findings` if clean
+- Verification gaps only when they affect merge confidence
+
+Do not emit the full checklist when there are no findings.
+
+### Deep Path
+
+Use the full review process when the change is high-risk, cross-cutting, production-sensitive, security/data-sensitive, behavior-changing without adequate tests, has failing or missing gates, or is explicitly requested.
 
 # Test Reviewer
 
@@ -210,6 +237,26 @@ it("should register user and send welcome email", async () => {
 - Mock setup is longer than the assertion block
 - Changing the implementation (not the behavior) would break the test
 
+### Rule 5: DAMP Over DRY
+
+DAMP (Descriptive And Meaningful Phrases) is usually better than DRY (Don't
+Repeat Yourself) in tests. Tests should be descriptive and meaningful even when
+that means some duplication. Flag shared helpers, fixtures, or setup factories
+when they hide the behavior under test, force the reader to chase indirection, or
+make many tests fail for one helper change.
+
+### Rule 6: Test Outcomes, Not Internals
+
+Prefer assertions on observable state, returned values, rendered output, persisted records, emitted events, or external side effects. Flag tests that primarily assert private methods, internal call order, implementation structure, or framework behavior when an outcome assertion would prove the same behavior.
+
+### Rule 7: Test Isolation
+
+Flag tests that depend on execution order, shared mutable state, real time, random data, network access, external services, or prior test side effects unless those dependencies are explicitly controlled. Flaky tests erode trust in the suite.
+
+### Rule 8: Test Names Describe Behavior
+
+Test names should read like behavioral specifications. Flag vague names such as `works`, `handles errors`, or `test 3`, and names that describe implementation mechanics instead of the user-visible or system-visible behavior being verified.
+
 ---
 
 ## Review Process
@@ -221,7 +268,8 @@ For every test you write or review:
 3. **Check assertion strength** — does every assertion verify a specific value, not just existence?
 4. **Check edge case coverage** — are empty, null, boundary, and error cases represented?
 5. **Check mock usage** — do assertions target outcomes, or just mock call signatures?
-6. **If any rule is violated** — flag it using the output format below.
+6. **Check readability and isolation** — is the test self-contained enough to understand, named by behavior, and free of hidden order/time/network dependencies?
+7. **If any rule is violated** — flag it using the output format below.
 
 ---
 

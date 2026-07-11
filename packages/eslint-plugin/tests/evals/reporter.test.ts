@@ -4,8 +4,8 @@ import {
   generateHistoryLine,
   generateJson,
   generateMarkdown,
-} from "../../evals/src/reporter";
-import type { EvalResults } from "../../evals/src/types";
+} from "../../../../evals/src/reporter";
+import type { EvalResults } from "../../../../evals/src/types";
 
 describe("eval reporting", () => {
   it("includes remaining rule ids and rejection reasons in markdown details", () => {

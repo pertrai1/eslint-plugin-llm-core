@@ -3,8 +3,8 @@ import {
   queryByRule,
   queryUnresolved,
   queryStuckRules,
-} from "../../evals/src/query";
-import type { EvalResults, FixtureResult } from "../../evals/src/types";
+} from "../../../../evals/src/query";
+import type { EvalResults, FixtureResult } from "../../../../evals/src/types";
 
 function makeResult(
   overrides: Partial<FixtureResult> & Pick<FixtureResult, "fixture" | "mode">,

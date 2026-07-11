@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   stripToFirstLine,
   stripViolationMessages,
-} from "../../evals/src/strip-messages";
-import type { LintViolation } from "../../evals/src/types";
+} from "../../../../evals/src/strip-messages";
+import type { LintViolation } from "../../../../evals/src/types";
 
 describe("strip-messages", () => {
   it("keeps the first line when a message has guidance sections", () => {

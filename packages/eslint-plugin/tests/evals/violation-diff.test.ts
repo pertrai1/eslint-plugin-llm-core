@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { computeViolationDiff } from "../../evals/src/violation-diff";
-import type { LintViolation } from "../../evals/src/types";
+import { computeViolationDiff } from "../../../../evals/src/violation-diff";
+import type { LintViolation } from "../../../../evals/src/types";
 
 describe("computeViolationDiff", () => {
   it("categorizes violations as resolved, persisted, or introduced", () => {

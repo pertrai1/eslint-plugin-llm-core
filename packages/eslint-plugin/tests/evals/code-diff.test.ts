@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeCodeDiff } from "../../evals/src/code-diff";
+import { computeCodeDiff } from "../../../../evals/src/code-diff";
 
 describe("computeCodeDiff", () => {
   it("produces a unified diff showing added and removed lines", () => {

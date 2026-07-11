@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { findIterationTrace, type ReplayTarget } from "../../evals/src/replay";
-import type { EvalResults } from "../../evals/src/types";
+import {
+  findIterationTrace,
+  type ReplayTarget,
+} from "../../../../evals/src/replay";
+import type { EvalResults } from "../../../../evals/src/types";
 
 const sampleResults: EvalResults = {
   date: "2026-04-08",

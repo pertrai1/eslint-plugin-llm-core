@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { detectPatterns } from "../../evals/src/patterns";
-import type { IterationRecord } from "../../evals/src/types";
+import { detectPatterns } from "../../../../evals/src/patterns";
+import type { IterationRecord } from "../../../../evals/src/types";
 
 describe("detectPatterns", () => {
   it("identifies stuck rules that persist across all iterations", () => {

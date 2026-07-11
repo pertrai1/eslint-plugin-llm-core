@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   collectExportedSymbolNames,
   preservesExportedApi,
-} from "../../evals/src/eval-loop";
+} from "../../../../evals/src/eval-loop";
 
 describe("eval fixture API preservation", () => {
   it("collects exported symbol names from function and const exports", () => {

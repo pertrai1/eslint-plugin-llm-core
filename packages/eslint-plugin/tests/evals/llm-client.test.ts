@@ -4,9 +4,9 @@ import {
   buildFixViolationsPrompt,
   extractReasoning,
   formatViolationList,
-} from "../../evals/src/llm-client";
-import { stripViolationMessages } from "../../evals/src/strip-messages";
-import type { LintViolation } from "../../evals/src/types";
+} from "../../../../evals/src/llm-client";
+import { stripViolationMessages } from "../../../../evals/src/strip-messages";
+import type { LintViolation } from "../../../../evals/src/types";
 
 const sampleViolations: LintViolation[] = [
   {

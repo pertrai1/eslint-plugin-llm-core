@@ -2,6 +2,13 @@
 name: test-driven-development
 description: Defines RED/GREEN/REFACTOR expectations for behavior-changing implementation work and bug fixes.
 version: 1.0.0
+required: false
+category: testing
+tools:
+  - claude
+  - copilot
+  - codex
+  - cursor
 triggers:
   - behavior-change
   - new-feature
@@ -72,8 +79,11 @@ RED because the change seems obvious.
 Before writing behavior-changing implementation code:
 
 1. Write a test that describes ONE behavior
-2. Run the test — it MUST fail (RED)
-3. Only then write implementation
+2. Load `.agents/skills/test-reviewer/SKILL.md` and apply it as the test-quality lens:
+   the test should assert observable behavior, use strong assertions, avoid
+   implementation mirroring, and cover relevant edge/error cases
+3. Run the test — it MUST fail (RED)
+4. Only then write implementation
 
 ```text
 ❌ WRONG: Implement first, test later
@@ -170,6 +180,7 @@ failure.
 
 2. RED Phase:
    - Write a test for that behavior
+   - Review the test with `.agents/skills/test-reviewer/SKILL.md` before opening implementation code
    - Run test: MUST fail
    - If it passes, the test is wrong — fix it
 

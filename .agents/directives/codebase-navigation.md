@@ -1,7 +1,14 @@
 ---
 name: codebase-navigation
 description: Guides progressive codebase orientation with the SAFE pattern before implementation, review, or unfamiliar work.
-version: 1.0.0
+version: 1.1.0
+required: true
+category: workflow
+tools:
+  - claude
+  - copilot
+  - codex
+  - cursor
 triggers:
   - orientation
   - unfamiliar-codebase
@@ -73,11 +80,18 @@ Anchor on **types and contracts**, not implementations.
    - grep "describe\|it(" tests/path/to/area-test.ts | head -30
    - Test names are specifications — they tell you what behavior exists
 
-3. ONE reference file showing the existing pattern
+3. Existing capability search
+   - Search for existing utilities, helpers, services, validators, hooks,
+     commands, or types that already solve this problem
+   - Reuse existing behavior when it represents the same project knowledge
+   - Do not consolidate merely similar code if it represents different domain
+     concepts or would expand the scope budget
+
+4. ONE reference file showing the existing pattern
    - Pick the most similar existing file to what you're working on
    - Read its exports and public interface only (skip full body)
 
-4. Applicable directives and scoped instructions
+5. Applicable directives and scoped instructions
    - Load any project-level directives or scoped instructions that apply
 ```
 
@@ -88,11 +102,26 @@ Anchor on **types and contracts**, not implementations.
 head -25 path/to/representative-file.ts          # imports + exports
 grep "key-pattern" path/to/representative-file.ts -A 20  # relevant metadata
 grep "describe\|it(" tests/path/to/test-file.ts  # test specifications
+
+# Existing capability search: prefer AST-aware search when available
+ast-grep --pattern 'export function $NAME($$$ARGS) { $$$BODY }' path/to/source/root
+ast-grep --pattern 'export const $NAME = $$$VALUE' path/to/source/root
+
+# Grep fallback when ast-grep is unavailable; choose the project's source roots
+grep -R -E "function .*<domain-term>|const .*<domain-term>|export .*<domain-term>" path/to/source/root path/to/tests | head -30
 ```
 
 **If your agent framework provides dedicated read/search tools** (e.g. Read
 with line ranges, Grep, or Glob), prefer those over raw shell commands — they
 are typically optimized for the agent's context management.
+
+**Prefer symbol-aware navigation when available.** In large or multi-language
+codebases, use LSP/language-server/IDE symbol tools for go-to-definition,
+find-references, call hierarchy, or diagnostics before broad text search. Plain
+text search is still useful for unknown terms, but verify symbol identity before
+editing when multiple packages, languages, generated files, or same-named
+functions/classes may match. If no LSP/symbol tool is configured, state the
+fallback and use imports, call sites, and narrow file slices to disambiguate.
 
 **Avoid:**
 
@@ -110,6 +139,19 @@ cat tests/path/to/test-file.ts           # entire test file — wastes context
 **Token budget:** ~2,000-5,000 tokens (task-dependent).
 
 Only now read the specific files you'll modify or that your changes depend on.
+
+Escalate reads from narrow to broad:
+
+1. File names and symbols
+2. Imports, exports, signatures, and frontmatter/metadata
+3. Test names, failing output, and documented examples
+4. Relevant function, section, or directive slices
+5. Whole files only when slices cannot answer the question
+
+Do not read sibling implementations merely for familiarity. The Anchor phase's
+allowance to read **ONE reference file** is a narrow exception to the Filter
+phase rule: use one representative reference file only when it directly informs
+the target change, not as general look-and-copy context.
 
 ```
 1. Find dependents:
@@ -257,14 +299,15 @@ digest keeps the current context window lean for the next task.
 
 ## Forbidden Patterns
 
-| Pattern                                     | Why Forbidden                                               |
-| ------------------------------------------- | ----------------------------------------------------------- |
-| `cat` on any file over 50 lines             | Wastes context on low-information content                   |
-| Reading a file "to get familiar"            | Familiarity comes from types and tests, not implementations |
-| Skipping Survey to start coding immediately | Produces code that doesn't fit the codebase                 |
-| Reading full test file bodies during Anchor | Test names are the spec; bodies are for the RED phase       |
-| Loading all directives for every task       | Use progressive disclosure — load only what applies         |
-| Starting a second task without compacting   | Context from task 1 rots and confuses task 2                |
+| Pattern                                                          | Why Forbidden                                               |
+| ---------------------------------------------------------------- | ----------------------------------------------------------- |
+| `cat` on any file over 50 lines                                  | Wastes context on low-information content                   |
+| Reading a file "to get familiar"                                 | Familiarity comes from types and tests, not implementations |
+| Reading sibling implementations without a task-specific question | Burns context and invites pattern cargo-culting             |
+| Skipping Survey to start coding immediately                      | Produces code that doesn't fit the codebase                 |
+| Reading full test file bodies during Anchor                      | Test names are the spec; bodies are for the RED phase       |
+| Loading all directives for every task                            | Use progressive disclosure — load only what applies         |
+| Starting a second task without compacting                        | Context from task 1 rots and confuses task 2                |
 
 ---
 

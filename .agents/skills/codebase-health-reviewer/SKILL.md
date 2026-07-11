@@ -1,7 +1,14 @@
 ---
 name: "codebase-health-reviewer"
-description: "Use this skill when reviewing TypeScript/JavaScript codebase health with Fallow: dead code, duplication, complexity, circular dependencies, and architecture drift."
-version: 1.0.0
+description: "Load when reviewing TypeScript/JavaScript refactors, cleanup, AI-generated code, shared utilities, dead code, duplication, complexity, circular dependencies, Fallow output, or maintainability drift."
+version: 1.1.0
+required: false
+category: review
+tools:
+  - claude
+  - copilot
+  - codex
+  - cursor
 routing:
   triggers:
     - typescript
@@ -14,6 +21,26 @@ routing:
     - full-path
     - review-path
 ---
+
+## Review Depth
+
+Default to the lightest useful review.
+
+### Fast Path
+
+Use only when the change is small, localized, low-risk, and project gates are already passing or not relevant.
+
+Output:
+
+- Top 1-3 material findings only
+- `No material findings` if clean
+- Verification gaps only when they affect merge confidence
+
+Do not emit the full checklist when there are no findings.
+
+### Deep Path
+
+Use the full review process when the change is high-risk, cross-cutting, production-sensitive, security/data-sensitive, behavior-changing without adequate tests, has failing or missing gates, or is explicitly requested.
 
 # Codebase Health Reviewer
 

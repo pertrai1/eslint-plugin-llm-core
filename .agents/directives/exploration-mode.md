@@ -2,6 +2,13 @@
 name: exploration-mode
 description: Supports investigation and option discovery before committing to an implementation approach.
 version: 1.0.0
+required: true
+category: workflow
+tools:
+  - claude
+  - copilot
+  - codex
+  - cursor
 triggers:
   - explore
   - investigate

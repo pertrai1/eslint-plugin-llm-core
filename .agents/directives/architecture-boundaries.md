@@ -2,6 +2,13 @@
 name: architecture-boundaries
 description: Preserves architecture DAG boundaries for imports, exports, packages, services, shared code, and dependency direction.
 version: 1.0.0
+required: false
+category: architecture
+tools:
+  - claude
+  - copilot
+  - codex
+  - cursor
 triggers:
   - imports
   - exports

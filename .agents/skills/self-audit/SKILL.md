@@ -1,7 +1,14 @@
 ---
 name: "self-audit"
-description: "Triage your own weakest assumptions and anomalies after GREEN/REFACTOR, before verification. Use after TDD cycle completes or before opening a PR."
+description: "Load when implementation is past GREEN/REFACTOR and the user asks for pre-PR verification, self-audit, scope check, weakest-assumption review, anomaly triage, or a confidence check."
 version: 1.0.0
+required: false
+category: review
+tools:
+  - claude
+  - copilot
+  - codex
+  - cursor
 routing:
   triggers:
     - after-refactor

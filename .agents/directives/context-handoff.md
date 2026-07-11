@@ -1,7 +1,12 @@
 ---
 name: context-handoff
 description: Compresses task state at directive or session boundaries so later phases can continue from a compact, current-state handoff instead of drifting through accumulated chat history.
-version: 1.0.0
+version: 1.1.0
+required: false
+category: workflow
+tools:
+  - claude
+  - codex
 triggers:
   - directive-boundary
   - session-handoff
@@ -189,6 +194,29 @@ when it helps reviewers. Keep it focused on:
 
 Do not post per-directive handoffs as repeated PR comments. Use a single compact
 review handoff unless the user requests a detailed audit trail.
+
+---
+
+## Feature Cleanup Phase
+
+After a feature PR merges (or when preparing the final handoff capsule), execute a cleanup review of the branch/context state to combat additive-only bloat. Scan for and report:
+
+- **Obsolete files**: temporary task files (`tasks/tasks-*.md`), build/temp assets, or unused test mocks.
+- **Duplicated docs**: instructions that overlap with newly updated files or main READMEs.
+- **Dead config paths**: unused imports, exports, or stale `.env` variables.
+- **Repeated agent instructions**: rules that can be collapsed into single core guidelines.
+
+Produce a brief summary:
+
+- **Safe deletions**: <files or lines that can be deleted immediately>
+- **Safe consolidations**: <duplicated docs or instructions to merge>
+- **Risky cleanup candidates**: <requires separate human decision>
+- **Things to keep and why**: <why they remain necessary>
+
+**Execution and Storage:**
+
+- In **interactive sessions**, present this list in chat for user approval.
+- In **autonomous loops**, do not output this to standard output; instead, write this cleanup report directly to `.agents/cleanup-suggestions.md` (or submit it as a PR comment via API) for later review. If neither storage target is available, use the Storage fallback order above; if no durable storage is available, record in the final handoff that the cleanup report was skipped because storage was unavailable. Do not perform the actual deletions/modifications autonomously unless explicitly configured to run in an automatic prune/force mode.
 
 ---
 

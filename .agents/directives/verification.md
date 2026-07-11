@@ -1,7 +1,14 @@
 ---
 name: verification
 description: Requires structured evidence of correctness before quality gates and pull requests.
-version: 1.0.0
+version: 1.1.0
+required: true
+category: workflow
+tools:
+  - claude
+  - copilot
+  - codex
+  - cursor
 triggers:
   - verification
   - pre-pr
@@ -128,6 +135,26 @@ _Example:_
 [x] README usage section updated
 ```
 
+#### 7. Scope Control Proof
+
+Confirm the final diff stayed within the planned scope budget:
+
+- Planned scope budget: paste or quote the exact scope budget line used for
+  comparison.
+- Changed files match the stated scope, or scope expansion is explained with
+  evidence.
+- No unrelated cleanup, opportunistic refactor, or drive-by formatting was
+  included.
+- No new abstraction, helper layer, dependency, or configuration surface was
+  added unless required by current evidence.
+
+For small tasks, one sentence is enough:
+
+```md
+Planned scope budget: touch only `src/foo.ts` with a targeted guard-clause edit.
+Scope control: changed only `src/foo.ts`; no unrelated cleanup or new abstraction added.
+```
+
 ---
 
 ### For Bug Fixes
@@ -192,6 +219,17 @@ The summary should follow this structure:
 
 [x] JSDoc updated on createUser
 [x] README usage section updated
+
+### Scope Control
+
+Planned scope budget: touch `src/users/create.ts` and `tests/users/create.test.ts` for create-user validation only.
+Scope control: changed only the planned files; no unrelated cleanup, new abstraction, dependency, or configuration surface added.
+
+### Unverified Areas & Risk Justification
+
+List the important things you did not verify, and say whether each one is safe to leave unchecked:
+
+1. <unverified area> — <why it is safe to skip now / risk justification>
 ```
 
 If anything is `[ ]` or tests are missing, the implementation is not ready.
@@ -199,6 +237,28 @@ Do not open the PR until verification is complete.
 
 For bug fixes and docs/chore changes, include a shorter verification
 block in the same PR section.
+
+---
+
+## Make "Done" Mean Evidence, Not Confidence
+
+Do not say a task is "done" until you provide structured evidence of correctness.
+
+**Storage:**
+
+- In **autonomous loops**, prefer populating the PR description/comments via API/CLI so evidence is durable without dirtying the tracked tree. If PR/comment storage is unavailable, use an ignored project scratch path only when one is already defined; otherwise record in the final response or handoff that durable verification storage was unavailable. Do not create tracked `.agents/verification.md` artifacts unless the user explicitly requests committed verification files.
+- In **interactive sessions**, output verification to the user or add it to the PR body/comment. Do not save tracked verification artifacts by default.
+
+You must provide:
+
+- **Commands run**: <exact test/lint/build commands executed>
+- **Output summary**: <pasted or excerpted passing console output>
+- **Files changed**: <exact diff files list>
+- **Tests added or updated**: <test suite names and case count>
+- **Behavior proven**: <the actual hit/clean verification trace>
+- **Known gaps**: <remaining edge cases or undocumented limitations>
+
+For generator, CLI, or MCP work, include one manual acceptance check with visible pass/fail console/terminal output.
 
 ---
 

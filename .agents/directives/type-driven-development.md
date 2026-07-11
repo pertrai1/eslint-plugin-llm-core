@@ -2,6 +2,13 @@
 name: type-driven-development
 description: Requires type and contract definition before implementation in typed projects or public API work.
 version: 1.0.0
+required: false
+category: testing
+tools:
+  - claude
+  - copilot
+  - codex
+  - cursor
 triggers:
   - types
   - public-api

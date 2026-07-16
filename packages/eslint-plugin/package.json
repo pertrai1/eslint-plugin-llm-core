@@ -87,7 +87,7 @@
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.0.0",
     "eslint-doc-generator": "^3.3.2",
-    "eslint-plugin-eslint-plugin": "^7.3.2",
+    "eslint-plugin-eslint-plugin": "^7.5.0",
     "husky": "^9.0.0",
     "lint-staged": "^17.0.2",
     "prettier": "^3.0.0",

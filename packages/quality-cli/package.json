@@ -44,7 +44,7 @@
   "dependencies": {
     "eslint": "^10.1.0",
     "eslint-plugin-llm-core": "0.35.1",
-    "knip": "^6.26.0",
+    "knip": "^6.27.0",
     "picocolors": "^1.1.1"
   },
   "devDependencies": {

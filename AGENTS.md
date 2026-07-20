@@ -48,7 +48,7 @@ Run commands from the repository root unless a package workspace command is expl
 | `npm run format:check`                                 | Check repo-wide formatting without writing            |
 | `npm run update:eslint-docs`                           | Regenerate plugin rule docs                           |
 
-# Mandatory Workflow
+## Mandatory Workflow
 
 **NEVER commit directly to `main`.** Work on a feature branch. No exceptions.
 
@@ -57,29 +57,35 @@ Run commands from the repository root unless a package workspace command is expl
 The root file provides project-specific context plus compact routing pointers: commands, repo layout, local constraints, and any client-specific workflow reminders.
 
 Workflow path selection, directive loading, skill loading, rule selection, and evidence requirements live in `.agents/directives/adaptive-routing.md`.
+For ambiguous, composite, or high-risk routes, load its synced lazy companion at
+`.agents/directives/references/adaptive-routing-detail.md`; obvious Light,
+Review, and Exploration tasks do not preload it.
 
-After routing, briefly state the selected path and directive/skill files:
+After routing, report:
 `Route: <path>; using <directive/skill files>; rules: <rule files or none>; evidence: <checks>.`
 
 When adaptive routing selects Full Path or another route that invokes the full
 phase sequence, no skipping steps:
 
-| Step | Phase          | Action                                          | Verify                                                                                                                                                  |
-| ---- | -------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| -1   | **ORIENT**     | **Navigate codebase safely**                    | See `.agents/directives/codebase-navigation.md` (SAFE pattern)                                                                                          |
-| -0.5 | **BOUNDARIES** | **Classify touched files and dependency edges** | See `.agents/directives/architecture-boundaries.md` when imports/exports/packages/shared code may change                                                |
-| 0    | **BASELINE**   | **Verify starting state is clean**              | For repo-wide work: `npm run lint && npm run test && npm run build`; for narrow package work, run the relevant workspace test/build plus `npm run lint` |
-| 1    | TYPES          | Define types first                              | Type-check passes                                                                                                                                       |
-| 2    | RED            | Write ONE failing test                          | Test fails                                                                                                                                              |
-| 3    | GREEN          | Write minimum code to pass                      | New test passes, all existing tests still pass, type-check passes                                                                                       |
-| 4    | REFACTOR       | Clean up if needed                              | All tests still pass                                                                                                                                    |
-| 4.5  | **SELF-AUDIT** | **Triage weakest assumptions and anomalies**    | See `.agents/skills/self-audit/SKILL.md` — route findings: 🔁 fix → step 2, 📋 document, or 🧑 ask human                                                |
-| 4.75 | **VERIFY**     | **Produce verification summary**                | See `.agents/directives/verification.md` for protocol — target 📋 documented Jenga entries                                                              |
-| 5    | GATES          | Run quality gates                               | `npm run lint && npm run test && npm run build` for repo-wide changes, or justified package-scoped equivalents plus repo lint                           |
-| 5.5  | **HANDOFF**    | **Compact current task state when routed**      | See `.agents/directives/context-handoff.md` for phase/session handoff                                                                                   |
-| 6    | COMMIT         | Atomic commit                                   | One behavior per commit                                                                                                                                 |
+| Step | Phase          | Action                                                                         | Verify                                                                                                                   |
+| ---- | -------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| -1   | **ORIENT**     | **Navigate codebase safely**                                                   | See `.agents/directives/codebase-navigation.md` (SAFE pattern)                                                           |
+| -0.5 | **BOUNDARIES** | **Classify touched files and dependency edges**                                | See `.agents/directives/architecture-boundaries.md` when imports/exports/packages/shared code may change                 |
+| 0    | **BASELINE**   | **Verify starting state is clean**                                             | <!-- FILL IN: baseline verification command --> all pass                                                                 |
+| 0.5  | **SPEC**       | **Create or identify the durable written specification before implementation** | See `.agents/directives/specification-driven-development.md`; spec depth may scale, spec presence must not scale to zero |
+| 1    | TYPES          | Define types first                                                             | Type-check passes                                                                                                        |
+| 2    | RED            | Write ONE failing test                                                         | Test fails                                                                                                               |
+| 3    | GREEN          | Write minimum code to pass                                                     | New test passes, all existing tests still pass, type-check passes                                                        |
+| 4    | REFACTOR       | Clean up if needed                                                             | All tests still pass                                                                                                     |
+| 4.5  | **SELF-AUDIT** | **Triage weakest assumptions and anomalies**                                   | See `.agents/skills/self-audit/SKILL.md` — route findings: 🔁 fix → step 2, 📋 document, or 🧑 ask human                 |
+| 4.75 | **VERIFY**     | **Produce verification summary**                                               | See `.agents/directives/verification.md` for protocol — target 📋 documented Jenga entries                               |
+| 5    | GATES          | Run quality gates                                                              | <!-- FILL IN: gates commands -->                                                                                         |
+| 5.5  | **HANDOFF**    | **Compact current task state when routed**                                     | See `.agents/directives/context-handoff.md` for phase/session handoff                                                    |
+| 6    | COMMIT         | Atomic commit                                                                  | One behavior, or one inseparable eligible batch                                                                          |
 
-Steps 2–6 repeat for each behavior. Do not batch.
+Steps 0.5-6 repeat for each behavior-changing slice. Do not batch unless the
+router explicitly selects an eligible Small Batch; it still requires one durable
+batch spec/matrix and focused proof for every row.
 
 ## Directives (Routed)
 
@@ -94,8 +100,8 @@ They govern **how** you work. Do not load unrelated directives just to satisfy c
 | Codebase Navigation      | SAFE exploration before implementation                                                  | `.agents/directives/codebase-navigation.md`              |
 | Architecture Boundaries  | Preserve dependency DAG and import rules                                                | `.agents/directives/architecture-boundaries.md`          |
 | Exploration Mode         | Pre-implementation investigation stance                                                 | `.agents/directives/exploration-mode.md`                 |
-| Task Framing             | Intake checklist for non-trivial work                                                   | `.agents/directives/task-framing.md`                     |
-| Specification-Driven Dev | Write specs before code, verify after                                                   | `.agents/directives/specification-driven-development.md` |
+| Task Framing             | Intake checklist that hands off to specification-driven development                     | `.agents/directives/task-framing.md`                     |
+| Specification-Driven Dev | Create or identify durable specs before implementation, verify after                    | `.agents/directives/specification-driven-development.md` |
 | Type-First Development   | Types before implementation                                                             | `.agents/directives/type-driven-development.md`          |
 | Test-Driven Development  | RED/GREEN/REFACTOR for behavior changes                                                 | `.agents/directives/test-driven-development.md`          |
 | Verification Protocol    | Evidence of correctness before GATES                                                    | `.agents/directives/verification.md`                     |
@@ -110,6 +116,7 @@ Load the relevant skill selected by adaptive routing before performing any task 
 | Skill                          | When                                                                                                                                                                                                                  | File                                                     |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | Code Reviewer                  | Before reviewing PRs, branches, diffs, or local changes                                                                                                                                                               | `.agents/skills/code-reviewer/SKILL.md`                  |
+| Adversarial Reviewer           | Before explicit adversarial/red-team/failure-mode review or high-risk, broad, or agent-authored changes needing a separate skeptical reviewer                                                                         | `.agents/skills/adversarial-reviewer/SKILL.md`           |
 | Test Reviewer                  | Before writing or reviewing any test                                                                                                                                                                                  | `.agents/skills/test-reviewer/SKILL.md`                  |
 | Spec Reviewer                  | Before merging when a written spec exists                                                                                                                                                                             | `.agents/skills/spec-reviewer/SKILL.md`                  |
 | Product Requirements Writer    | Before turning a feature idea or vague requirement into a PRD/spec                                                                                                                                                    | `.agents/skills/product-requirements-writer/SKILL.md`    |
@@ -123,32 +130,19 @@ Load the relevant skill selected by adaptive routing before performing any task 
 | Harness Hooks Reviewer         | Before adding/reviewing agent harness hooks, start/stop hooks, pre-action hooks, or deterministic agent automation                                                                                                    | `.agents/skills/harness-hooks-reviewer/SKILL.md`         |
 | MCP Integration Reviewer       | Before adding/reviewing MCP servers/tools, agent tool schemas, internal API bridges, or write-capable agent tools                                                                                                     | `.agents/skills/mcp-integration-reviewer/SKILL.md`       |
 
-## Agent Responsibilities
-
-Repository-required agents are responsible for loading the matching skill before
-work in that domain and applying its review lens to the final diff:
-
-- **Reviewer agents** (`code-reviewer`, `test-reviewer`, `spec-reviewer`) check PRs, tests, and spec alignment before merge readiness.
-- **Planning agents** (`product-requirements-writer`, `implementation-task-planner`) turn unclear requests or accepted requirements into PRDs and implementation tasks without drifting into code.
-- **Execution coordinator** (`subagent-driven-development`) manages delegated implementation slices and parent-owned integration review.
-- **Safety reviewers** (`architecture-boundary-reviewer`, `codebase-health-reviewer`, `production-readiness-reviewer`) check dependency edges, maintainability, and production-sensitive risks.
-- **Integration reviewers** (`harness-hooks-reviewer`, `mcp-integration-reviewer`) check agent automation hooks, MCP tools, schemas, and write-capable tool surfaces.
-- **Debug/self-check agents** (`systematic-debugging`, `self-audit`) root-cause failures and triage weakest assumptions before verification.
-
 ## Task Framing (Mandatory for Non-Trivial Work)
 
 Before implementing a non-trivial, ambiguous, or cross-cutting task, load and
 follow `.agents/directives/task-framing.md`. This directive defines the minimum framing
-checklist, when a proposal must precede implementation, and which supporting
-docs are supplemental rather than binding.
+checklist and hands behavior-changing work to
+`.agents/directives/specification-driven-development.md` for the required durable
+specification before implementation.
 
 ## Decision Log Lookup
 
 Before changing repo policy, contributor workflow, or any cross-cutting
 convention, scan frontmatter in `docs/decisions/*.md` and load matching active
-entries. Progressive disclosure — do not bulk-read every record.
-
-## Scoped Instructions
+entries. Progressive disclosure — do not bulk-read every record.## Scoped Instructions
 
 Domain-specific instructions are loaded automatically by `applyTo` globs in `.github/instructions/`:
 

@@ -120,7 +120,7 @@ describe("agent directive routing smoke test", () => {
     );
 
     expect(agents).toContain(
-      "briefly state the selected path and directive/skill",
+      "Route: <path>; using <directive/skill files>; rules: <rule files or none>; evidence: <checks>.",
     );
     expect(adaptiveRouting).toContain(
       "display the active workflow path and directive/skill files",

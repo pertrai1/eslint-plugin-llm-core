@@ -51,6 +51,7 @@ jobs:
   pr-template:
     name: PR Template
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     steps:
       - name: Validate checklist
         env:
@@ -101,6 +102,7 @@ jobs:
   changeset-presence:
     name: Changeset Presence
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v7
         with:

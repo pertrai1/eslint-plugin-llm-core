@@ -41,7 +41,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^10.1.0",
     "eslint-plugin-llm-core": "0.35.1",

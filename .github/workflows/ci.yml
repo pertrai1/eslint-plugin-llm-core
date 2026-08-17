@@ -18,6 +18,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
+      - name: Use npm 11
+        run: npm install --global npm@11.18.0
       - run: npm ci
       - run: npm run build
       - run: npm run lint

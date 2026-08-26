@@ -28,6 +28,7 @@ const typescriptRules: TSESLint.FlatConfig.Rules = {
   "llm-core/no-any-in-generic": "error",
   "llm-core/no-type-assertion-any": "error",
   "llm-core/no-type-system-bypass": "error",
+  "llm-core/no-widen-then-assert": "error",
   "llm-core/prefer-unknown-in-catch": "error",
 };
 

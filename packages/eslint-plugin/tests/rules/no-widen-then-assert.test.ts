@@ -49,11 +49,20 @@ ruleTester.run("no-widen-then-assert", rule, {
     // Literal initializer boundary: an explicit `null` initializer is itself
     // nullish, so the widened type isn't fabricated.
     "let value: string | undefined = null; console.log(value as string);",
+
+    // A reference before the declarator reads the temporal dead zone, not the
+    // concrete initializer — the value was never actually widened-then-known
+    // at that point.
+    'use(value as string); let value: string | undefined = "known";',
   ],
 
   invalid: [
     {
       code: 'let value: string | undefined = "known"; console.log(value as string);',
+      errors: [{ messageId: "widenThenAssert" }],
+    },
+    {
+      code: 'const value: string | undefined = "known"; console.log(value as string);',
       errors: [{ messageId: "widenThenAssert" }],
     },
     {

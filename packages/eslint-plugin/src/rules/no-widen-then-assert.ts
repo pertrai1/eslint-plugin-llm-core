@@ -145,6 +145,10 @@ export default createRule<[], MessageIds>({
 
         for (const ref of variable.references) {
           if (ref.identifier === id || ref.isWrite()) continue;
+          // A reference positioned before the declarator reads the variable while
+          // it's still in the temporal dead zone — it was never actually
+          // initialized with the concrete value at that point.
+          if (ref.identifier.range[0] < node.range[0]) continue;
 
           const identifier = ref.identifier as TSESTree.Node & {
             parent?: TSESTree.Node;

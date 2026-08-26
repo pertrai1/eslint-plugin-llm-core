@@ -24,7 +24,18 @@ function isNullishKeyword(node: TSESTree.TypeNode): boolean {
   );
 }
 
-/** Returns the sole non-nullish member of `T | undefined` / `T | null` / `T | null | undefined`, or null if the union doesn't match that shape. */
+function isAnyOrUnknownKeyword(node: TSESTree.TypeNode): boolean {
+  return (
+    node.type === AST_NODE_TYPES.TSAnyKeyword ||
+    node.type === AST_NODE_TYPES.TSUnknownKeyword
+  );
+}
+
+/**
+ * Returns the sole non-nullish member of `T | undefined` / `T | null` / `T | null | undefined`,
+ * or null if the union doesn't match that shape. `any`/`unknown` are never treated as the
+ * concrete member — `no-type-system-bypass` already owns that widening.
+ */
 function getWidenedConcreteType(
   typeAnnotation: TSESTree.TypeNode,
 ): TSESTree.TypeNode | null {
@@ -39,7 +50,10 @@ function getWidenedConcreteType(
     return null;
   }
 
-  return concreteMembers[0]!;
+  const [concreteMember] = concreteMembers;
+  if (isAnyOrUnknownKeyword(concreteMember!)) return null;
+
+  return concreteMember!;
 }
 
 function isProvablyConcreteValue(node: TSESTree.Expression): boolean {
@@ -56,6 +70,19 @@ function isTypeAssertionExpression(
   return (
     node.type === AST_NODE_TYPES.TSAsExpression ||
     node.type === AST_NODE_TYPES.TSTypeAssertion
+  );
+}
+
+/**
+ * `var` is function/module-scoped, not block-scoped, so `getScope` on a `var` declarator
+ * nested in a block resolves to the wrong scope and misses its variable. Hoisting also means
+ * a read before this declarator can be genuinely `undefined` at runtime, which `let`/`const`
+ * (TDZ) can't produce — so "remove the added undefined" would be unsafe advice for `var`.
+ */
+function isVarDeclarator(node: TSESTree.VariableDeclarator): boolean {
+  const parent = (node as TSESTree.Node & { parent?: TSESTree.Node }).parent;
+  return (
+    parent?.type === AST_NODE_TYPES.VariableDeclaration && parent.kind === "var"
   );
 }
 
@@ -87,6 +114,7 @@ export default createRule<[], MessageIds>({
   create(context) {
     return {
       VariableDeclarator(node: TSESTree.VariableDeclarator) {
+        if (isVarDeclarator(node)) return;
         if (node.id.type !== AST_NODE_TYPES.Identifier) return;
         const id = node.id;
         if (!id.typeAnnotation) return;

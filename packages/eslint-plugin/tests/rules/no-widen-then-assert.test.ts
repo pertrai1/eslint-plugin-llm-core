@@ -29,11 +29,26 @@ ruleTester.run("no-widen-then-assert", rule, {
     'let value: string | any = "known"; console.log(value as string);',
     'let value: string | unknown = "known"; console.log(value as string);',
 
+    // any/unknown as the SOLE non-nullish member also isn't a real widening —
+    // TypeScript already reduces `unknown | undefined` to `unknown`.
+    'let value: unknown | undefined = "known"; console.log(value as unknown);',
+    'let value: any | null = "known"; console.log(value as any);',
+
     // Assertion target doesn't match the concrete branch — unrelated assertion.
     'let value: string | undefined = "known"; console.log(value as unknown);',
 
     // No annotation, just an assertion — outside this rule's scope.
     "const value = getValue(); console.log(value as string);",
+
+    // `var` is function/module-scoped; getScope on a nested declarator resolves
+    // to the wrong scope, and hoisting can make a pre-declaration read genuinely
+    // undefined. Out of scope regardless of nesting.
+    'var value: string | undefined = "known"; console.log(value as string);',
+    'if (true) { var value: string | undefined = "known"; console.log(value as string); }',
+
+    // Literal initializer boundary: an explicit `null` initializer is itself
+    // nullish, so the widened type isn't fabricated.
+    "let value: string | undefined = null; console.log(value as string);",
   ],
 
   invalid: [
@@ -63,6 +78,32 @@ ruleTester.run("no-widen-then-assert", rule, {
     },
     {
       code: 'let value: string | undefined = "known"; console.log(<string>value);',
+      errors: [{ messageId: "widenThenAssert" }],
+    },
+
+    // Every provably-concrete initializer syntax the rule recognizes.
+    {
+      code: "let value: string | undefined = `known`; console.log(value as string);",
+      errors: [{ messageId: "widenThenAssert" }],
+    },
+    {
+      code: "let value: { a: number } | undefined = { a: 1 }; console.log(value as { a: number });",
+      errors: [{ messageId: "widenThenAssert" }],
+    },
+    {
+      code: "let value: number[] | undefined = [1, 2]; console.log(value as number[]);",
+      errors: [{ messageId: "widenThenAssert" }],
+    },
+    {
+      code: "let value: Date | undefined = new Date(); console.log(value as Date);",
+      errors: [{ messageId: "widenThenAssert" }],
+    },
+    {
+      code: "type Fn = () => void; let value: Fn | undefined = () => {}; console.log(value as Fn);",
+      errors: [{ messageId: "widenThenAssert" }],
+    },
+    {
+      code: "type Handler = () => void; let value: Handler | undefined = function () {}; console.log(value as Handler);",
       errors: [{ messageId: "widenThenAssert" }],
     },
   ],

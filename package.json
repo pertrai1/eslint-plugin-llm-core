@@ -31,7 +31,7 @@
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.117.1",
     "@changesets/cli": "^3.0.0",
-    "@commitlint/cli": "^21.0.1",
+    "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
     "@types/node": "^26.2.0",
     "@typescript-eslint/parser": "^8.67.0",

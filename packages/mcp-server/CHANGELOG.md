@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core-mcp
 
+## 0.29.6
+
+### Patch Changes
+
+- 9cfd5d1: Bump `@typescript-eslint/parser` dependency from `^8.66.0` to `^8.67.0` (Dependabot).
+
 ## 0.29.5
 
 ### Patch Changes

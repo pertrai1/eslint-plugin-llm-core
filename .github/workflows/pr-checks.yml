@@ -51,7 +51,7 @@ jobs:
   pr-template:
     name: PR Template
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]'
+    if: github.actor != 'dependabot[bot]' && github.head_ref != 'changeset-release/main'
     steps:
       - name: Validate checklist
         env:
@@ -129,6 +129,7 @@ jobs:
   package-version:
     name: Package Version Guard
     runs-on: ubuntu-latest
+    if: github.head_ref != 'changeset-release/main'
     steps:
       - uses: actions/checkout@v7
         with:

@@ -9,6 +9,9 @@ const README = fileURLToPath(new URL("../README.md", import.meta.url));
 const ROOT_README = fileURLToPath(
   new URL("../../../README.md", import.meta.url),
 );
+const PLUGIN_PACKAGE_JSON = fileURLToPath(
+  new URL("../../eslint-plugin/package.json", import.meta.url),
+);
 
 describe("quality CLI package metadata", () => {
   it("wires the llm-core-quality bin to the built CLI", async () => {
@@ -25,10 +28,16 @@ describe("quality CLI package metadata", () => {
     const pkg = JSON.parse(await readFile(PACKAGE_JSON, "utf8")) as {
       dependencies?: Record<string, string>;
     };
+    const pluginPkg = JSON.parse(
+      await readFile(PLUGIN_PACKAGE_JSON, "utf8"),
+    ) as { version: string };
 
+    // eslint-plugin-llm-core is pinned exactly and bumped by Changesets on
+    // every plugin release, so assert against its live version rather than
+    // a literal that goes stale each release.
     expect(pkg.dependencies).toMatchObject({
       eslint: "^10.8.1",
-      "eslint-plugin-llm-core": "0.35.1",
+      "eslint-plugin-llm-core": pluginPkg.version,
       knip: "^6.32.2",
       picocolors: expect.any(String),
     });

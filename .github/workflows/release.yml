@@ -27,7 +27,7 @@ jobs:
       - run: npm run test
       - name: Create Release PR or Publish
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
           title: "chore: version packages"
           commit: "chore: version packages"

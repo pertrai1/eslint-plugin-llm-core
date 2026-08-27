@@ -84,7 +84,7 @@
     "@typescript-eslint/rule-tester": "^8.67.0",
     "@typescript-eslint/utils": "^8.67.0",
     "@vitest/coverage-v8": "^4.1.11",
-    "eslint": "^10.8.1",
+    "eslint": "^10.9.0",
     "eslint-config-prettier": "^10.0.0",
     "eslint-doc-generator": "^3.3.2",
     "eslint-plugin-eslint-plugin": "^7.6.2",

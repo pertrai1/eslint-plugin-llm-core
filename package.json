@@ -33,7 +33,7 @@
     "@changesets/cli": "^3.0.1",
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.4.0",
     "@typescript-eslint/parser": "^8.67.0",
     "@typescript-eslint/rule-tester": "^8.67.0",
     "@typescript-eslint/utils": "^8.67.0",

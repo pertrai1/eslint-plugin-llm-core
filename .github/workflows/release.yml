@@ -29,13 +29,13 @@ jobs:
         id: changesets
         uses: changesets/action@v2
         with:
-          title: "chore: version packages"
-          commit: "chore: version packages"
+          pr-title: "chore: version packages"
+          commit-message: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish to npm
         id: publish
-        if: steps.changesets.outputs.hasChangesets == 'false'
+        if: steps.changesets.outputs['has-changesets'] == 'false'
         env:
           NPM_PUBLISH_CLI: npm@11.18.0
         run: |

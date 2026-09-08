@@ -1,5 +1,15 @@
 # eslint-plugin-llm-core-mcp
 
+## 0.29.7
+
+### Patch Changes
+
+- bce1d45: Update the TypeScript ESLint utilities peer dependency and MCP parser dependency to 8.68.0.
+- 1a58c4d: Update the runtime ESLint dependency to 10.9.1.
+- 2cf1569: Update Zod to 4.5.4 for MCP tool schema validation.
+- Updated dependencies [bce1d45]
+  - eslint-plugin-llm-core@0.36.1
+
 ## 0.29.6
 
 ### Patch Changes

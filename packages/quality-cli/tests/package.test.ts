@@ -38,7 +38,7 @@ describe("quality CLI package metadata", () => {
     expect(pkg.dependencies).toMatchObject({
       eslint: "^10.9.1",
       "eslint-plugin-llm-core": pluginPkg.version,
-      knip: "^6.32.2",
+      knip: "^6.33.0",
       picocolors: expect.any(String),
     });
   });

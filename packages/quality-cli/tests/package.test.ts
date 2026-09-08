@@ -36,7 +36,7 @@ describe("quality CLI package metadata", () => {
     // every plugin release, so assert against its live version rather than
     // a literal that goes stale each release.
     expect(pkg.dependencies).toMatchObject({
-      eslint: "^10.8.1",
+      eslint: "^10.9.1",
       "eslint-plugin-llm-core": pluginPkg.version,
       knip: "^6.32.2",
       picocolors: expect.any(String),

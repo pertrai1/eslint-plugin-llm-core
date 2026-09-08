@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.36.1
+
+### Patch Changes
+
+- bce1d45: Update the TypeScript ESLint utilities peer dependency and MCP parser dependency to 8.68.0.
+
 ## 0.36.0
 
 ### Minor Changes

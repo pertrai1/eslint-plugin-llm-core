@@ -1,6 +1,6 @@
 {
   "name": "llm-core-quality",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Quality CLI that orchestrates eslint-plugin-llm-core, ESLint, and Knip checks",
   "license": "MIT",
   "author": "Rob Simpson <rsimpson2@me.com>",
@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "eslint": "^10.9.1",
-    "eslint-plugin-llm-core": "0.36.0",
+    "eslint-plugin-llm-core": "0.36.1",
     "knip": "^6.33.0",
     "picocolors": "^1.1.1"
   },

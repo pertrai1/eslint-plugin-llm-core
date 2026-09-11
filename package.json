@@ -34,9 +34,9 @@
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
     "@types/node": "^26.4.1",
-    "@typescript-eslint/parser": "^8.68.0",
-    "@typescript-eslint/rule-tester": "^8.68.0",
-    "@typescript-eslint/utils": "^8.68.0",
+    "@typescript-eslint/parser": "^8.69.0",
+    "@typescript-eslint/rule-tester": "^8.69.0",
+    "@typescript-eslint/utils": "^8.69.0",
     "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.0.0",
@@ -47,7 +47,7 @@
     "prettier": "^3.0.0",
     "tsx": "^4.23.13",
     "typescript": "^6.0.2",
-    "typescript-eslint": "^8.68.0",
+    "typescript-eslint": "^8.69.0",
     "vitest": "^4.1.2"
   }
 }

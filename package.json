@@ -29,25 +29,25 @@
     "release": "npm run build && changeset publish"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.122.0",
+    "@anthropic-ai/sdk": "^0.124.0",
     "@changesets/cli": "^3.0.1",
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
     "@types/node": "^26.4.1",
-    "@typescript-eslint/parser": "^8.68.0",
-    "@typescript-eslint/rule-tester": "^8.68.0",
-    "@typescript-eslint/utils": "^8.68.0",
+    "@typescript-eslint/parser": "^8.69.0",
+    "@typescript-eslint/rule-tester": "^8.69.0",
+    "@typescript-eslint/utils": "^8.69.0",
     "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.0.0",
     "eslint-doc-generator": "^3.7.1",
     "eslint-plugin-eslint-plugin": "^7.6.2",
     "husky": "^9.0.0",
-    "lint-staged": "^17.4.1",
+    "lint-staged": "^17.5.0",
     "prettier": "^3.0.0",
     "tsx": "^4.23.13",
     "typescript": "^6.0.2",
-    "typescript-eslint": "^8.68.0",
+    "typescript-eslint": "^8.69.0",
     "vitest": "^4.1.2"
   }
 }

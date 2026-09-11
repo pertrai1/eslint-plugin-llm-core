@@ -1,5 +1,14 @@
 # eslint-plugin-llm-core-mcp
 
+## 0.29.8
+
+### Patch Changes
+
+- b42bb1e: Update typescript-eslint dependencies and the plugin utils peer minimum to 8.69.0.
+- 9ce04d7: Update the ESLint runtime dependency to 10.10.0.
+- Updated dependencies [b42bb1e]
+  - eslint-plugin-llm-core@0.36.2
+
 ## 0.29.7
 
 ### Patch Changes

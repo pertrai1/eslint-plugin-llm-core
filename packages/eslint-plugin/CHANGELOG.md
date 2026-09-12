@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.36.2
+
+### Patch Changes
+
+- b42bb1e: Update typescript-eslint dependencies and the plugin utils peer minimum to 8.69.0.
+
 ## 0.36.1
 
 ### Patch Changes

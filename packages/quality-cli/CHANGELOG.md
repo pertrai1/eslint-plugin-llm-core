@@ -1,5 +1,14 @@
 # llm-core-quality
 
+## 0.1.5
+
+### Patch Changes
+
+- 4b985dc: Update the Knip runtime dependency to 6.34.0.
+- 9ce04d7: Update the ESLint runtime dependency to 10.10.0.
+- Updated dependencies [b42bb1e]
+  - eslint-plugin-llm-core@0.36.2
+
 ## 0.1.4
 
 ### Patch Changes

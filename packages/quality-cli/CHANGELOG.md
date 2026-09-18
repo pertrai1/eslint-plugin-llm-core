@@ -1,5 +1,11 @@
 # llm-core-quality
 
+## 0.1.6
+
+### Patch Changes
+
+- c549a8a: Update Knip to 6.35.1 for quality scans.
+
 ## 0.1.5
 
 ### Patch Changes

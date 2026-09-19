@@ -18,5 +18,9 @@ ruleTester.run("no-unknown-type-aliases", rule, {
       code: "type Raw = unknown; type Payload = Raw;",
       errors: [{ messageId: "unknownAlias" }, { messageId: "unknownAlias" }],
     },
+    {
+      code: "type Payload = Raw; type Raw = unknown;",
+      errors: [{ messageId: "unknownAlias" }, { messageId: "unknownAlias" }],
+    },
   ],
 });

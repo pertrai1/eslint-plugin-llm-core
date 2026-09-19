@@ -19,7 +19,10 @@ export default createRule<[], "unknownAlias">({
   },
   defaultOptions: [],
   create(context) {
-    const aliases = new Map<string, TSESTree.TypeNode>();
+    const aliases = new Map<
+      string,
+      { type: TSESTree.TypeNode; node: TSESTree.TSTypeAliasDeclaration }
+    >();
     const resolvesToUnknown = (
       type: TSESTree.TypeNode,
       seen = new Set<string>(),
@@ -31,20 +34,24 @@ export default createRule<[], "unknownAlias">({
         seen.has(type.typeName.name)
       )
         return false;
-      const target = aliases.get(type.typeName.name);
+      const target = aliases.get(type.typeName.name)?.type;
       if (!target) return false;
       seen.add(type.typeName.name);
       return resolvesToUnknown(target, seen);
     };
     return {
       TSTypeAliasDeclaration(node) {
-        aliases.set(node.id.name, node.typeAnnotation);
-        if (resolvesToUnknown(node.typeAnnotation))
-          context.report({
-            node: node.typeAnnotation,
-            messageId: "unknownAlias",
-            data: { name: node.id.name },
-          });
+        aliases.set(node.id.name, { type: node.typeAnnotation, node });
+      },
+      "Program:exit"() {
+        for (const alias of aliases.values()) {
+          if (resolvesToUnknown(alias.type))
+            context.report({
+              node: alias.node.typeAnnotation,
+              messageId: "unknownAlias",
+              data: { name: alias.node.id.name },
+            });
+        }
       },
     };
   },

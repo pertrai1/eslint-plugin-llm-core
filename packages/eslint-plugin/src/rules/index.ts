@@ -13,6 +13,7 @@ export { default as "naming-conventions" } from "./naming-conventions";
 export { default as "no-any-in-generic" } from "./no-any-in-generic";
 export { default as "no-async-array-callbacks" } from "./no-async-array-callbacks";
 export { default as "no-async-promise-executor" } from "./no-async-promise-executor";
+export { default as "no-chained-type-assertions" } from "./no-chained-type-assertions";
 export { default as "no-commented-out-code" } from "./no-commented-out-code";
 export { default as "no-debug-scaffolding" } from "./no-debug-scaffolding";
 export { default as "no-dynamic-code-execution" } from "./no-dynamic-code-execution";

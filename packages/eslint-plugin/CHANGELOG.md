@@ -1,5 +1,17 @@
 # eslint-plugin-llm-core
 
+## 0.37.0
+
+### Minor Changes
+
+- 9fd29dd: Add `no-chained-type-assertions` to reject assertion chains that discard type evidence.
+- 2a8c304: Add `no-known-value-widening` to reject broad annotations that discard concrete initializer evidence.
+- 36d529e: Add `no-object-parameters` to require named input contracts instead of broad `object` parameters.
+- 34251a1: Add `no-unknown-parameters` to require decoded domain inputs at function boundaries.
+- 7e2f600: Add `no-unknown-returns` to require decoded domain types in function contracts.
+- 8e2fbf7: Add `no-unknown-type-aliases` to keep undecoded boundary values visibly typed as `unknown`.
+- a76ebc7: Add `no-unsafe-dictionary-type` to require concrete dictionary value contracts.
+
 ## 0.36.2
 
 ### Patch Changes

@@ -26,6 +26,7 @@ const complexityRules: TSESLint.FlatConfig.Rules = {
 
 const typescriptRules: TSESLint.FlatConfig.Rules = {
   "llm-core/no-chained-type-assertions": "error",
+  "llm-core/no-known-value-widening": "error",
   "llm-core/no-any-in-generic": "error",
   "llm-core/no-type-assertion-any": "error",
   "llm-core/no-type-system-bypass": "error",

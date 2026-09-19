@@ -24,6 +24,7 @@ export { default as "no-hallucinated-local-imports" } from "./no-hallucinated-lo
 export { default as "no-hallucinated-package-imports" } from "./no-hallucinated-package-imports";
 export { default as "no-incorrect-sort" } from "./no-incorrect-sort";
 export { default as "no-inline-disable" } from "./no-inline-disable";
+export { default as "no-known-value-widening" } from "./no-known-value-widening";
 export { default as "no-llm-artifacts" } from "./no-llm-artifacts";
 export { default as "no-magic-numbers" } from "./no-magic-numbers";
 export { default as "no-redundant-comments" } from "./no-redundant-comments";

@@ -38,6 +38,7 @@ export { default as "no-unknown-parameters" } from "./no-unknown-parameters";
 export { default as "no-unbounded-promise-all" } from "./no-unbounded-promise-all";
 export { default as "no-unknown-returns" } from "./no-unknown-returns";
 export { default as "no-unsafe-array-access" } from "./no-unsafe-array-access";
+export { default as "no-unsafe-dictionary-type" } from "./no-unsafe-dictionary-type";
 export { default as "no-weak-randomness-for-secrets" } from "./no-weak-randomness-for-secrets";
 export { default as "no-widen-then-assert" } from "./no-widen-then-assert";
 export { default as "prefer-early-return" } from "./prefer-early-return";

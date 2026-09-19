@@ -31,6 +31,7 @@ const typescriptRules: TSESLint.FlatConfig.Rules = {
   "llm-core/no-unknown-parameters": "error",
   "llm-core/no-unknown-returns": "error",
   "llm-core/no-unknown-type-aliases": "error",
+  "llm-core/no-unsafe-dictionary-type": "error",
   "llm-core/no-any-in-generic": "error",
   "llm-core/no-type-assertion-any": "error",
   "llm-core/no-type-system-bypass": "error",

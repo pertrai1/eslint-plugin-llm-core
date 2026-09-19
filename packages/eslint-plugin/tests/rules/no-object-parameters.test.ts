@@ -28,5 +28,21 @@ ruleTester.run("no-object-parameters", rule, {
       code: "type Input = object; function load(input: Input): void {}",
       errors: [{ messageId: "objectParameter" }],
     },
+    {
+      code: "function load(input: object = {}): void {}",
+      errors: [{ messageId: "objectParameter" }],
+    },
+    {
+      code: "function load(input: object | null): void {}",
+      errors: [{ messageId: "objectParameter" }],
+    },
+    {
+      code: "export type Input = object; function load(input: Input): void {}",
+      errors: [{ messageId: "objectParameter" }],
+    },
+    {
+      code: "class Loader { constructor(public input: object) {} }",
+      errors: [{ messageId: "objectParameter" }],
+    },
   ],
 });

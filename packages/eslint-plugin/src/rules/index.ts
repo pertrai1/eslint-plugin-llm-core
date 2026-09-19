@@ -32,6 +32,7 @@ export { default as "no-redundant-comments" } from "./no-redundant-comments";
 export { default as "no-redundant-logic" } from "./no-redundant-logic";
 export { default as "no-swallowed-errors" } from "./no-swallowed-errors";
 export { default as "no-type-assertion-any" } from "./no-type-assertion-any";
+export { default as "no-unknown-type-aliases" } from "./no-unknown-type-aliases";
 export { default as "no-type-system-bypass" } from "./no-type-system-bypass";
 export { default as "no-unknown-parameters" } from "./no-unknown-parameters";
 export { default as "no-unbounded-promise-all" } from "./no-unbounded-promise-all";

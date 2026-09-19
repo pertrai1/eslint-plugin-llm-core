@@ -14,6 +14,7 @@ ruleTester.run("no-known-value-widening", rule, {
     "const value: unknown = getValue();",
     'const value: User = { name: "Ada" };',
     "const value: Record<string, User> = getUsers();",
+    "class Config { value: unknown = getValue(); }",
   ],
   invalid: [
     {
@@ -27,6 +28,10 @@ ruleTester.run("no-known-value-widening", rule, {
     { code: "const value: object = [];", errors: [{ messageId: "widening" }] },
     {
       code: 'const value: Record<string, unknown> = { name: "Ada" };',
+      errors: [{ messageId: "widening" }],
+    },
+    {
+      code: 'class Config { value: unknown = "known"; }',
       errors: [{ messageId: "widening" }],
     },
   ],

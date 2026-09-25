@@ -42,7 +42,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "eslint": "^10.10.0",
+    "eslint": "^10.11.0",
     "eslint-plugin-llm-core": "0.37.0",
     "knip": "^6.35.1",
     "picocolors": "^1.1.1"

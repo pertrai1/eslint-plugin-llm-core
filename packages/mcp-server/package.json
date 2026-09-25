@@ -43,7 +43,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@typescript-eslint/parser": "^8.70.0",
-    "eslint": "^10.10.0",
+    "eslint": "^10.11.0",
     "eslint-plugin-llm-core": "0.37.0",
     "zod": "^4.6.5"
   },

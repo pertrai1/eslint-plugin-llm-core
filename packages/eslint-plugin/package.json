@@ -72,7 +72,7 @@
   },
   "peerDependencies": {
     "@typescript-eslint/utils": "^8.70.0",
-    "eslint": "^8.57.0 || ^9.0.0 || ^10.0.0"
+    "eslint": "^10.11.0"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.127.0",
@@ -84,7 +84,7 @@
     "@typescript-eslint/rule-tester": "^8.70.0",
     "@typescript-eslint/utils": "^8.70.0",
     "@vitest/coverage-v8": "^4.1.11",
-    "eslint": "^10.10.0",
+    "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.0.0",
     "eslint-doc-generator": "^3.7.1",
     "eslint-plugin-eslint-plugin": "^7.6.2",

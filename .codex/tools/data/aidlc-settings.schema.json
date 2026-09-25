@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "aidlc-settings.schema.json",
+  "title": "AI-DLC settings",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "update-check": {
+      "type": "boolean"
+    },
+    "offline": {
+      "type": "boolean"
+    },
+    "release-base-url": {
+      "type": "string"
+    },
+    "ca-bundle": {
+      "type": "string"
+    },
+    "models": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "preset": {
+          "enum": [
+            "thorough",
+            "balanced",
+            "minimal"
+          ]
+        },
+        "groups": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "deciding": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "effort"
+              ],
+              "properties": {
+                "effort": {
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high",
+                    "xhigh",
+                    "max"
+                  ]
+                }
+              }
+            },
+            "reviewing": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "effort"
+              ],
+              "properties": {
+                "effort": {
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high",
+                    "xhigh",
+                    "max"
+                  ]
+                }
+              }
+            },
+            "writing-up": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "effort"
+              ],
+              "properties": {
+                "effort": {
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high",
+                    "xhigh",
+                    "max"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "agents": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "effort": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high",
+                  "xhigh",
+                  "max"
+                ]
+              },
+              "model": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "claude": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "codex": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "copilot": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "cursor": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "kiro": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "kiro-ide": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "opencode": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "profiles": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "groups"
+            ],
+            "properties": {
+              "groups": {
+                "$ref": "#/properties/models/properties/groups"
+              }
+            }
+          }
+        }
+      }
+    },
+    "flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "defaultScope": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "swarm": {
+          "type": "boolean"
+        },
+        "hookDebug": {
+          "type": "boolean"
+        },
+        "sensorTimeoutMs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "bypasses": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "AIDLC_SKIP_ARTIFACT_GUARD",
+              "AIDLC_SKIP_REVISION_BACKSTOP",
+              "AIDLC_SKIP_SUMMARY_CONFIRMATION_GUARD",
+              "AIDLC_SKIP_HUMAN_PRESENCE_GUARD",
+              "AIDLC_DISABLE_ENSEMBLE_EVIDENCE",
+              "AIDLC_DISABLE_PLAN_APPROVAL_GUARD",
+              "AIDLC_DISABLE_REVIEWER_SCOPE_HOOK",
+              "AIDLC_DISABLE_REVIEW_FREEZE_HOOK",
+              "AIDLC_DISABLE_USAGE_TRACKING",
+              "AIDLC_DISABLE_SENSORS",
+              "AIDLC_DISABLE_LEARNINGS",
+              "AIDLC_DISABLE_SUMMARY_CONFIRMATION"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

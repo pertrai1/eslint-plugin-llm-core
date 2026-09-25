@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "models": {
+    "schemaVersion": 1,
+    "groups": {
+      "deciding": {
+        "effort": "xhigh"
+      },
+      "reviewing": {
+        "effort": "high"
+      },
+      "writing-up": {
+        "effort": "high"
+      }
+    }
+  }
+}

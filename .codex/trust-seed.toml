@@ -1,0 +1,56 @@
+# dist/codex hook-trust pre-seed (S9a) — TEMPLATE.
+# This template hashes the projected `aidlc engine adapter codex ...`
+# commands in hooks.json. Start one interactive Codex session and choose
+# "Trust all and continue" to register the project-specific hook identities.
+# Paste the complete stdout into the USER config.toml ($CODEX_HOME/config.toml).
+# If entries for that hooks.json path already exist, replace the full set;
+# appending a second set creates invalid TOML. The hash covers the
+# normalized hook identity (event + command + defaults), NOT the path —
+# only the key changes per install. Codex then runs the hooks without a
+# TUI trust pass (the --dangerously-bypass-hook-trust flag does NOT fire
+# untrusted hooks at 0.137-0.139; never rely on it).
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:session_start:0:0"]
+trusted_hash = "sha256:4e23fffc05a5ef77e420b7d09b59be712919558a2a532c689d78f639731788db"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:user_prompt_submit:0:0"]
+trusted_hash = "sha256:9adf777e531ae1436dc5ee196913ee340815920d8b83eb3b8b34a1adecc9c045"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:pre_tool_use:0:0"]
+trusted_hash = "sha256:028275e0396938c2c133dcd03f90647c504dced0404eece302632c0cd2a7bda9"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:pre_tool_use:1:0"]
+trusted_hash = "sha256:547fdb20598e8bd35e9451c517d54f0ea092520d1f97af807d0aa8de48cb85be"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:pre_tool_use:2:0"]
+trusted_hash = "sha256:bed57148b9390dbda78f5009e0561991a7ede0d72e57219bd2645b61fede90f3"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:pre_tool_use:3:0"]
+trusted_hash = "sha256:5c1b77029308c216f650e83c90d3417d85f40d3aaa634de43b6c9345a0ce9835"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:pre_tool_use:4:0"]
+trusted_hash = "sha256:ca41ed34e698d79bfe1037846b59aa6b1e431a8825b9a671482173fd5a648fc0"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:pre_tool_use:5:0"]
+trusted_hash = "sha256:a3d2b6593640a0bf7f3f7c3a30f06874e06fbf397341b41071ba4c737833b454"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:post_tool_use:0:0"]
+trusted_hash = "sha256:44413f9529b3dc96fa1ee69989f61360bb5f6523decaad2da64aa30fdacfd105"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:post_tool_use:1:0"]
+trusted_hash = "sha256:8f1a61ee77d7c20c67550677742ccb81822e15d0ad7fb8c448c8a678d1b4bd36"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:post_tool_use:2:0"]
+trusted_hash = "sha256:7eb3e6db1d43965a84c74fa94dee27fc6acdd2a175a8e7ba5dc3ea03f5b8ba9f"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:post_tool_use:3:0"]
+trusted_hash = "sha256:4517c41ee163797c561ac58c61d91b42bb5c076bd49d6a6842cb8ba3bbfbc5fc"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:pre_compact:0:0"]
+trusted_hash = "sha256:06b0af8369f2eb70a6948e38eab494f3bdd1e432665c34b175772607f53d0f08"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:subagent_stop:0:0"]
+trusted_hash = "sha256:5c923c1880e9901e356aa103dedfb31c5f57b9bf1f743c353350c63a08d7e5a2"
+
+[hooks.state."<PROJECT_DIR>/.codex/hooks.json:stop:0:0"]
+trusted_hash = "sha256:158c19a27b01e8c583b9f126935823e31da6cd47dee7d98f6a2cd9f0f9065867"

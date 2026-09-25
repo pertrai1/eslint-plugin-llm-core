@@ -1,0 +1,1123 @@
+// PreToolUse hook: deterministic enforcement of the per-unit reviewer
+// read-scope bound (stage-protocol-reviewer.md §12a).
+//
+// The prose bound says a reviewer dispatched for one unit must not read other
+// units' construction/<other-unit>/ content through any tool - not by opening
+// files, and not via grep, glob, or shell patterns that span sibling unit
+// paths. Field transcripts showed prose losing that contest: a diligent
+// reviewer swept siblings through recursive greps with cross-unit globs, and
+// per-unit review cost grew superlinearly with unit count. Per the framework
+// layering (determinism belongs in tools and hooks, knowledge in agents,
+// judgement with humans), this hook is the bound's deterministic twin.
+//
+// This is one of the framework's flow-altering hooks. Its contract is the
+// harness-native PreToolUse block: print a reason
+// to stderr and exit 2 to refuse the tool call, exit 0 to allow. The refusal
+// is scoped tightly - one agent, one dispatch window, sibling-unit targets
+// only - and the reason text redirects the reviewer to the contract paths it
+// was already passed, so a blocked call is a recoverable nudge, not a halt.
+//
+// How the hook knows a review is in flight: the conductor writes a dispatch
+// record (reviewerDispatchPath, `<record>/.aidlc-engine/reviewer-dispatch.json`) at
+// stage-protocol-reviewer.md §12a step 1 before invoking a per-unit reviewer, and deletes it at step 3
+// when the verdict is read. The record carries {reviewer, stage, unit,
+// exempt[]} - the facts no harness payload delivers. Identity comes from the
+// harness: Claude Code and Codex put the active subagent's name in the
+// payload's agent_type (absent on main-session calls; probe-verified on
+// both), and the Kiro CLI adapter asserts scoped registration instead (it
+// wires this hook inside the reviewer agents' own JSON configs, so every
+// call arriving through that registration IS the reviewer's). Kiro IDE
+// ships no registration: tool inputs are not uniformly available across its
+// supported generations (captured 0.12 and early-1.x payloads are empty; later
+// 1.x builds populate some PreToolUse and delegation inputs - see
+// docs/reference/kiro-ide-hook-payload.md), and its payloads carry no
+// agent_type, so no stable identity/target contract exists there.
+//
+// Reviewer read-scope enforcement fails open when its dispatch evidence is
+// unavailable: no record, a stale record (mtime beyond
+// REVIEWER_DISPATCH_TTL_MS - janitored like the compose marker), malformed
+// stdin or record JSON, an unknown tool, a non-reviewer agent, or any throw
+// allows the call. AIDLC_DISABLE_REVIEWER_SCOPE_HOOK=1 disables that read-scope
+// check. Claimed-checkout Unit ownership is evaluated first and remains
+// mandatory. Every genuine block emits a REVIEWER_SCOPE_BLOCKED audit event so
+// the run's record shows when the bound bit; audit failures never change the
+// decision.
+
+import { existsSync, mkdirSync, statSync, unlinkSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, join, resolve } from "node:path";
+import { appendAuditEntryUnlocked } from "../tools/aidlc-audit.ts";
+import {
+  acquireAuditLock,
+  auditFilePath,
+  type ClaudeCodeHookInput,
+  decideFence,
+  errorMessage,
+  guardStoodAsideLine,
+  hooksHealthDir,
+  recordGuardStoodAside,
+  isClaudeCodeHookInput,
+  isTeamUnitOwnership,
+  isoTimestamp,
+  recordHookDrop,
+  readActiveDirectiveMarker,
+  readStateFile,
+  readUnitScopeStamp,
+  releaseAuditLock,
+  resolveProjectFlag,
+  resolveProjectDirFromHook,
+  REVIEWER_DISPATCH_TTL_MS,
+  reviewerDispatchPath,
+  toPosix,
+  writeGuardStoodAside,
+} from "../tools/aidlc-lib.ts";
+
+const HOOK_NAME = "reviewer-scope";
+
+// --- The pure matcher --------------------------------------------------------
+//
+// Everything below up to the main section is side-effect free and exported so
+// the decision table is unit-testable without a live session. The hook body
+// only wires stdin, the dispatch record, and the exit code around it.
+
+/** The conductor-written dispatch record (stage-protocol-reviewer.md §12a step 1). */
+export interface ReviewerDispatch {
+  /** Agent name of the dispatched reviewer, e.g. aidlc-architecture-reviewer-agent. */
+  reviewer: string;
+  /** Stage slug the review belongs to, e.g. nfr-requirements. */
+  stage: string;
+  /** The unit under review - the one construction/<unit>/ subtree in scope. */
+  unit: string;
+  /** Resolved paths the reviewer may touch beyond the current unit: the
+   *  directive.consumes contracts, the stage file, the Q&A file, and (when the
+   *  current unit's design explicitly names an integration point) that one
+   *  owning file. Only entries containing a construction/ component matter to
+   *  the matcher - everything outside construction/ is never blocked. */
+  exempt: string[];
+}
+
+/** The matcher's verdict. `target` names the offending path or token. */
+export interface ScopeVerdict {
+  block: boolean;
+  target?: string;
+  /** True when `target` is a synthesized default search root (e.g. ".") that a
+   *  command with no path operand falls back to, not a token the caller typed.
+   *  Lets the refusal message say the offending path was implied, not written. */
+  defaulted?: boolean;
+}
+
+/** Optional path context for the pure matcher. The live hook supplies both:
+ *  recordRoot is the parent of the dispatch file's `.aidlc-engine/` directory, and cwd
+ *  is the harness tool cwd. Tests can omit it to exercise the lexical fallback. */
+export interface ScopeContext {
+  recordRoot?: string;
+  cwd?: string;
+}
+
+// Glob metacharacters. A sibling segment carrying any of these spans units
+// (a `construction/*/` glob is a sibling read, not a search).
+const WILDCARD_RE = /[*?[\]{}]/;
+
+// Path-shaped tools contribute their path fields; Bash contributes the whole
+// command string; Glob/Grep contribute their pattern/glob fields (which are
+// path-shaped) plus their search-root path. Grep's `pattern` field is the
+// CONTENT regex, deliberately not scanned: matching file content is not a
+// file access, and scanning it would block a legitimate grep of the current
+// unit for text that merely mentions a sibling path.
+function candidateStrings(
+  toolName: string,
+  toolInput: Record<string, unknown> | undefined,
+): Array<{ text: string; kind: "path" | "command" | "glob" | "search-root" }> {
+  const ti = toolInput ?? {};
+  const out: Array<{ text: string; kind: "path" | "command" | "glob" | "search-root" }> = [];
+  const push = (v: unknown, kind: "path" | "command" | "glob" | "search-root") => {
+    if (typeof v === "string" && v.length > 0) out.push({ text: v, kind });
+  };
+  switch (toolName) {
+    case "Bash":
+      push(ti.command, "command");
+      break;
+    case "Read":
+    case "NotebookRead":
+    case "Edit":
+    case "MultiEdit":
+    case "Write":
+    case "NotebookEdit":
+      push(ti.file_path, "path");
+      push(ti.notebook_path, "path");
+      push(ti.path, "path");
+      if (Array.isArray(ti.paths)) for (const p of ti.paths) push(p, "path");
+      break;
+    case "LS":
+      push(ti.path, "search-root");
+      break;
+    case "Glob":
+      push(ti.pattern, "glob");
+      push(ti.path, "search-root");
+      break;
+    case "Grep":
+      push(ti.glob, "glob");
+      push(ti.path, "search-root");
+      break;
+    default:
+      break;
+  }
+  return out;
+}
+
+// Split a path into components, dropping empty and "." segments and
+// COLLAPSING ".." against its parent. Without the collapse,
+// construction/U03/../U01/design.md would be judged on U03 (the first
+// segment after construction/) and allowed even though the filesystem
+// resolves it into sibling U01. A leading ".." with no parent to consume is
+// kept as-is (it climbs above the visible string; the sweep/wildcard rules
+// in judgeOccurrence apply to whatever remains).
+function normalizedComps(p: string): string[] {
+  const out: string[] = [];
+  for (const c of toPosix(p).split("/")) {
+    if (c.length === 0 || c === ".") continue;
+    if (c === ".." && out.length > 0 && out[out.length - 1] !== "..") {
+      out.pop();
+      continue;
+    }
+    out.push(c);
+  }
+  return out;
+}
+
+function fold(s: string): string {
+  return s.toLowerCase();
+}
+
+function normalizedCompsFolded(p: string): string[] {
+  return normalizedComps(p).map(fold);
+}
+
+function globComponentMatchesConstruction(component: string): boolean {
+  const c = fold(component);
+  if (c === "construction") return true;
+  if (!WILDCARD_RE.test(c)) return false;
+  if (c.replace(/[*?[\]{}!,]/g, "").length === 0) return false;
+  let re = "^";
+  for (let i = 0; i < c.length; i++) {
+    const ch = c[i];
+    if (ch === "*") re += ".*";
+    else if (ch === "?") re += ".";
+    else re += ch.replace(/[\\^$+?.()|[\]{}]/g, "\\$&");
+  }
+  re += "$";
+  return new RegExp(re).test("construction");
+}
+
+function constructionIndex(comps: string[], allowGlob = false): number {
+  return comps.findIndex((c) =>
+    fold(c) === "construction" || (allowGlob && globComponentMatchesConstruction(c))
+  );
+}
+
+function canonicalSuffix(comps: string[]): string {
+  return comps.map(fold).join("/");
+}
+
+// The construction/-suffix of an exempt entry, component-normalized, or null
+// when the entry never enters construction/ (those entries are irrelevant to
+// the matcher - non-construction paths are always allowed).
+function exemptSuffixOf(entry: string): string | null {
+  const comps = normalizedComps(entry);
+  const i = constructionIndex(comps);
+  if (i === -1) return null;
+  return canonicalSuffix(comps.slice(i));
+}
+
+// Judge one construction/ occurrence: the first path segment after the
+// construction component decides. Current unit -> allow; wildcard or missing
+// (a sweep root) -> block; a concrete sibling -> allow only on an exact
+// exempt-suffix match (the single owning file of a named integration point),
+// else block. Exactness is deliberate: browsing an exempt file's parent
+// directory is still a sibling browse.
+function judgeOccurrence(
+  suffixComps: string[],
+  unit: string,
+  exemptSuffixes: ReadonlySet<string>,
+): boolean {
+  const unitFolded = fold(unit);
+  const seg = suffixComps[1];
+  if (seg === undefined || seg.length === 0) return true; // bare construction/ sweep root
+  if (WILDCARD_RE.test(seg)) return true; // a pattern spanning siblings
+  if (fold(seg) === unitFolded) return false; // the dispatched unit
+  return !exemptSuffixes.has(canonicalSuffix(suffixComps));
+}
+
+interface PreparedScope {
+  unitFolded: string;
+  exemptSuffixes: ReadonlySet<string>;
+  exemptPaths: ReadonlySet<string>;
+  recordRoot?: string;
+  constructionRoot?: string;
+  unitRoot?: string;
+  bases: string[];
+}
+
+function normalizeForCompare(p: string): string {
+  const posix = toPosix(p);
+  const absolute = posix.startsWith("/");
+  const body = normalizedCompsFolded(posix).join("/");
+  return absolute ? `/${body}` : body;
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return Array.from(new Set(values.filter((v) => v.length > 0)));
+}
+
+function resolvePathStrings(text: string, bases: readonly string[]): string[] {
+  if (isAbsolute(text)) return [resolve(text)];
+  return bases.map((b) => resolve(b, text));
+}
+
+function normalizeResolved(text: string, bases: readonly string[]): string[] {
+  return uniqueStrings(resolvePathStrings(text, bases).map(normalizeForCompare));
+}
+
+function containsPath(root: string, candidate: string): boolean {
+  return candidate === root || candidate.startsWith(`${root}/`);
+}
+
+function isExactExempt(path: string, suffixComps: string[], scope: PreparedScope): boolean {
+  return scope.exemptPaths.has(path) || scope.exemptSuffixes.has(canonicalSuffix(suffixComps));
+}
+
+function prepareScope(
+  dispatch: Pick<ReviewerDispatch, "unit" | "exempt">,
+  context: ScopeContext | undefined,
+): PreparedScope {
+  const exemptSuffixes = new Set<string>();
+  const exemptPaths = new Set<string>();
+
+  const recordRoot = context?.recordRoot ? resolve(context.recordRoot) : undefined;
+  const constructionRoot = recordRoot ? resolve(recordRoot, "construction") : undefined;
+  const unitRoot = constructionRoot ? resolve(constructionRoot, dispatch.unit) : undefined;
+  const cwd = context?.cwd ? resolve(context.cwd) : undefined;
+  const bases = uniqueStrings([cwd ?? "", recordRoot ?? "", unitRoot ?? ""]);
+
+  for (const e of dispatch.exempt) {
+    const s = exemptSuffixOf(e);
+    if (s !== null) exemptSuffixes.add(s);
+    for (const p of normalizeResolved(e, bases)) exemptPaths.add(p);
+  }
+
+  return {
+    unitFolded: fold(dispatch.unit),
+    exemptSuffixes,
+    exemptPaths,
+    recordRoot: recordRoot ? normalizeForCompare(recordRoot) : undefined,
+    constructionRoot: constructionRoot ? normalizeForCompare(constructionRoot) : undefined,
+    unitRoot: unitRoot ? normalizeForCompare(unitRoot) : undefined,
+    bases,
+  };
+}
+
+function verdict(target: string): ScopeVerdict {
+  return { block: true, target };
+}
+
+// Mark a block verdict whose target is a synthesized default (the "." a search
+// command falls back to with no path operand), so the refusal message can say
+// the path was implied rather than typed. A non-block or null verdict is
+// passed through untouched.
+function markDefaulted(v: ScopeVerdict | null): ScopeVerdict | null {
+  return v?.block ? { ...v, defaulted: true } : v;
+}
+
+function judgeLexicalPath(text: string, scope: PreparedScope): ScopeVerdict | null {
+  const comps = normalizedComps(text);
+  for (let i = 0; i < comps.length; i++) {
+    if (constructionIndex([comps[i]], true) !== 0) continue;
+    if (judgeOccurrence(comps.slice(i), scope.unitFolded, scope.exemptSuffixes)) {
+      return verdict(text);
+    }
+  }
+  return null;
+}
+
+function judgeResolvedPath(
+  text: string,
+  mode: "target" | "search-root",
+  scope: PreparedScope,
+  bases: readonly string[] = scope.bases,
+): ScopeVerdict | null {
+  if (scope.constructionRoot === undefined) return null;
+
+  for (const path of normalizeResolved(text, bases)) {
+    if (containsPath(scope.constructionRoot, path)) {
+      const rest = path === scope.constructionRoot
+        ? []
+        : path.slice(scope.constructionRoot.length + 1).split("/");
+      const suffixComps = ["construction", ...rest];
+      if (isExactExempt(path, suffixComps, scope)) continue;
+      if (judgeOccurrence(suffixComps, scope.unitFolded, scope.exemptSuffixes)) {
+        return verdict(text);
+      }
+    }
+
+    // Recursive/search roots above construction/ sweep every sibling unit even
+    // when the command never spells `construction` (for example `rg X .`).
+    if (mode === "search-root" && containsPath(path, scope.constructionRoot)) {
+      return verdict(text);
+    }
+  }
+  return null;
+}
+
+function judgePathAccess(
+  text: string,
+  mode: "target" | "search-root",
+  scope: PreparedScope,
+  bases: readonly string[] = scope.bases,
+): ScopeVerdict | null {
+  return judgeLexicalPath(text, scope) ?? judgeResolvedPath(text, mode, scope, bases);
+}
+
+function patternLimitsToCurrentUnit(text: string, scope: PreparedScope): boolean {
+  const comps = normalizedComps(text);
+  let sawConstruction = false;
+  for (let i = 0; i < comps.length; i++) {
+    if (constructionIndex([comps[i]], true) !== 0) continue;
+    sawConstruction = true;
+    const suffix = comps.slice(i);
+    const seg = suffix[1];
+    if (seg === undefined || WILDCARD_RE.test(seg)) return false;
+    if (fold(seg) !== scope.unitFolded && !scope.exemptSuffixes.has(canonicalSuffix(suffix))) {
+      return false;
+    }
+  }
+  return sawConstruction;
+}
+
+interface ShellWord {
+  text: string;
+  quoted: boolean;
+}
+
+// A separator carries `pipe` = true only for a single `|` (a real stdin pipe);
+// `||`, `&&`, `;`, `&`, and grouping parens do NOT feed stdout to the next
+// command, so a downstream command after them is not reading a pipe.
+type ShellToken = ShellWord | { sep: true; pipe: boolean };
+
+function shellTokens(command: string): ShellToken[] {
+  const tokens: ShellToken[] = [];
+  let text = "";
+  let quoted = false;
+  const pushWord = () => {
+    if (text.length > 0 || quoted) tokens.push({ text, quoted });
+    text = "";
+    quoted = false;
+  };
+
+  for (let i = 0; i < command.length; i++) {
+    const ch = command[i];
+    if (/\s/.test(ch)) {
+      pushWord();
+      continue;
+    }
+    if (ch === "'" || ch === '"') {
+      quoted = true;
+      const quote = ch;
+      i++;
+      while (i < command.length && command[i] !== quote) {
+        if (quote === '"' && command[i] === "\\" && i + 1 < command.length) i++;
+        text += command[i];
+        i++;
+      }
+      continue;
+    }
+    if (ch === "\\") {
+      if (i + 1 < command.length) {
+        i++;
+        text += command[i];
+      }
+      continue;
+    }
+    if (";|&()".includes(ch)) {
+      pushWord();
+      const doubled = (ch === "|" || ch === "&") && command[i + 1] === ch;
+      if (doubled) i++;
+      // A single `|` pipes stdout to the next command's stdin; `||` (doubled)
+      // is logical-or and does not.
+      tokens.push({ sep: true, pipe: ch === "|" && !doubled });
+      continue;
+    }
+    text += ch;
+  }
+  pushWord();
+  return tokens;
+}
+
+// A command segment plus whether it receives its stdin from a pipe (the
+// preceding separator was a single `|`). The command's options still decide
+// whether it searches that stream or traverses files (e.g. `rg --files`).
+interface ShellSegment {
+  words: ShellWord[];
+  pipedFrom: boolean;
+}
+
+function shellSegments(command: string): ShellSegment[] {
+  const segments: ShellSegment[] = [];
+  let current: ShellWord[] = [];
+  let pipedFrom = false; // the first segment is never downstream of a pipe
+  for (const token of shellTokens(command)) {
+    if ("sep" in token) {
+      if (current.length > 0) segments.push({ words: current, pipedFrom });
+      current = [];
+      pipedFrom = token.pipe; // the NEXT segment reads a pipe iff this sep is `|`
+    } else {
+      current.push(token);
+    }
+  }
+  if (current.length > 0) segments.push({ words: current, pipedFrom });
+  return segments;
+}
+
+function commandBasename(command: string): string {
+  const comps = normalizedComps(command);
+  return fold(comps[comps.length - 1] ?? command);
+}
+
+function isOption(word: string): boolean {
+  return word.length > 1 && word.startsWith("-");
+}
+
+function firstOperand(words: ShellWord[]): number {
+  for (let i = 1; i < words.length; i++) {
+    if (!isOption(words[i].text)) return i;
+  }
+  return -1;
+}
+
+const GREP_VALUE_OPTIONS = new Set([
+  "--after-context", "--before-context", "--binary-files", "--context",
+  "--devices", "--directories", "--exclude", "--exclude-dir", "--exclude-from",
+  "--file", "--group-separator", "--include", "--include-dir", "--label",
+  "--max-count", "--regexp",
+]);
+const RG_VALUE_OPTIONS = new Set([
+  "--after-context", "--before-context", "--color", "--colors", "--context",
+  "--context-separator", "--dfa-size-limit", "--encoding", "--engine",
+  "--field-context-separator", "--field-match-separator", "--file", "--generate",
+  "--glob", "--hostname-bin", "--hyperlink-format", "--iglob", "--ignore-file",
+  "--max-columns", "--max-count", "--max-depth", "--max-filesize", "--path-separator",
+  "--pre", "--pre-glob", "--regex-size-limit", "--regexp", "--replace", "--sort",
+  "--sortr", "--threads", "--type", "--type-add", "--type-clear", "--type-not",
+]);
+
+// Parse options before deciding which positional word is a content pattern.
+// With -e/-f (even after an operand), every positional word names a file.
+// Short options may be bundled, and the rest of an argument-taking option's
+// word is its value: `-nefoo` is -n plus the pattern "foo", not more flags.
+function searchArguments(words: ShellWord[], ripgrep: boolean): {
+  paths: string[];
+  inputFiles: string[];
+  globs: string[];
+  searchesFiles: boolean;
+} {
+  const paths: string[] = [];
+  const inputFiles: string[] = [];
+  const globs: string[] = [];
+  let patternSupplied = false;
+  let listsFiles = false;
+  let recursive = false;
+  let stdinPatterns = false;
+  let optionsEnded = false;
+  const valueOptions = ripgrep ? RG_VALUE_OPTIONS : GREP_VALUE_OPTIONS;
+  const shortValueOptions = ripgrep ? "ABCEMdefgjmrtT" : "ABCDdefm";
+  const option = (name: string, value: string) => {
+    if (name === "-e" || name === "--regexp") {
+      patternSupplied = true;
+    } else if (name === "-f" || name === "--file") {
+      patternSupplied = true;
+      inputFiles.push(value);
+      stdinPatterns ||= value === "-";
+    } else if (name === "--exclude-from" || name === "--ignore-file") {
+      inputFiles.push(value);
+    } else if (ripgrep && (name === "-g" || name === "--glob" || name === "--iglob")) {
+      globs.push(value);
+    } else if (ripgrep && name === "--files") {
+      listsFiles = true;
+    } else if (!ripgrep) {
+      if (["-r", "-R", "--recursive", "--dereference-recursive"].includes(name)) {
+        recursive = true;
+      } else if (name === "-d" || name === "--directories") {
+        recursive = value === "recurse";
+      }
+    }
+  };
+
+  for (let i = 1; i < words.length; i++) {
+    const w = words[i].text;
+    if (!optionsEnded && w === "--") {
+      optionsEnded = true;
+    } else if (!optionsEnded && w.startsWith("--")) {
+      const equals = w.indexOf("=");
+      const name = equals === -1 ? w : w.slice(0, equals);
+      const value = equals !== -1
+        ? w.slice(equals + 1)
+        : valueOptions.has(name) ? (words[++i]?.text ?? "") : "";
+      option(name, value);
+    } else if (!optionsEnded && isOption(w)) {
+      for (let j = 1; j < w.length; j++) {
+        const takesValue = shortValueOptions.includes(w[j]);
+        const value = takesValue ? (w.slice(j + 1) || words[++i]?.text || "") : "";
+        option(`-${w[j]}`, value);
+        if (takesValue) break;
+      }
+    } else {
+      paths.push(w);
+    }
+  }
+  if (!patternSupplied && !listsFiles) paths.shift();
+  return {
+    paths,
+    inputFiles,
+    globs,
+    searchesFiles: ripgrep ? listsFiles || stdinPatterns : recursive,
+  };
+}
+
+function judgeGrepLike(
+  words: ShellWord[],
+  scope: PreparedScope,
+  bases: readonly string[],
+  readsStdin: boolean,
+): ScopeVerdict | null {
+  const args = searchArguments(words, false);
+  for (const file of args.inputFiles) {
+    if (file === "-") continue;
+    const v = judgePathAccess(file, "target", scope, bases);
+    if (v !== null) return v;
+  }
+  for (const path of args.paths) {
+    if (path === "-") continue;
+    const v = judgePathAccess(path, "search-root", scope, bases);
+    if (v !== null) return v;
+  }
+  // GNU grep's recursive mode defaults to "." even with piped stdin. Plain
+  // filters can use the pipe; first-segment searches keep the conservative root.
+  if (args.paths.length > 0 || (readsStdin && !args.searchesFiles)) return null;
+  return markDefaulted(judgePathAccess(".", "search-root", scope, bases));
+}
+
+function judgeRipgrep(
+  words: ShellWord[],
+  scope: PreparedScope,
+  bases: readonly string[],
+  readsStdin: boolean,
+): ScopeVerdict | null {
+  const args = searchArguments(words, true);
+  for (const file of args.inputFiles) {
+    if (file === "-") continue;
+    const v = judgePathAccess(file, "target", scope, bases);
+    if (v !== null) return v;
+  }
+  let constrainedToCurrent = false;
+  for (const glob of args.globs) {
+    if (glob.length === 0) continue;
+    const v = judgePathAccess(glob, "target", scope, bases);
+    if (v !== null) return v;
+    constrainedToCurrent ||= patternLimitsToCurrentUnit(glob, scope);
+  }
+  for (const path of args.paths) {
+    if (path === "-") continue;
+    const v = judgePathAccess(path, "search-root", scope, bases);
+    if (v !== null) return v;
+  }
+  // --files traverses directories; -f - consumes the pipe as patterns and then
+  // searches files. Preserve the explicit current-unit glob exception.
+  if (args.paths.length > 0 || constrainedToCurrent || (readsStdin && !args.searchesFiles)) return null;
+  return markDefaulted(judgePathAccess(".", "search-root", scope, bases));
+}
+
+function judgeFind(
+  words: ShellWord[],
+  scope: PreparedScope,
+  bases: readonly string[],
+): ScopeVerdict | null {
+  let rootSeen = false;
+  for (let i = 1; i < words.length; i++) {
+    const w = words[i].text;
+    if (isOption(w) || w === "!" || w === "(" || w === ")") break;
+    rootSeen = true;
+    const v = judgePathAccess(w, "search-root", scope, bases);
+    if (v !== null) return v;
+  }
+  if (!rootSeen) return markDefaulted(judgePathAccess(".", "search-root", scope, bases));
+  return null;
+}
+
+function isPathish(word: string): boolean {
+  return (
+    word === "." ||
+    word === ".." ||
+    word.includes("/") ||
+    WILDCARD_RE.test(word) ||
+    fold(word) === "construction" ||
+    globComponentMatchesConstruction(word)
+  );
+}
+
+function judgeSimpleFileCommand(
+  words: ShellWord[],
+  mode: "target" | "search-root",
+  scope: PreparedScope,
+  bases: readonly string[],
+): ScopeVerdict | null {
+  let sawOperand = false;
+  for (let i = 1; i < words.length; i++) {
+    const w = words[i].text;
+    if (isOption(w)) continue;
+    sawOperand = true;
+    const v = judgePathAccess(w, mode, scope, bases);
+    if (v !== null) return v;
+  }
+  if (!sawOperand && mode === "search-root") {
+    return markDefaulted(judgePathAccess(".", "search-root", scope, bases));
+  }
+  return null;
+}
+
+function judgeGenericCommand(
+  words: ShellWord[],
+  scope: PreparedScope,
+  bases: readonly string[],
+): ScopeVerdict | null {
+  for (let i = 1; i < words.length; i++) {
+    const w = words[i].text;
+    if (isOption(w) || !isPathish(w)) continue;
+    const v = judgePathAccess(w, "target", scope, bases);
+    if (v !== null) return v;
+  }
+  return null;
+}
+
+function judgeCommandText(text: string, scope: PreparedScope): ScopeVerdict | null {
+  let bases = scope.bases;
+  for (const { words: segment, pipedFrom } of shellSegments(text)) {
+    if (segment.length === 0) continue;
+    const cmd = commandBasename(segment[0].text);
+    if (cmd === "cd") {
+      const idx = firstOperand(segment);
+      if (idx === -1 || segment[idx].text === "-") continue;
+      const next = segment[idx].text;
+      const v = judgePathAccess(next, "search-root", scope, bases);
+      if (v !== null) return v;
+      bases = uniqueStrings(resolvePathStrings(next, bases));
+      continue;
+    }
+
+    const v =
+      cmd === "grep" || cmd === "egrep" || cmd === "fgrep"
+        ? judgeGrepLike(segment, scope, bases, pipedFrom)
+        : cmd === "rg" || cmd === "ripgrep"
+          ? judgeRipgrep(segment, scope, bases, pipedFrom)
+          : cmd === "find"
+            ? judgeFind(segment, scope, bases)
+            : cmd === "ls"
+              ? judgeSimpleFileCommand(segment, "search-root", scope, bases)
+              : cmd === "cat" || cmd === "less" || cmd === "more" || cmd === "head" || cmd === "tail"
+                ? judgeSimpleFileCommand(segment, "target", scope, bases)
+                : judgeGenericCommand(segment, scope, bases);
+    if (v !== null) return v;
+  }
+  return null;
+}
+
+/**
+ * The reviewer read-scope decision. Pure: no I/O, no environment.
+ * Returns block=true with the offending target when the tool call reaches
+ * into a sibling unit's construction/ subtree (or spans siblings via a
+ * wildcard) and the target is not on the exempt list.
+ */
+export function evaluateReviewerScope(
+  toolName: string,
+  toolInput: Record<string, unknown> | undefined,
+  dispatch: Pick<ReviewerDispatch, "unit" | "exempt">,
+  context?: ScopeContext,
+): ScopeVerdict {
+  const scope = prepareScope(dispatch, context);
+  let globConstrainedToCurrent = false;
+  let sawGlob = false;
+  let sawSearchRoot = false;
+
+  for (const { text, kind } of candidateStrings(toolName, toolInput)) {
+    if (kind === "path") {
+      const v = judgePathAccess(text, "target", scope);
+      if (v !== null) return v;
+    } else if (kind === "search-root") {
+      sawSearchRoot = true;
+      const v = judgePathAccess(text, "search-root", scope);
+      if (v !== null) return v;
+    } else if (kind === "glob") {
+      sawGlob = true;
+      const v = judgePathAccess(text, "target", scope);
+      if (v !== null) return v;
+      globConstrainedToCurrent ||= patternLimitsToCurrentUnit(text, scope);
+    } else {
+      const v = judgeCommandText(text, scope);
+      if (v !== null) return v;
+    }
+  }
+
+  // Pathless Grep recurses from cwd. Pathless Glob does too unless the pattern
+  // itself explicitly constrains the search to the current unit/exempt file.
+  if (toolName === "Grep" && !sawSearchRoot && !globConstrainedToCurrent) {
+    const v = markDefaulted(judgePathAccess(".", "search-root", scope));
+    if (v !== null) return v;
+  }
+  if (toolName === "Glob" && !sawSearchRoot && sawGlob && !globConstrainedToCurrent) {
+    const v = markDefaulted(judgePathAccess(".", "search-root", scope));
+    if (v !== null) return v;
+  }
+  return { block: false };
+}
+
+/** Parse + validate a dispatch record's JSON. Null on any shape miss. */
+export function parseDispatchRecord(raw: string): ReviewerDispatch | null {
+  try {
+    const o: unknown = JSON.parse(raw);
+    if (o === null || typeof o !== "object") return null;
+    const r = o as Record<string, unknown>;
+    if (typeof r.reviewer !== "string" || r.reviewer.length === 0) return null;
+    if (typeof r.unit !== "string" || r.unit.length === 0) return null;
+    if (typeof r.stage !== "string") return null;
+    if (!Array.isArray(r.exempt) || !r.exempt.every((e) => typeof e === "string")) return null;
+    return { reviewer: r.reviewer, stage: r.stage, unit: r.unit, exempt: r.exempt as string[] };
+  } catch {
+    return null;
+  }
+}
+
+// The block reason handed back to the reviewer through the harness's
+// PreToolUse error channel. Self-explaining and redirecting: it names the
+// scope, the offending target, and the sanctioned alternative, so the
+// reviewer self-corrects without retrying the same call.
+export function blockReason(target: string, dispatch: ReviewerDispatch, defaulted = false): string {
+  const defaultNote = defaulted
+    ? ` (this command names no path, so "${target}" is the implicit recursive search ` +
+      `root it falls back to - not a path you typed; give it an explicit in-scope path)`
+    : "";
+  return (
+    `This review cannot open "${target}"${defaultNote} because it belongs to another unit; the current ` +
+    `review covers ${dispatch.unit}. Use the files supplied with the review and the files ` +
+    `under this unit's construction path. If the design depends on another unit, note that ` +
+    `integration point in the findings instead of opening its files. Write ${dispatch.unit} ` +
+    `literally in shell paths because variables cannot be checked, and keep searches inside ` +
+    `the current unit.`
+  );
+}
+
+/**
+ * Whether the reviewer read-scope fence stands aside instead of refusing.
+ * Only `off`, its per-work switch, or its environment escape hatch lowers it;
+ * `relaxed` keeps this fence up.
+ * Claimed-checkout write ownership never calls this function: Unit ownership
+ * is a mandatory isolation boundary, not a policy-lowerable reviewer fence.
+ */
+function reviewerScopeStandsAside(
+  projectDir: string,
+  parsed: ClaudeCodeHookInput,
+  toolName: string,
+  unit: string,
+  target: string,
+  stage?: string,
+): boolean {
+  let gate: ReturnType<typeof decideFence>;
+  try {
+    gate = decideFence(projectDir, "reviewer-scope", { hookInput: parsed });
+  } catch (e) {
+    recordHookDrop(projectDir, HOOK_NAME, errorMessage(e));
+    return false;
+  }
+  if (gate.decision !== "stand-aside") return false;
+  const detail = `${target} (unit ${unit})`;
+  writeGuardStoodAside(guardStoodAsideLine("reviewer-scope", gate.source, detail));
+  recordGuardStoodAside(projectDir, {
+    fence: "reviewer-scope",
+    authority: gate.authority,
+    ...(stage ? { stage } : {}),
+    tool: toolName,
+    details: detail,
+  });
+  return true;
+}
+
+function emitReviewerScopeBlocked(
+  projectDir: string,
+  toolName: string,
+  target: string,
+  stage: string,
+  unit: string,
+): void {
+  // Best-effort: an audit failure never changes the block decision. The lock
+  // acquisition is TIME-BOUNDED well below the standard 5s budget (5 x 50ms):
+  // the block decision is already made, and a lock-starved Bolt fan-out must
+  // not stretch a fast refuse into a laggy one.
+  try {
+    if (!existsSync(auditFilePath(projectDir))) return;
+    if (!acquireAuditLock(projectDir, 5, 50)) {
+      recordHookDrop(
+        projectDir,
+        HOOK_NAME,
+        "audit lock contended; REVIEWER_SCOPE_BLOCKED row dropped (block still enforced)",
+      );
+      return;
+    }
+    try {
+      appendAuditEntryUnlocked(
+        "REVIEWER_SCOPE_BLOCKED",
+        {
+          Tool: toolName,
+          Target: target,
+          Stage: stage,
+          Unit: unit,
+        },
+        projectDir,
+      );
+    } finally {
+      releaseAuditLock(projectDir);
+    }
+  } catch {
+    // Advisory emission only.
+  }
+}
+
+// The two shipped review-only agents. Used ONLY for the advisory
+// missing-record drop below (when one of these is active with no dispatch
+// record and touches construction/ paths, the conductor likely forgot the stage-protocol-reviewer.md §12a
+// step-1 write); the dispatch record's reviewer field is the authoritative
+// identity during enforcement.
+const REVIEW_AGENT_RE = /^aidlc-(architecture-reviewer|product-lead)-agent$/;
+
+// Was a §12a step-1 record owed here at all? The advisory asserts the conductor
+// skipped that write, and stage-protocol-reviewer.md says a single-stage review
+// (no `directive.unit`) writes none - so on a scope that skips units-generation
+// the absence is compliance and the advisory would be false for the whole phase.
+// The active-directive marker is the authority: reading it revalidates the state
+// digest, so a marker left from a different state does not answer. `unit` is
+// keyed on the field rather than on `kind` or `version`, because a version-1
+// marker carries `unit` and no `kind` at all. `units` counts only on a live
+// `invoke-swarm` marker: writeActiveDirectiveMarker carries it onto every later
+// marker in the intent (`requestedUnits = marker.units ?? base.units`), so an
+// inherited list on a later no-unit `run-stage` is not evidence a record was owed.
+function perUnitReviewOwed(projectDir: string, stateContent: string | null): boolean {
+  if (stateContent === null) return false;
+  const active = readActiveDirectiveMarker(projectDir, stateContent);
+  return (
+    (active?.unit ?? "").length > 0 ||
+    (active?.kind === "invoke-swarm" && (active.units?.length ?? 0) > 0)
+  );
+}
+
+// --- Main ---------------------------------------------------------------------
+
+/** The dispatchable body (`aidlc hook reviewer-scope` requires an exported
+ *  run(input)). Returns the exit code (0 allow, 2 block with the reason on
+ *  stderr) instead of process.exit so the compiled-binary route can relay the
+ *  block; the CLI entry below preserves the direct-run contract unchanged. */
+export async function run(input: string): Promise<number> {
+  const projectDir = resolveProjectDirFromHook(import.meta.url);
+
+  try {
+    const healthDir = hooksHealthDir(projectDir);
+    mkdirSync(healthDir, { recursive: true });
+    writeFileSync(join(healthDir, `${HOOK_NAME}.last`), isoTimestamp(), "utf-8");
+  } catch {
+    // Heartbeat failure is non-fatal - never let it affect the decision.
+  }
+
+  let parsed: ClaudeCodeHookInput;
+  try {
+    const raw: unknown = JSON.parse(input);
+    if (!isClaudeCodeHookInput(raw)) return 0;
+    parsed = raw;
+  } catch {
+    return 0; // malformed stdin - fail open
+  }
+
+  const toolName = parsed.tool_name ?? "";
+  const toolInput = parsed.tool_input;
+  if (!["Read", "NotebookRead", "Edit", "MultiEdit", "Write", "NotebookEdit", "LS", "Glob", "Grep", "Bash"].includes(toolName)) {
+    return 0;
+  }
+
+  let unitScope = null;
+  // Kept for the missing-record advisory below, which needs the same content to
+  // validate the active-directive marker's digest - one read, not two.
+  let stateContent: string | null = null;
+  try {
+    stateContent = readStateFile(projectDir);
+    if (isTeamUnitOwnership(stateContent)) {
+      unitScope = readUnitScopeStamp(projectDir);
+    }
+  } catch {
+    // No active team workflow means no claimed-checkout write bound.
+  }
+  if (
+    unitScope &&
+    ["Edit", "MultiEdit", "Write", "NotebookEdit", "Bash"].includes(toolName)
+  ) {
+    let scopedVerdict: ScopeVerdict;
+    try {
+      const cwdField = (parsed as { cwd?: unknown }).cwd;
+      scopedVerdict = evaluateReviewerScope(
+        toolName,
+        toolInput,
+        { unit: unitScope.unit, exempt: [] },
+        {
+          recordRoot: dirname(dirname(reviewerDispatchPath(projectDir))),
+          cwd: typeof cwdField === "string" && cwdField.length > 0 ? cwdField : projectDir,
+        },
+      );
+    } catch (e) {
+      recordHookDrop(projectDir, HOOK_NAME, errorMessage(e));
+      return 0;
+    }
+    if (scopedVerdict.block) {
+      // A claimed checkout owns exactly one Unit. Guard Policy, per-work fence
+      // switches, and the reviewer-scope environment escape hatch govern the
+      // reviewer's read boundary only; none authorizes writes into a sibling
+      // Unit's construction subtree.
+      emitReviewerScopeBlocked(
+        projectDir,
+        toolName,
+        scopedVerdict.target ?? "",
+        "claimed-checkout",
+        unitScope.unit,
+      );
+      const defaultNote = scopedVerdict.defaulted
+        ? " (an implicit search root the command falls back to with no path, not a path you typed)"
+        : "";
+      process.stderr.write(
+        `This checkout is scoped to Unit "${unitScope.unit}"; refusing cross-unit write target "${scopedVerdict.target ?? ""}"${defaultNote}.\n`,
+      );
+      return 2;
+    }
+  }
+
+  // The deterministic off-switch applies only to reviewer read-scope
+  // enforcement. Mandatory claimed-checkout ownership was handled above.
+  if (resolveProjectFlag("AIDLC_DISABLE_REVIEWER_SCOPE_HOOK") === "1") return 0;
+
+  const recordPath = reviewerDispatchPath(projectDir);
+  if (!existsSync(recordPath)) {
+    // No review in flight. One advisory: a review-only agent touching
+    // construction/ paths with no dispatch record suggests the conductor
+    // skipped the stage-protocol-reviewer.md §12a step-1 write - surfaced via the doctor's drop counters,
+    // never a block (the record is the only source of unit + exempt, so there
+    // is nothing sound to enforce without it). RATE-BOUNDED: a chatty reviewer
+    // under a conductor that never writes the record would otherwise append
+    // one drop line per tool call; a marker file in the health dir dedupes the
+    // advisory to one line per 10 minutes.
+    try {
+      const agent = parsed.agent_type ?? "";
+      if (REVIEW_AGENT_RE.test(agent)) {
+        const touchesConstruction = candidateStrings(toolName, toolInput).some((c) =>
+          toPosix(c.text).includes("construction/"),
+        );
+        if (touchesConstruction && perUnitReviewOwed(projectDir, stateContent)) {
+          const marker = join(hooksHealthDir(projectDir), `${HOOK_NAME}.missing-record.last`);
+          const fresh = existsSync(marker) && Date.now() - statSync(marker).mtimeMs < 10 * 60 * 1000;
+          if (!fresh) {
+            writeFileSync(marker, isoTimestamp(), "utf-8");
+            recordHookDrop(
+              projectDir,
+              HOOK_NAME,
+              `${agent} touched construction/ paths with no reviewer dispatch record; enforcement skipped (write the stage-protocol-reviewer.md §12a step-1 dispatch record before invoking a per-unit reviewer)`,
+            );
+          }
+        }
+      }
+    } catch {
+      // Advisory only.
+    }
+    return 0;
+  }
+
+  let dispatch: ReviewerDispatch | null = null;
+  try {
+    const ageMs = Date.now() - statSync(recordPath).mtimeMs;
+    if (ageMs > REVIEWER_DISPATCH_TTL_MS) {
+      // Orphaned record (a session crashed between dispatch and verdict):
+      // ignore it and best-effort janitor it so a stale window cannot keep
+      // refusing sibling access indefinitely. Mirrors the compose marker.
+      try {
+        unlinkSync(recordPath);
+      } catch {
+        // Unlink failure is non-fatal - the staleness check already refused it.
+      }
+      recordHookDrop(
+        projectDir,
+        HOOK_NAME,
+        "ignoring an orphaned reviewer dispatch record (older than the freshness window); cleaned it up",
+      );
+      return 0;
+    }
+    dispatch = parseDispatchRecord(await Bun.file(recordPath).text());
+  } catch (e) {
+    recordHookDrop(projectDir, HOOK_NAME, errorMessage(e));
+    return 0; // unreadable record - fail open
+  }
+  if (dispatch === null) {
+    recordHookDrop(projectDir, HOOK_NAME, "reviewer dispatch record is malformed; enforcement skipped");
+    return 0;
+  }
+
+  // Identity: enforce only for the dispatched reviewer. Claude Code and Codex
+  // deliver the active subagent's name as agent_type (absent on main-session
+  // calls). The Kiro CLI adapter instead asserts scoped_registration - it
+  // registers this hook inside the reviewer agents' own JSON configs, so
+  // every call arriving through that registration is the reviewer's. (Kiro
+  // IDE ships no registration at all: tool inputs are not uniformly available
+  // across its supported generations - captured 0.12 and early-1.x payloads
+  // are empty, while later 1.x builds populate some PreToolUse and delegation
+  // inputs (see docs/reference/kiro-ide-hook-payload.md) - and its payloads
+  // carry no agent_type, so no stable identity/target contract exists there.)
+  // Anything else - the conductor's own calls, other subagents - passes
+  // through untouched.
+  const agentType = parsed.agent_type ?? "";
+  const scopedRegistration = parsed.scoped_registration === true;
+  const isDispatchedReviewer =
+    agentType.length > 0 ? agentType === dispatch.reviewer : scopedRegistration;
+  if (!isDispatchedReviewer) return 0;
+
+  let verdict: ScopeVerdict;
+  try {
+    const cwdField = (parsed as { cwd?: unknown }).cwd;
+    verdict = evaluateReviewerScope(toolName, toolInput, dispatch, {
+      recordRoot: dirname(dirname(recordPath)),
+      cwd: typeof cwdField === "string" && cwdField.length > 0 ? cwdField : projectDir,
+    });
+  } catch (e) {
+    recordHookDrop(projectDir, HOOK_NAME, errorMessage(e));
+    return 0; // matcher failure - fail open
+  }
+  if (!verdict.block) return 0;
+
+  if (reviewerScopeStandsAside(projectDir, parsed, toolName, dispatch.unit, verdict.target ?? "", dispatch.stage)) {
+    return 0;
+  }
+  emitReviewerScopeBlocked(
+    projectDir,
+    toolName,
+    verdict.target ?? "",
+    dispatch.stage,
+    dispatch.unit,
+  );
+
+  process.stderr.write(
+    `${blockReason(verdict.target ?? "", dispatch, verdict.defaulted)}\n`,
+  );
+  return 2; // harness PreToolUse reject contract: exit 2 + stderr blocks
+}
+
+if (import.meta.main) {
+  // A TTY means no harness JSON is coming (test / debug contexts) - allow.
+  if (process.stdin.isTTY) process.exit(0);
+  process.exit(await run(await Bun.stdin.text()));
+}

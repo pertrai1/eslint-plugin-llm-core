@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "frameworkVersion": "2.10.0",
+  "distribution": "codex",
+  "harnessDir": ".codex"
+}

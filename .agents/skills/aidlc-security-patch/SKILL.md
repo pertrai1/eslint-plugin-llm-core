@@ -72,4 +72,5 @@ continuation; the escape hatch is `next --new-intent`.
   context, **STOP** and follow the directive's hand-off: tell the user to start a
   fresh session (exit or restart Codex CLI and start a new session) and invoke `$aidlc` to begin the
   new intent with a clean slate. Nothing is lost; the intent is saved on disk.
+
 - **On DECLINE**, proceed with the active intent, the normal loop above.

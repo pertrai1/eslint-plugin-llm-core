@@ -35,8 +35,8 @@ captured come from the tool, not from eyeballing the artefact tree:
 aidlc engine runtime summary --json
 ```
 
-Section *content* (what was built, setup steps, decisions) is yours to
-synthesise from the artefacts and the delivered code. Any *count* that
+Section _content_ (what was built, setup steps, decisions) is yours to
+synthesise from the artefacts and the delivered code. Any _count_ that
 appears in the pack must trace to the tool's output.
 
 ## Steps
@@ -73,11 +73,13 @@ Write `OUTCOMES.md` at the workspace root (outside `<record>/`):
 
 ```markdown
 # Outcomes Pack
+
 **Scope**: {summary.scope}
 **Stages delivered**: {summary.stages.approved} approved / {summary.stages.total} total
 **Duration**: {summary.duration_minutes} min
 
 ## 1. What Was Built
+
 - Project name and description (from requirements)
 - Scope the workflow ran at
 - Units of work delivered and what each contains
@@ -85,44 +87,51 @@ Write `OUTCOMES.md` at the workspace root (outside `<record>/`):
 - Tech stack with version pins
 
 ## 2. Repository Structure
+
 - Annotated directory tree of the delivered code
 - What lives where and why
 
 ## 3. Setup Guide
+
 - Prerequisites (runtimes, tools, cloud CLI versions)
 - Local development setup, step by step
 - Required environment variables
 - How to run tests
 
 ## 4. Build and Deploy
+
 - Build steps
 - Full test-suite run
 - Infrastructure deployment (from Build and Test artefacts)
 - IaC deployment commands with expected outputs, if generated
 
 ## 5. Architecture Decisions
+
 - Every significant decision made during the workflow
 - Alternatives considered and why rejected
 - Constraints that shaped the design (from rules and practices)
 
 ## 6. What to Commit vs Archive
-| Artifact | Action | Destination |
-|----------|--------|-------------|
-| `decisions.md` (per stage) | Commit | `docs/decisions/` |
-| Architecture summary (1 page) | Write + commit | `docs/architecture.md` |
-| NFR summary table | Write + commit | `docs/nfr-summary.md` |
-| `<record>/audit/*.md` shards | Archive — do NOT commit to app repo | Compliance archive |
-| Stage question files | Discard | — |
-| `<record>/aidlc-state.md` | Discard | — |
-| Application / infrastructure code | Already committed | — |
+
+| Artifact                          | Action                              | Destination            |
+| --------------------------------- | ----------------------------------- | ---------------------- |
+| `decisions.md` (per stage)        | Commit                              | `docs/decisions/`      |
+| Architecture summary (1 page)     | Write + commit                      | `docs/architecture.md` |
+| NFR summary table                 | Write + commit                      | `docs/nfr-summary.md`  |
+| `<record>/audit/*.md` shards      | Archive — do NOT commit to app repo | Compliance archive     |
+| Stage question files              | Discard                             | —                      |
+| `<record>/aidlc-state.md`         | Discard                             | —                      |
+| Application / infrastructure code | Already committed                   | —                      |
 
 ## 7. Workflow Footprint
+
 - Stages: {summary.stages.approved} approved, {summary.stages.failed} failed, {summary.stages.pending} pending
 - Memory entries captured: {summary.memory.total}
   ({summary.memory.interpretations} interpretations, {summary.memory.deviations} deviations, {summary.memory.tradeoffs} trade-offs, {summary.memory.open_questions} open questions)
 - Learnings captured: {summary.learnings.from_orchestrator} from orchestrator, {summary.learnings.from_user_addition} from user additions
 
 ## 8. Known Limitations and What to Tackle Next
+
 - Scope items explicitly deferred during the workflow
   (cross-reference the {summary.memory.open_questions} open questions above)
 - Technical debt identified but not resolved

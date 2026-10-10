@@ -70,7 +70,7 @@ record is
 - The artefacts recursively under `<record>/<phase>/` — what each stage
   produced, including per-unit Construction outputs.
 
-These are your sources for *prose*. Do not derive counts from them when
+These are your sources for _prose_. Do not derive counts from them when
 Step 1's JSON already carries the count.
 
 ### Step 3: Render the replay
@@ -79,20 +79,24 @@ Print the narrative to the terminal in this shape (write no file):
 
 ```markdown
 # Session Replay
+
 **Workflow**: {summary.workflow_id}
 **Scope**: {summary.scope}
-**Duration**: {summary.duration_minutes} min   (or "in progress")
+**Duration**: {summary.duration_minutes} min (or "in progress")
 **Stages**: {summary.stages.approved} approved / {summary.stages.total} total
 
 ## Executive Summary
+
 {3-5 sentences: what was built or decided, key choices, constraints, outcome}
 
 ## Timeline
+
 {For each phase in summary.by_phase, in workflow order:}
 
-### {Phase} Phase  —  {by_phase[phase].approved}/{by_phase[phase].total} stages approved
+### {Phase} Phase — {by_phase[phase].approved}/{by_phase[phase].total} stages approved
 
 #### {Stage Name}
+
 **What happened**: {1-2 sentences from the audit trail}
 **Key decisions**: {bullets, with reasoning drawn from the audit shards}
 **Artefacts produced**: {list with one-line descriptions}
@@ -100,14 +104,17 @@ Print the narrative to the terminal in this shape (write no file):
 {...repeat per stage that executed...}
 
 ## Decisions Register Summary
+
 {Table: decision | alternatives considered | chosen option | rationale}
 
 ## Learnings Captured
+
 From orchestrator: {summary.learnings.from_orchestrator}
 From user additions: {summary.learnings.from_user_addition}
 {Then narrate the notable ones from the stage memory.md diaries.}
 
 ## What's Next
+
 {Outstanding open threads from the last audit entries / open questions}
 ```
 

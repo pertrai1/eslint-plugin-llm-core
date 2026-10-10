@@ -30,7 +30,7 @@ no standalone meaning.
    positional — forwarding it bare would silently drop it). ALSO derive a short
    **`--label`**: a 2-3 word kebab-case essence of what's being built
    (`"I would like to build a simple calculator application"` → `--label
-   "simple calc"`). The label becomes the readable, date-prefixed record dir name
+"simple calc"`). The label becomes the readable, date-prefixed record dir name
    (`<YYMMDD>-simple-calc`); the full `--arguments` text is preserved separately
    in the audit + state. Omit `--label` only when there is no description (the
    tool then falls back to the scope token):

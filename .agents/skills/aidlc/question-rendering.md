@@ -2,8 +2,8 @@
 
 This file defines how THIS harness renders the structured questions that
 `aidlc-common/protocols/stage-protocol.md` § "Structured questions" requires.
-The protocol and stage files are harness-neutral: they say *present a
-structured question* and carry a fenced ` ```question ` spec block. This annex
+The protocol and stage files are harness-neutral: they say _present a
+structured question_ and carry a fenced ` ```question ` spec block. This annex
 is the one place that binds that contract to a concrete mechanism.
 
 ## Never echo the spec (non-negotiable)
@@ -55,17 +55,17 @@ unavailable (flag off, older Codex, headless exec).
 
 Map the spec fields 1:1:
 
-| Spec field | request_user_input field |
-|------------|--------------------------|
-| `prompt` | the question text |
-| `header` | the question header |
-| `options[].label` | option label |
-| `options[].description` | option description |
+| Spec field              | request_user_input field |
+| ----------------------- | ------------------------ |
+| `prompt`                | the question text        |
+| `header`                | the question header      |
+| `options[].label`       | option label             |
+| `options[].description` | option description       |
 
 - When a question has a recommended option, list it FIRST and append
   "(Recommended)" to its label — the tool renders recommended-first natively.
 - The tool auto-appends a "None of the above" escape with a notes field — do
-  NOT add an explicit Other option to the tool call. (Questions *files* still
+  NOT add an explicit Other option to the tool call. (Questions _files_ still
   end every question with `X. Other (please specify)` per protocol §3 — the
   file format is harness-neutral.)
 - Limits: 1–3 questions per call, 2–3 options each. For 4+ options, split

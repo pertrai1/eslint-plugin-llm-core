@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 interface PackageJson {
   private?: boolean;
   scripts?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
 }
 
 async function readPackageJson(
@@ -17,6 +18,13 @@ async function readPackageJson(
 }
 
 describe("tooling scripts", () => {
+  it("preserves the supported ESLint peer range during tooling updates", async () => {
+    const packageJson = await readPackageJson();
+
+    // Raising the consumer minimum requires a compatibility decision, not a dev-tool bump.
+    expect(packageJson.peerDependencies?.eslint).toBe("^10.11.0");
+  });
+
   it("normalizes generated eslint docs with Prettier", async () => {
     const packageJson = await readPackageJson();
     const updateDocsScript = packageJson.scripts?.["update:eslint-docs"];

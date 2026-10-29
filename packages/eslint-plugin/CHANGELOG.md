@@ -1,5 +1,20 @@
 # eslint-plugin-llm-core
 
+## 0.37.2
+
+### Patch Changes
+
+- 38f26c0: Preserve strict boolean comparisons for unknown operands and preserve operator precedence when simplifying proven boolean expressions.
+  
+  Memoize boolean proofs per source file to avoid exponential expansion of shared constant initializers. Preserve strict comparisons on all method calls, whose return types cannot be guaranteed from syntax.
+- 38f26c0: Preserve logical OR composition of established Set.has, RegExp.test, and String.endsWith predicates without assuming custom methods return booleans.
+  
+  Exclude constructor-based boolean proof after explicit global-object mutation or escape, so replaced global constructors cannot produce unsafe strict-comparison suggestions.
+  
+  Treat destructuring, default/rest, and loop assignment targets conservatively when checking global constructor replacement.
+  
+  Keep built-in predicate recognition as a nullish-warning suppression heuristic, separate from strict-comparison type proof, and decline recognition after relevant prototype access or constructor exposure.
+
 ## 0.37.1
 
 ### Patch Changes

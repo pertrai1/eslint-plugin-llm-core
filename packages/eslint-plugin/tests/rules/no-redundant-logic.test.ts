@@ -19,6 +19,14 @@ const comparisonConfig: TSESLint.Linter.ConfigType = [
 
 describe("strict boolean comparison semantics", () => {
   it.each([
+    "[globalThis.Set] = [function () { this.has = () => 1; }]; const result = new Set().has(1) === true; result;",
+    "({ x: globalThis.Set } = { x: function () { this.has = () => 1; } }); const result = new Set().has(1) === true; result;",
+    "({ x: [globalThis.Set] } = { x: [function () { this.has = () => 1; }] }); const result = new Set().has(1) === true; result;",
+    "const replacement = function () { this.has = () => 1; }; [globalThis.Set = replacement] = []; const result = new Set().has(1) === true; result;",
+    "for (globalThis.Set of [function () { this.has = () => 1; }]) {} const result = new Set().has(1) === true; result;",
+    "for ([globalThis.Set] of [[function () { this.has = () => 1; }]]) {} const result = new Set().has(1) === true; result;",
+    "({ x: globalThis.RegExp } = { x: function () { this.test = () => 1; } }); const result = new RegExp().test('x') === true; result;",
+    "[globalThis.String] = [function () { this.endsWith = () => 1; }]; const result = new String().endsWith('x') === true; result;",
     "globalThis.Set = function () { this.has = () => 1; }; const result = new Set().has(1) === true; result;",
     "globalThis.RegExp = function () { this.test = () => 1; }; const result = new RegExp().test('x') === true; result;",
     "globalThis.String = function () { this.endsWith = () => 1; }; const result = new String().endsWith('x') === true; result;",
@@ -29,6 +37,19 @@ describe("strict boolean comparison semantics", () => {
   ])("preserves strict comparison after global replacement: %s", (code) => {
     expect(new TSESLint.Linter().verify(code, comparisonConfig)).toEqual([]);
     expect(runInNewContext(code)).toBe(false);
+  });
+
+  it.each([
+    "[...globalThis.Set] = values; const result = new Set().has(1) === true;",
+    "for (globalThis.Set in values) {} const result = new Set().has(1) === true;",
+  ])("declines proof after an uncertain assignment target: %s", (code) => {
+    expect(new TSESLint.Linter().verify(code, comparisonConfig)).toEqual([]);
+  });
+
+  it("declines proof after deleting an optional global property", () => {
+    const code =
+      "delete globalThis?.Set; const result = new Set().has(1) === true;";
+    expect(new TSESLint.Linter().verify(code, comparisonConfig)).toEqual([]);
   });
 
   it.each([
@@ -111,6 +132,9 @@ describe("strict boolean comparison semantics", () => {
 
 ruleTester.run("no-redundant-logic", rule, {
   valid: [
+    // Transparent TS wrappers can also occur around an assignment target.
+    `[(globalThis.Set as any)] = [replacement]; const result = new Set().has(1) === true;`,
+    `[globalThis.Set!] = [replacement]; const result = new Set().has(1) === true;`,
     // Strict schema checks need literal equality, not truthiness or a changed type.
     `const rejectsAll = schema === false;`,
     `const nullable = schema.nullable === true;`,

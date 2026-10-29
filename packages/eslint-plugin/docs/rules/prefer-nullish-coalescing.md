@@ -64,4 +64,6 @@ This rule does not use type information. It avoids some obvious boolean false po
 
 Built-in recognition assumes standard, unmodified built-ins. Constructor-based proof is disabled when the file explicitly mutates or exposes `globalThis`, `global`, `window`, or `self`, including aliases, computed global-object access, and targets passed to reflective mutation APIs. Unrelated static member reads do not disable proof. Changes from code outside the analyzed file cannot be inferred.
 
+Global-property references inside assignment patterns, default/rest targets, `for-in`/`for-of` targets, TypeScript wrappers, or optional chains conservatively disable constructor proof as well. This includes destructuring assignments whose property target has no immediate assignment-expression parent.
+
 Unknown parameters, computed methods, optional calls, aliases to constructors/objects, and object receivers with other uses remain outside that conservative proof.

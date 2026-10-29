@@ -209,6 +209,23 @@ function hasGlobalObjectMutationOrEscape(
 
     const parent = current.parent;
     if (!parent) return true;
+    // A member can be assigned through a pattern or loop without a direct assignment parent.
+    if (
+      parent.type === AST_NODE_TYPES.ArrayPattern ||
+      parent.type === AST_NODE_TYPES.AssignmentPattern ||
+      parent.type === AST_NODE_TYPES.RestElement ||
+      parent.type === AST_NODE_TYPES.ChainExpression ||
+      parent.type === AST_NODE_TYPES.TSAsExpression ||
+      parent.type === AST_NODE_TYPES.TSNonNullExpression ||
+      parent.type === AST_NODE_TYPES.TSTypeAssertion ||
+      parent.type === AST_NODE_TYPES.TSSatisfiesExpression ||
+      (parent.type === AST_NODE_TYPES.Property &&
+        parent.parent.type === AST_NODE_TYPES.ObjectPattern) ||
+      ((parent.type === AST_NODE_TYPES.ForInStatement ||
+        parent.type === AST_NODE_TYPES.ForOfStatement) &&
+        parent.left === current)
+    )
+      return true;
     if (current === reference.identifier) {
       if (
         parent.type === AST_NODE_TYPES.UnaryExpression &&

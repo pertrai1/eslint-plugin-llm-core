@@ -21,6 +21,22 @@ const predicateConfig: TSESLint.Linter.ConfigType = [
 describe("built-in predicate OR semantics", () => {
   it.each([
     [
+      "[globalThis.Set] = [custom]; return new Set().has(name) || fallback();",
+      "[globalThis.Set] = [custom]; return new Set().has(name) ?? fallback();",
+    ],
+    [
+      "({ x: globalThis.Set } = source); return new Set().has(name) || fallback();",
+      "({ x: globalThis.Set } = source); return new Set().has(name) ?? fallback();",
+    ],
+    [
+      "for (globalThis.Set of values) {} return new Set().has(name) || fallback();",
+      "for (globalThis.Set of values) {} return new Set().has(name) ?? fallback();",
+    ],
+    [
+      "for (globalThis.Set in values) {} return new Set().has(name) || fallback();",
+      "for (globalThis.Set in values) {} return new Set().has(name) ?? fallback();",
+    ],
+    [
       "globalThis.Set = custom; return new Set().has(name) || fallback();",
       "globalThis.Set = custom; return new Set().has(name) ?? fallback();",
     ],

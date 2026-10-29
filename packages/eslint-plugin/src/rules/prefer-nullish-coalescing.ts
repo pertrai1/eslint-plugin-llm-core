@@ -1,14 +1,9 @@
-import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
+import { isBooleanExpression } from "../utils/is-boolean-expression";
 
 type MessageIds = "preferNullishCoalescing" | "useNullishCoalescing";
-
-function isBooleanLiteral(node: TSESTree.Node): boolean {
-  return (
-    node.type === AST_NODE_TYPES.Literal && typeof node.value === "boolean"
-  );
-}
 
 function isBooleanNamed(name: string): boolean {
   return /^(is|has|can|should|will|was|were|did)[A-Z_]/.test(name);
@@ -31,8 +26,11 @@ function hasLogicalOperand(node: TSESTree.LogicalExpression): boolean {
   );
 }
 
-function isBooleanishExpression(node: TSESTree.Node): boolean {
-  if (isBooleanLiteral(node)) return true;
+function isBooleanishExpression(
+  node: TSESTree.Node,
+  sourceCode: Readonly<TSESLint.SourceCode>,
+): boolean {
+  if (isBooleanExpression(node, sourceCode)) return true;
 
   if (node.type === AST_NODE_TYPES.Identifier) {
     return isBooleanNamed(node.name);
@@ -43,26 +41,7 @@ function isBooleanishExpression(node: TSESTree.Node): boolean {
   }
 
   if (node.type === AST_NODE_TYPES.ChainExpression) {
-    return isBooleanishExpression(node.expression);
-  }
-
-  if (node.type === AST_NODE_TYPES.UnaryExpression && node.operator === "!") {
-    return true;
-  }
-
-  if (node.type === AST_NODE_TYPES.BinaryExpression) {
-    return [
-      "===",
-      "!==",
-      "==",
-      "!=",
-      ">",
-      ">=",
-      "<",
-      "<=",
-      "in",
-      "instanceof",
-    ].includes(node.operator);
+    return isBooleanishExpression(node.expression, sourceCode);
   }
 
   if (node.type === AST_NODE_TYPES.CallExpression) {
@@ -82,8 +61,11 @@ function isBooleanishExpression(node: TSESTree.Node): boolean {
   return false;
 }
 
-function isFallbackCandidate(node: TSESTree.Node): boolean {
-  if (isBooleanishExpression(node)) return false;
+function isFallbackCandidate(
+  node: TSESTree.Node,
+  sourceCode: Readonly<TSESLint.SourceCode>,
+): boolean {
+  if (isBooleanishExpression(node, sourceCode)) return false;
 
   return (
     node.type === AST_NODE_TYPES.Literal ||
@@ -152,8 +134,8 @@ export default createRule<[], MessageIds>({
         if (node.operator !== "||") return;
         if (isBooleanContext(node)) return;
         if (hasLogicalOperand(node)) return;
-        if (isBooleanishExpression(node.left)) return;
-        if (!isFallbackCandidate(node.right)) return;
+        if (isBooleanishExpression(node.left, sourceCode)) return;
+        if (!isFallbackCandidate(node.right, sourceCode)) return;
 
         context.report({
           node,

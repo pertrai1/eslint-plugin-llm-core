@@ -61,6 +61,9 @@ describe("strict boolean comparison semantics", () => {
     ["false !== (!value)", "!value", 1, false],
     ["(value > 0) === true", "(value > 0)", 1, true],
     ["(value > 0) === false", "!(value > 0)", 1, false],
+    ["new Set().has(value) === false", "!new Set().has(value)", 1, true],
+    ["(/x/.test(value)) === true", "/x/.test(value)", 1, false],
+    ["'x'.endsWith(value) === false", "!'x'.endsWith(value)", 0, true],
   ])(
     "preserves value and type when simplifying %s",
     (expression, replacement, value, expected) => {

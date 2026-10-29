@@ -1,6 +1,8 @@
 import { RuleTester } from "@typescript-eslint/rule-tester";
+import { TSESLint } from "@typescript-eslint/utils";
+import { runInNewContext } from "node:vm";
 import rule from "../../src/rules/prefer-nullish-coalescing";
-import { describe, it, afterAll } from "vitest";
+import { describe, it, afterAll, expect } from "vitest";
 
 RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
@@ -8,8 +10,136 @@ RuleTester.it = it;
 
 const ruleTester = new RuleTester();
 
+const predicateConfig: TSESLint.Linter.ConfigType = [
+  {
+    languageOptions: { sourceType: "commonjs" },
+    plugins: { test: { rules: { predicate: rule } } },
+    rules: { "test/predicate": "error" },
+  },
+];
+
+describe("built-in predicate OR semantics", () => {
+  it.each([
+    [
+      "function f(Set) { return new Set().has(name) || fallback(); }",
+      "function f(Set) { return new Set().has(name) ?? fallback(); }",
+    ],
+    [
+      "function f(RegExp) { return new RegExp().test(name) || fallback(); }",
+      "function f(RegExp) { return new RegExp().test(name) ?? fallback(); }",
+    ],
+    [
+      "function f(String) { return new String().endsWith(name) || fallback(); }",
+      "function f(String) { return new String().endsWith(name) ?? fallback(); }",
+    ],
+    [
+      "const names = { has() { return 0; } }; return names.has(name) || fallback();",
+      "const names = { has() { return 0; } }; return names.has(name) ?? fallback();",
+    ],
+    [
+      "const pattern = { test() { return null; } }; return pattern.test(name) || fallback();",
+      "const pattern = { test() { return null; } }; return pattern.test(name) ?? fallback();",
+    ],
+    [
+      'const value = { endsWith() { return ""; } }; return input || value.endsWith(name);',
+      'const value = { endsWith() { return ""; } }; return input ?? value.endsWith(name);',
+    ],
+    [
+      "let names = new Set(); names = custom; return names.has(name) || fallback();",
+      "let names = new Set(); names = custom; return names.has(name) ?? fallback();",
+    ],
+    [
+      "const names = new Set(); names.has = custom; return names.has(name) || fallback();",
+      "const names = new Set(); names.has = custom; return names.has(name) ?? fallback();",
+    ],
+    [
+      "const names = new Set(); const alias = names; alias.has = custom; return names.has(name) || fallback();",
+      "const names = new Set(); const alias = names; alias.has = custom; return names.has(name) ?? fallback();",
+    ],
+    [
+      "const pattern = /x/; change(pattern); return pattern.test(name) || fallback();",
+      "const pattern = /x/; change(pattern); return pattern.test(name) ?? fallback();",
+    ],
+    ["return input || custom.has(name);", "return input ?? custom.has(name);"],
+    [
+      "return input || custom.test(name);",
+      "return input ?? custom.test(name);",
+    ],
+    [
+      "return input || custom.endsWith(name);",
+      "return input ?? custom.endsWith(name);",
+    ],
+  ])("retains fallback policy without built-in proof: %s", (code, expected) => {
+    const messages = new TSESLint.Linter().verify(code, predicateConfig);
+    expect(messages).toHaveLength(1);
+    expect(messages[0]?.messageId).toBe("preferNullishCoalescing");
+    const fix = messages[0]!.suggestions![0]!.fix;
+    expect(
+      code.slice(0, fix.range[0]) + fix.text + code.slice(fix.range[1]),
+    ).toBe(expected);
+  });
+
+  it.each([
+    ["exact_trace_id", true, true, true],
+    ["exact", true, false, true],
+    ["custom_trace_id", false, true, true],
+    ["other", false, false, false],
+  ])(
+    "preserves initializer predicates for %s",
+    (name, left, right, expected) => {
+      const code = `
+      const knownNames = new Set(["exact", "exact_trace_id"]);
+      const suffixPattern = /_trace_id$/;
+      const name = ${JSON.stringify(name)};
+      const matches = knownNames.has(name) || suffixPattern.test(name);
+      const technical = knownNames.has(name) || name.endsWith("_trace_id");
+      [knownNames.has(name), suffixPattern.test(name), name.endsWith("_trace_id"), matches, technical];
+    `;
+      expect(new TSESLint.Linter().verify(code, predicateConfig)).toEqual([]);
+      expect(runInNewContext(code)).toEqual([
+        left,
+        right,
+        right,
+        expected,
+        expected,
+      ]);
+    },
+  );
+
+  it.each([
+    ["exact_trace_id", true],
+    ["exact", true],
+    ["custom_trace_id", true],
+    ["other", false],
+  ])("preserves return predicates for %s", (name, expected) => {
+    const code = `
+      function matches(name) {
+        const knownNames = new Set(["exact", "exact_trace_id"]);
+        const suffixPattern = /_trace_id$/;
+        return knownNames.has(name) || suffixPattern.test(name);
+      }
+      function technical(name) {
+        const knownNames = new Set(["exact", "exact_trace_id"]);
+        return knownNames.has(name) || name.endsWith("_trace_id");
+      }
+      [matches(${JSON.stringify(name)}), technical(${JSON.stringify(name)})];
+    `;
+    expect(new TSESLint.Linter().verify(code, predicateConfig)).toEqual([]);
+    expect(runInNewContext(code)).toEqual([expected, expected]);
+  });
+});
+
 ruleTester.run("prefer-nullish-coalescing", rule, {
   valid: [
+    // Actual built-in predicates are boolean even without boolean-like names.
+    `const knownNames = new Set(); const suffixPattern = /_token$/; const name = 'custom_token'; const matches = knownNames.has(name) || suffixPattern.test(name);`,
+    `const names = new Set(input); return names.has(name) || name.endsWith('_trace_id');`,
+    `return new Set(input).has(name) || fallback();`,
+    `return /_token$/.test(name) || fallback();`,
+    `const pattern = new RegExp(input); return pattern.test(name) || fallback();`,
+    `const name = 'x'; consume(name); return name.endsWith('x') || fallback();`,
+    `return input || 'x'.endsWith('x');`,
+    'const name = `prefix-${input}`; return name.endsWith("x") || fallback();',
     // Already preserves valid falsy values.
     `const name = input ?? "Unknown";`,
     `const count = value ?? 10;`,

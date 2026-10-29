@@ -1,5 +1,13 @@
 # llm-core-quality
 
+## 0.1.9
+
+### Patch Changes
+
+- Updated dependencies [38f26c0]
+- Updated dependencies [38f26c0]
+  - eslint-plugin-llm-core@0.37.2
+
 ## 0.1.8
 
 ### Patch Changes

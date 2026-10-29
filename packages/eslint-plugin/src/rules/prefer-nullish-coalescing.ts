@@ -1,7 +1,10 @@
 import { AST_NODE_TYPES, TSESLint, TSESTree } from "@typescript-eslint/utils";
 import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
-import { isBooleanExpression } from "../utils/is-boolean-expression";
+import {
+  isBooleanExpression,
+  isBuiltinPredicateCall,
+} from "../utils/is-boolean-expression";
 
 type MessageIds = "preferNullishCoalescing" | "useNullishCoalescing";
 
@@ -45,6 +48,7 @@ function isBooleanishExpression(
   }
 
   if (node.type === AST_NODE_TYPES.CallExpression) {
+    if (isBuiltinPredicateCall(node, sourceCode)) return true;
     const callee = node.callee;
     if (callee.type === AST_NODE_TYPES.Identifier) {
       return isBooleanNamed(callee.name);

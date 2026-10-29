@@ -19,7 +19,35 @@ const predicateConfig: TSESLint.Linter.ConfigType = [
 ];
 
 describe("built-in predicate OR semantics", () => {
+  it("checks prototype exposure even when a constructor global is unresolved", () => {
+    const config: TSESLint.Linter.ConfigType = [
+      ...predicateConfig,
+      { languageOptions: { globals: { Set: "off" } } },
+    ];
+    const code = "return new Set().has(name) || fallback();";
+    expect(new TSESLint.Linter().verify(code, config)).toEqual([]);
+    const messages = new TSESLint.Linter().verify(
+      "Set.prototype.has = custom; " + code,
+      config,
+    );
+    expect(messages).toHaveLength(1);
+    expect(messages[0]?.messageId).toBe("preferNullishCoalescing");
+    expect(messages[0]?.suggestions?.[0]?.fix.text).toBe("??");
+  });
+
   it.each([
+    [
+      "Set.prototype.has = custom; return new Set().has(name) || fallback();",
+      "Set.prototype.has = custom; return new Set().has(name) ?? fallback();",
+    ],
+    [
+      "RegExp.prototype.test = custom; return /x/.test(name) || fallback();",
+      "RegExp.prototype.test = custom; return /x/.test(name) ?? fallback();",
+    ],
+    [
+      "String.prototype.endsWith = custom; return 'x'.endsWith(name) || fallback();",
+      "String.prototype.endsWith = custom; return 'x'.endsWith(name) ?? fallback();",
+    ],
     [
       "[globalThis.Set] = [custom]; return new Set().has(name) || fallback();",
       "[globalThis.Set] = [custom]; return new Set().has(name) ?? fallback();",
@@ -171,6 +199,8 @@ describe("built-in predicate OR semantics", () => {
 
 ruleTester.run("prefer-nullish-coalescing", rule, {
   valid: [
+    `String.fromCharCode(120); return 'x'.endsWith(name) || fallback();`,
+    `const RegExp = custom; RegExp.prototype.test = customTest; return /x/.test(name) || fallback();`,
     // Unrelated reads and a locally shadowed global-object name do not taint constructors.
     `globalThis.console.log('x'); return new Set().has(name) || fallback();`,
     `const globalThis = {}; globalThis.Set = custom; return new Set().has(name) || fallback();`,

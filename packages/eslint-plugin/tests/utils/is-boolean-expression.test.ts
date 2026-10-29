@@ -87,6 +87,15 @@ describe("boolean proof traversal", () => {
     expect(result.repeatedScopeLookups).toBe(0);
   });
 
+  it("does not prove mutable method calls return booleans", () => {
+    const result = measureProofs(
+      "const result = new Set().has(input) === true;",
+    );
+    expect(result.messages).toEqual([]);
+    expect(result.proofs).toEqual([false, false]);
+    expect(result.repeatedScopeLookups).toBe(0);
+  });
+
   it("keeps proofs isolated between source files", () => {
     const known = measureProofs(
       "const flag = true; const result = flag === true;",

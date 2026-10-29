@@ -19,6 +19,28 @@ const comparisonConfig: TSESLint.Linter.ConfigType = [
 
 describe("strict boolean comparison semantics", () => {
   it.each([
+    ["new Set().has(value) === false", 1, true],
+    ["(/x/.test(value)) === true", 1, false],
+    ["'x'.endsWith(value) === false", 0, true],
+  ])(
+    "preserves native-looking call comparisons: %s",
+    (expression, value, expected) => {
+      const code = `const result = ${expression}; result;`;
+      expect(new TSESLint.Linter().verify(code, comparisonConfig)).toEqual([]);
+      expect(runInNewContext(code, { value })).toBe(expected);
+    },
+  );
+
+  it.each([
+    "Set.prototype.has = () => 1; const result = new Set().has(1) === true; result;",
+    "RegExp.prototype.test = () => 1; const result = new RegExp().test('x') === true; result;",
+    "RegExp.prototype.test = () => 1; const result = /x/.test('x') === true; result;",
+    "String.prototype.endsWith = () => 1; const result = new String().endsWith('x') === true; result;",
+    "String.prototype.endsWith = () => 1; const result = 'x'.endsWith('x') === true; result;",
+    "const prototype = Set.prototype; prototype.has = () => 1; const result = new Set().has(1) === true; result;",
+    "Object.defineProperty(Set.prototype, 'has', { value: () => 1 }); const result = new Set().has(1) === true; result;",
+    "const Constructor = String; Constructor.prototype.endsWith = () => 1; const result = 'x'.endsWith('x') === true; result;",
+    "globalThis.String.prototype.endsWith = () => 1; const result = 'x'.endsWith('x') === true; result;",
     "[globalThis.Set] = [function () { this.has = () => 1; }]; const result = new Set().has(1) === true; result;",
     "({ x: globalThis.Set } = { x: function () { this.has = () => 1; } }); const result = new Set().has(1) === true; result;",
     "({ x: [globalThis.Set] } = { x: [function () { this.has = () => 1; }] }); const result = new Set().has(1) === true; result;",
@@ -95,9 +117,6 @@ describe("strict boolean comparison semantics", () => {
     ["false !== (!value)", "!value", 1, false],
     ["(value > 0) === true", "(value > 0)", 1, true],
     ["(value > 0) === false", "!(value > 0)", 1, false],
-    ["new Set().has(value) === false", "!new Set().has(value)", 1, true],
-    ["(/x/.test(value)) === true", "/x/.test(value)", 1, false],
-    ["'x'.endsWith(value) === false", "!'x'.endsWith(value)", 0, true],
   ])(
     "preserves value and type when simplifying %s",
     (expression, replacement, value, expected) => {

@@ -20,6 +20,8 @@ It also recognizes `Set.has`, `RegExp.test`, and `String.endsWith` when syntax a
 
 This applies to both variable initializers and return statements. Arbitrary methods named `has`, `test`, or `endsWith` are not assumed to return booleans.
 
+Built-in call recognition is a heuristic used only to suppress likely default-value warnings. It is not a return-type guarantee and is never used to remove strict boolean comparisons. Explicit access to the relevant built-in prototype, constructor aliases, or constructor values passed elsewhere disables that heuristic. Unrelated static reads and direct construction/calls remain supported.
+
 ## Examples
 
 ### Incorrect

@@ -69,9 +69,6 @@ function computeBooleanExpression(
       isBooleanExpression(node.right, sourceCode)
     );
   }
-  if (node.type === AST_NODE_TYPES.CallExpression) {
-    return isBuiltinPredicateCall(node, sourceCode);
-  }
   if (node.type !== AST_NODE_TYPES.Identifier) return false;
 
   const binding = getConstInitializer(node, sourceCode);
@@ -107,7 +104,8 @@ function getConstInitializer(
   return { initializer: definition.node.init, variable };
 }
 
-function isBuiltinPredicateCall(
+/** A heuristic for suppressing default-value diagnostics, not a return-type proof. */
+export function isBuiltinPredicateCall(
   node: TSESTree.CallExpression,
   sourceCode: Readonly<TSESLint.SourceCode>,
 ): boolean {
@@ -169,6 +167,12 @@ function isBuiltinPredicateCall(
       return false;
   }
 
+  if (
+    hasGlobalObjectMutationOrEscape(sourceCode) ||
+    hasBuiltinConstructorExposure(sourceCode, constructor)
+  )
+    return false;
+
   if (receiver.type === AST_NODE_TYPES.Literal) {
     return (
       (constructor === "String" && typeof receiver.value === "string") ||
@@ -185,8 +189,6 @@ function isBuiltinPredicateCall(
   )
     return false;
 
-  if (hasGlobalObjectMutationOrEscape(sourceCode)) return false;
-
   const global = ASTUtils.findVariable(
     sourceCode.getScope(receiver.callee),
     receiver.callee,
@@ -196,6 +198,40 @@ function isBuiltinPredicateCall(
     (global.defs.length === 0 &&
       !global.references.some((reference) => reference.isWrite()))
   );
+}
+
+function hasBuiltinConstructorExposure(
+  sourceCode: Readonly<TSESLint.SourceCode>,
+  constructor: string,
+): boolean {
+  const globalScope = sourceCode.scopeManager?.globalScope;
+  if (!globalScope) return true;
+  const references =
+    globalScope.set.get(constructor)?.references ??
+    globalScope.through.filter(
+      (reference) => reference.identifier.name === constructor,
+    );
+  return references.some((reference) => {
+    const node = reference.identifier;
+    const parent = node.parent;
+    if (
+      parent.type === AST_NODE_TYPES.MemberExpression &&
+      parent.object === node
+    ) {
+      return (
+        parent.computed ||
+        (parent.property.type === AST_NODE_TYPES.Identifier &&
+          parent.property.name === "prototype")
+      );
+    }
+    return !(
+      ((parent.type === AST_NODE_TYPES.NewExpression ||
+        parent.type === AST_NODE_TYPES.CallExpression) &&
+        parent.callee === node) ||
+      (parent.type === AST_NODE_TYPES.UnaryExpression &&
+        (parent.operator === "typeof" || parent.operator === "void"))
+    );
+  });
 }
 
 function hasGlobalObjectMutationOrEscape(

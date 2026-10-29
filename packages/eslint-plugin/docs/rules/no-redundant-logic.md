@@ -20,7 +20,7 @@ Only strict equality (`===`/`!==`) is flagged. Loose equality (`==`/`!=`) has di
 
 The operand must be provably boolean from syntax: a boolean literal, a negation, a comparison, a logical expression with boolean operands, or a `const` initialized from one of these expressions. Names such as `isActive`, type annotations, and type assertions are not proof. Unknown inputs and properties retain their strict comparisons, including outside conditional tests.
 
-The same proof recognizes `Set.has`, `RegExp.test`, and `String.endsWith` on established built-in receivers under the [conservative receiver restrictions](./prefer-nullish-coalescing.md#rule-details). This assumes standard, unmodified built-in prototypes. Expressions inside dynamic `with` scopes are excluded from proof.
+The same proof recognizes `Set.has`, `RegExp.test`, and `String.endsWith` on established built-in receivers under the [conservative receiver restrictions](./prefer-nullish-coalescing.md#rule-details). Built-ins must have their standard behavior. Explicit global-object mutations or escapes disable constructor-based proof; changes from code outside the analyzed file cannot be inferred. Expressions inside dynamic `with` scopes are excluded from proof.
 
 #### Incorrect
 

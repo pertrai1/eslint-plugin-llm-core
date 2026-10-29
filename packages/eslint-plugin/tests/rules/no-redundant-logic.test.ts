@@ -19,6 +19,19 @@ const comparisonConfig: TSESLint.Linter.ConfigType = [
 
 describe("strict boolean comparison semantics", () => {
   it.each([
+    "globalThis.Set = function () { this.has = () => 1; }; const result = new Set().has(1) === true; result;",
+    "globalThis.RegExp = function () { this.test = () => 1; }; const result = new RegExp().test('x') === true; result;",
+    "globalThis.String = function () { this.endsWith = () => 1; }; const result = new String().endsWith('x') === true; result;",
+    "globalThis.Boolean = () => 1; const result = Boolean(1) === true; result;",
+    "globalThis['Set'] = function () { this.has = () => 1; }; const result = new Set().has(1) === true; result;",
+    "const runtime = globalThis; runtime.Set = function () { this.has = () => 1; }; const result = new Set().has(1) === true; result;",
+    "Object.defineProperty(globalThis, 'Set', { value: function () { this.has = () => 1; } }); const result = new Set().has(1) === true; result;",
+  ])("preserves strict comparison after global replacement: %s", (code) => {
+    expect(new TSESLint.Linter().verify(code, comparisonConfig)).toEqual([]);
+    expect(runInNewContext(code)).toBe(false);
+  });
+
+  it.each([
     "const flag = true; with (custom) { const result = flag === true; }",
     "with (custom) { const result = new Set().has(value) === true; }",
   ])("does not infer booleans through dynamic with bindings: %s", (code) => {

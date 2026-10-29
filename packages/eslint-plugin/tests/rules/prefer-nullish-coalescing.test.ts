@@ -21,6 +21,30 @@ const predicateConfig: TSESLint.Linter.ConfigType = [
 describe("built-in predicate OR semantics", () => {
   it.each([
     [
+      "globalThis.Set = custom; return new Set().has(name) || fallback();",
+      "globalThis.Set = custom; return new Set().has(name) ?? fallback();",
+    ],
+    [
+      "globalThis.RegExp = custom; return new RegExp().test(name) || fallback();",
+      "globalThis.RegExp = custom; return new RegExp().test(name) ?? fallback();",
+    ],
+    [
+      "globalThis.String = custom; return new String().endsWith(name) || fallback();",
+      "globalThis.String = custom; return new String().endsWith(name) ?? fallback();",
+    ],
+    [
+      "global.Set = custom; return new Set().has(name) || fallback();",
+      "global.Set = custom; return new Set().has(name) ?? fallback();",
+    ],
+    [
+      "window.Set = custom; return new Set().has(name) || fallback();",
+      "window.Set = custom; return new Set().has(name) ?? fallback();",
+    ],
+    [
+      "self.Set = custom; return new Set().has(name) || fallback();",
+      "self.Set = custom; return new Set().has(name) ?? fallback();",
+    ],
+    [
       "function f(Set) { return new Set().has(name) || fallback(); }",
       "function f(Set) { return new Set().has(name) ?? fallback(); }",
     ],
@@ -131,6 +155,9 @@ describe("built-in predicate OR semantics", () => {
 
 ruleTester.run("prefer-nullish-coalescing", rule, {
   valid: [
+    // Unrelated reads and a locally shadowed global-object name do not taint constructors.
+    `globalThis.console.log('x'); return new Set().has(name) || fallback();`,
+    `const globalThis = {}; globalThis.Set = custom; return new Set().has(name) || fallback();`,
     // Actual built-in predicates are boolean even without boolean-like names.
     `const knownNames = new Set(); const suffixPattern = /_token$/; const name = 'custom_token'; const matches = knownNames.has(name) || suffixPattern.test(name);`,
     `const names = new Set(input); return names.has(name) || name.endsWith('_trace_id');`,

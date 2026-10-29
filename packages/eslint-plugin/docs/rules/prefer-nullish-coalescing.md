@@ -62,4 +62,6 @@ const technical = knownNames.has(name) || name.endsWith("_trace_id");
 
 This rule does not use type information. It avoids some obvious boolean false positives, but it cannot know the runtime type of every expression. It also skips chained logical expressions where a safe suggestion would require restructuring parentheses or converting the whole chain.
 
-Built-in recognition assumes standard, unmodified built-in prototypes. Unknown parameters, computed methods, optional calls, aliases to constructors/objects, and object receivers with other uses remain outside that conservative proof.
+Built-in recognition assumes standard, unmodified built-ins. Constructor-based proof is disabled when the file explicitly mutates or exposes `globalThis`, `global`, `window`, or `self`, including aliases, computed global-object access, and targets passed to reflective mutation APIs. Unrelated static member reads do not disable proof. Changes from code outside the analyzed file cannot be inferred.
+
+Unknown parameters, computed methods, optional calls, aliases to constructors/objects, and object receivers with other uses remain outside that conservative proof.

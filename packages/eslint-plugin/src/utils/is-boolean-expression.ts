@@ -161,6 +161,8 @@ function isBuiltinPredicateCall(
   )
     return false;
 
+  if (hasGlobalObjectMutationOrEscape(sourceCode)) return false;
+
   const global = ASTUtils.findVariable(
     sourceCode.getScope(receiver.callee),
     receiver.callee,
@@ -170,4 +172,62 @@ function isBuiltinPredicateCall(
     (global.defs.length === 0 &&
       !global.references.some((reference) => reference.isWrite()))
   );
+}
+
+function hasGlobalObjectMutationOrEscape(
+  sourceCode: Readonly<TSESLint.SourceCode>,
+): boolean {
+  const globalScope = sourceCode.scopeManager?.globalScope;
+  if (!globalScope) return true;
+
+  const globalNames = ["globalThis", "global", "window", "self"];
+  const references = [
+    ...globalScope.through.filter((reference) =>
+      globalNames.includes(reference.identifier.name),
+    ),
+    ...globalNames.flatMap(
+      (name) => globalScope.set.get(name)?.references ?? [],
+    ),
+  ];
+
+  for (const reference of references) {
+    let current: TSESTree.Node = reference.identifier;
+    while (
+      current.parent?.type === AST_NODE_TYPES.MemberExpression &&
+      current.parent.object === current
+    ) {
+      const member: TSESTree.MemberExpression = current.parent;
+      // Computed access or a global-object alias can expose the global itself.
+      if (
+        member.computed ||
+        (member.property.type === AST_NODE_TYPES.Identifier &&
+          globalNames.includes(member.property.name))
+      )
+        return true;
+      current = member;
+    }
+
+    const parent = current.parent;
+    if (!parent) return true;
+    if (current === reference.identifier) {
+      if (
+        parent.type === AST_NODE_TYPES.UnaryExpression &&
+        (parent.operator === "typeof" || parent.operator === "void")
+      )
+        continue;
+      // Includes aliases, Object.assign/defineProperty, and Reflect.set targets.
+      return true;
+    }
+    if (
+      (parent.type === AST_NODE_TYPES.AssignmentExpression &&
+        parent.left === current) ||
+      (parent.type === AST_NODE_TYPES.UpdateExpression &&
+        parent.argument === current) ||
+      (parent.type === AST_NODE_TYPES.UnaryExpression &&
+        parent.operator === "delete" &&
+        parent.argument === current)
+    )
+      return true;
+  }
+  return false;
 }

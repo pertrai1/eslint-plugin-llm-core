@@ -5,8 +5,32 @@ import {
   TSESTree,
 } from "@typescript-eslint/utils";
 
+const booleanProofs = new WeakMap<
+  Readonly<TSESLint.SourceCode>,
+  WeakMap<TSESTree.Node, boolean>
+>();
+
 /** Prove a boolean result without relying on names, annotations, or assertions. */
 export function isBooleanExpression(
+  node: TSESTree.Node,
+  sourceCode: Readonly<TSESLint.SourceCode>,
+): boolean {
+  let proofs = booleanProofs.get(sourceCode);
+  if (!proofs) {
+    proofs = new WeakMap();
+    booleanProofs.set(sourceCode, proofs);
+  }
+  const cached = proofs.get(node);
+  if (cached !== undefined) return cached;
+
+  // An unfinished proof is unknown; recursive re-entry must remain conservative.
+  proofs.set(node, false);
+  const result = computeBooleanExpression(node, sourceCode);
+  proofs.set(node, result);
+  return result;
+}
+
+function computeBooleanExpression(
   node: TSESTree.Node,
   sourceCode: Readonly<TSESLint.SourceCode>,
 ): boolean {

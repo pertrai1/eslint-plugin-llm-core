@@ -18,11 +18,18 @@ Explicit `=== true`, `!== true`, `=== false`, or `!== false` comparisons on an e
 
 Only strict equality (`===`/`!==`) is flagged. Loose equality (`==`/`!=`) has different truthy/falsy semantics and is intentionally excluded.
 
-> **Known limitation:** This rule does not use type information. If the compared expression is a union type (e.g., `string | boolean`), the `=== true` comparison may be intentional type narrowing, not a redundant check. Disable the rule on that line if this applies.
+The operand must be provably boolean from syntax: a boolean literal, a negation, a comparison, a logical expression with boolean operands, or a `const` initialized from one of these expressions. Names such as `isActive`, type annotations, and type assertions are not proof. Unknown inputs and properties retain their strict comparisons, including outside conditional tests.
+
+Calls do not establish a boolean return type, including native-looking predicates such as `Set.has`, `RegExp.test`, and `String.endsWith`: their methods and prototypes can be replaced. Strict comparisons on calls are preserved. Negation and comparison operators still guarantee boolean results. Expressions inside dynamic `with` scopes are excluded from proof.
 
 #### Incorrect
 
 ```ts
+const isActive = status === "active";
+const isValid = errors.length === 0;
+const hasPermission = permissions.length > 0;
+const running = !stopped;
+
 if (isActive === true) {
 }
 if (isValid !== true) {
@@ -42,6 +49,10 @@ if (!isValid) {
 if (!hasPermission) {
 }
 while (running) {}
+
+// These checks distinguish literal booleans from other falsy/truthy values.
+const rejectsAll = schema === false;
+const nullable = schema.nullable === true;
 ```
 
 ### Pattern 2 — Unnecessary else after return/throw

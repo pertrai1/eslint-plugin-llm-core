@@ -1,6 +1,8 @@
 import { RuleTester } from "@typescript-eslint/rule-tester";
+import { TSESLint } from "@typescript-eslint/utils";
+import { runInNewContext } from "node:vm";
 import rule from "../../src/rules/no-redundant-logic";
-import { describe, it, afterAll } from "vitest";
+import { describe, it, afterAll, expect } from "vitest";
 
 RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
@@ -8,8 +10,169 @@ RuleTester.it = it;
 
 const ruleTester = new RuleTester();
 
+const comparisonConfig: TSESLint.Linter.ConfigType = [
+  {
+    plugins: { test: { rules: { comparison: rule } } },
+    rules: { "test/comparison": "error" },
+  },
+];
+
+describe("strict boolean comparison semantics", () => {
+  it.each([
+    ["new Set().has(value) === false", 1, true],
+    ["(/x/.test(value)) === true", 1, false],
+    ["'x'.endsWith(value) === false", 0, true],
+  ])(
+    "preserves native-looking call comparisons: %s",
+    (expression, value, expected) => {
+      const code = `const result = ${expression}; result;`;
+      expect(new TSESLint.Linter().verify(code, comparisonConfig)).toEqual([]);
+      expect(runInNewContext(code, { value })).toBe(expected);
+    },
+  );
+
+  it.each([
+    "Set.prototype.has = () => 1; const result = new Set().has(1) === true; result;",
+    "RegExp.prototype.test = () => 1; const result = new RegExp().test('x') === true; result;",
+    "RegExp.prototype.test = () => 1; const result = /x/.test('x') === true; result;",
+    "String.prototype.endsWith = () => 1; const result = new String().endsWith('x') === true; result;",
+    "String.prototype.endsWith = () => 1; const result = 'x'.endsWith('x') === true; result;",
+    "const prototype = Set.prototype; prototype.has = () => 1; const result = new Set().has(1) === true; result;",
+    "Object.defineProperty(Set.prototype, 'has', { value: () => 1 }); const result = new Set().has(1) === true; result;",
+    "const Constructor = String; Constructor.prototype.endsWith = () => 1; const result = 'x'.endsWith('x') === true; result;",
+    "globalThis.String.prototype.endsWith = () => 1; const result = 'x'.endsWith('x') === true; result;",
+    "[globalThis.Set] = [function () { this.has = () => 1; }]; const result = new Set().has(1) === true; result;",
+    "({ x: globalThis.Set } = { x: function () { this.has = () => 1; } }); const result = new Set().has(1) === true; result;",
+    "({ x: [globalThis.Set] } = { x: [function () { this.has = () => 1; }] }); const result = new Set().has(1) === true; result;",
+    "const replacement = function () { this.has = () => 1; }; [globalThis.Set = replacement] = []; const result = new Set().has(1) === true; result;",
+    "for (globalThis.Set of [function () { this.has = () => 1; }]) {} const result = new Set().has(1) === true; result;",
+    "for ([globalThis.Set] of [[function () { this.has = () => 1; }]]) {} const result = new Set().has(1) === true; result;",
+    "({ x: globalThis.RegExp } = { x: function () { this.test = () => 1; } }); const result = new RegExp().test('x') === true; result;",
+    "[globalThis.String] = [function () { this.endsWith = () => 1; }]; const result = new String().endsWith('x') === true; result;",
+    "globalThis.Set = function () { this.has = () => 1; }; const result = new Set().has(1) === true; result;",
+    "globalThis.RegExp = function () { this.test = () => 1; }; const result = new RegExp().test('x') === true; result;",
+    "globalThis.String = function () { this.endsWith = () => 1; }; const result = new String().endsWith('x') === true; result;",
+    "globalThis.Boolean = () => 1; const result = Boolean(1) === true; result;",
+    "globalThis['Set'] = function () { this.has = () => 1; }; const result = new Set().has(1) === true; result;",
+    "const runtime = globalThis; runtime.Set = function () { this.has = () => 1; }; const result = new Set().has(1) === true; result;",
+    "Object.defineProperty(globalThis, 'Set', { value: function () { this.has = () => 1; } }); const result = new Set().has(1) === true; result;",
+  ])("preserves strict comparison after global replacement: %s", (code) => {
+    expect(new TSESLint.Linter().verify(code, comparisonConfig)).toEqual([]);
+    expect(runInNewContext(code)).toBe(false);
+  });
+
+  it.each([
+    "[...globalThis.Set] = values; const result = new Set().has(1) === true;",
+    "for (globalThis.Set in values) {} const result = new Set().has(1) === true;",
+  ])("declines proof after an uncertain assignment target: %s", (code) => {
+    expect(new TSESLint.Linter().verify(code, comparisonConfig)).toEqual([]);
+  });
+
+  it("declines proof after deleting an optional global property", () => {
+    const code =
+      "delete globalThis?.Set; const result = new Set().has(1) === true;";
+    expect(new TSESLint.Linter().verify(code, comparisonConfig)).toEqual([]);
+  });
+
+  it.each([
+    "const flag = true; with (custom) { const result = flag === true; }",
+    "with (custom) { const result = new Set().has(value) === true; }",
+  ])("does not infer booleans through dynamic with bindings: %s", (code) => {
+    expect(
+      new TSESLint.Linter().verify(code, [
+        ...comparisonConfig,
+        { languageOptions: { sourceType: "commonjs" } },
+      ]),
+    ).toEqual([]);
+  });
+
+  it.each([
+    ["value === true", "true === value", false],
+    ["value !== true", "true !== value", true],
+    ["value === false", "false === value", false],
+    ["value !== false", "false !== value", true],
+  ])(
+    "preserves unknown input for %s and %s",
+    (expression, reversed, expected) => {
+      const linter = new TSESLint.Linter();
+      for (const value of [undefined, null, "", "true", 0, 1]) {
+        const code = `const result = ${expression}; result;`;
+        const reverseCode = `const result = ${reversed}; result;`;
+        expect(linter.verify(code, comparisonConfig)).toEqual([]);
+        expect(linter.verify(reverseCode, comparisonConfig)).toEqual([]);
+        expect(runInNewContext(code, { value })).toBe(expected);
+        expect(runInNewContext(reverseCode, { value })).toBe(expected);
+      }
+    },
+  );
+
+  it.each([
+    ["(!value) === true", "!value", 0, true],
+    ["true === (!value)", "!value", 1, false],
+    ["(!value) !== true", "!!value", 0, false],
+    ["true !== (!value)", "!!value", 1, true],
+    ["(!value) === false", "!!value", 0, false],
+    ["false === (!value)", "!!value", 1, true],
+    ["(!value) !== false", "!value", 0, true],
+    ["false !== (!value)", "!value", 1, false],
+    ["(value > 0) === true", "(value > 0)", 1, true],
+    ["(value > 0) === false", "!(value > 0)", 1, false],
+  ])(
+    "preserves value and type when simplifying %s",
+    (expression, replacement, value, expected) => {
+      const code = `const result = ${expression}; result;`;
+      const messages = new TSESLint.Linter().verify(code, comparisonConfig);
+      expect(messages).toHaveLength(1);
+      expect(messages[0]?.messageId).toBe("redundantBooleanComparison");
+      const fix = messages[0]!.suggestions![0]!.fix;
+      const output =
+        code.slice(0, fix.range[0]) + fix.text + code.slice(fix.range[1]);
+      expect(output).toBe(`const result = ${replacement}; result;`);
+      expect(runInNewContext(code, { value })).toBe(expected);
+      expect(runInNewContext(output, { value })).toBe(expected);
+      expect(typeof runInNewContext(output, { value })).toBe("boolean");
+    },
+  );
+
+  it("preserves OR precedence inside an AND after applying the suggestion", () => {
+    const code = "const result = (!!a || !!b) === true && !!c; result;";
+    const messages = new TSESLint.Linter().verify(code, comparisonConfig);
+    expect(messages).toHaveLength(1);
+    const fix = messages[0]!.suggestions![0]!.fix;
+    const output =
+      code.slice(0, fix.range[0]) + fix.text + code.slice(fix.range[1]);
+    expect(output).toBe("const result = (!!a || !!b) && !!c; result;");
+    expect(runInNewContext(code, { a: true, b: false, c: false })).toBe(false);
+    expect(runInNewContext(output, { a: true, b: false, c: false })).toBe(
+      false,
+    );
+  });
+});
+
 ruleTester.run("no-redundant-logic", rule, {
   valid: [
+    // Transparent TS wrappers can also occur around an assignment target.
+    `[(globalThis.Set as any)] = [replacement]; const result = new Set().has(1) === true;`,
+    `[globalThis.Set!] = [replacement]; const result = new Set().has(1) === true;`,
+    // Strict schema checks need literal equality, not truthiness or a changed type.
+    `const rejectsAll = schema === false;`,
+    `const nullable = schema.nullable === true;`,
+    `const result = isActive === true;`,
+    `const result = hasPermission !== false;`,
+    `const result = object.isActive === true;`,
+    `const result = predicate() === false;`,
+    `const result = (a && b) === false;`,
+    `const result = (true && value) === true;`,
+    `const flag = input; const result = flag === false;`,
+    `let flag = true; flag = input; const result = flag === true;`,
+    `const flag = true; function f(flag) { return flag === true; }`,
+    `const flag = other; const other = flag; const result = flag === true;`,
+    `const result = (input as boolean) === true;`,
+    `function f(flag: boolean) { return flag === true; }`,
+    `const result = (a + b) === true;`,
+    `const result = (typeof value) === false;`,
+    `const flag = 0; const result = flag === false;`,
+
     // Pattern 1: direct boolean expressions — no comparison needed
     `if (isActive) {}`,
     `if (!isValid) {}`,
@@ -72,16 +235,30 @@ ruleTester.run("no-redundant-logic", rule, {
   ],
 
   invalid: [
+    {
+      code: `const flag = false; const alias = flag; const result = alias !== false;`,
+      errors: [
+        {
+          messageId: "redundantBooleanComparison",
+          suggestions: [
+            {
+              messageId: "redundantBooleanComparisonSuggest",
+              output: `const flag = false; const alias = flag; const result = alias;`,
+            },
+          ],
+        },
+      ],
+    },
     // Pattern 1: x === true
     {
-      code: `if (isActive === true) {}`,
+      code: `const isActive = !!value; if (isActive === true) {}`,
       errors: [
         {
           messageId: "redundantBooleanComparison" as const,
           suggestions: [
             {
               messageId: "redundantBooleanComparisonSuggest" as const,
-              output: `if (isActive) {}`,
+              output: `const isActive = !!value; if (isActive) {}`,
             },
           ],
         },
@@ -90,14 +267,14 @@ ruleTester.run("no-redundant-logic", rule, {
 
     // Pattern 1: x !== true
     {
-      code: `if (isValid !== true) {}`,
+      code: `const isValid = !!value; if (isValid !== true) {}`,
       errors: [
         {
           messageId: "redundantBooleanComparison" as const,
           suggestions: [
             {
               messageId: "redundantBooleanComparisonSuggest" as const,
-              output: `if (!isValid) {}`,
+              output: `const isValid = !!value; if (!isValid) {}`,
             },
           ],
         },
@@ -106,14 +283,14 @@ ruleTester.run("no-redundant-logic", rule, {
 
     // Pattern 1: x === false
     {
-      code: `if (hasPermission === false) {}`,
+      code: `const hasPermission = !!value; if (hasPermission === false) {}`,
       errors: [
         {
           messageId: "redundantBooleanComparison" as const,
           suggestions: [
             {
               messageId: "redundantBooleanComparisonSuggest" as const,
-              output: `if (!hasPermission) {}`,
+              output: `const hasPermission = !!value; if (!hasPermission) {}`,
             },
           ],
         },
@@ -122,14 +299,14 @@ ruleTester.run("no-redundant-logic", rule, {
 
     // Pattern 1: x !== false
     {
-      code: `while (running !== false) {}`,
+      code: `const running = !!value; while (running !== false) {}`,
       errors: [
         {
           messageId: "redundantBooleanComparison" as const,
           suggestions: [
             {
               messageId: "redundantBooleanComparisonSuggest" as const,
-              output: `while (running) {}`,
+              output: `const running = !!value; while (running) {}`,
             },
           ],
         },
@@ -138,14 +315,14 @@ ruleTester.run("no-redundant-logic", rule, {
 
     // Pattern 1: boolean literal on the left side
     {
-      code: `if (true === isActive) {}`,
+      code: `const isActive = !!value; if (true === isActive) {}`,
       errors: [
         {
           messageId: "redundantBooleanComparison" as const,
           suggestions: [
             {
               messageId: "redundantBooleanComparisonSuggest" as const,
-              output: `if (isActive) {}`,
+              output: `const isActive = !!value; if (isActive) {}`,
             },
           ],
         },
@@ -154,14 +331,14 @@ ruleTester.run("no-redundant-logic", rule, {
 
     // Pattern 1: false !== x
     {
-      code: `if (false !== isEnabled) {}`,
+      code: `const isEnabled = !!value; if (false !== isEnabled) {}`,
       errors: [
         {
           messageId: "redundantBooleanComparison" as const,
           suggestions: [
             {
               messageId: "redundantBooleanComparisonSuggest" as const,
-              output: `if (isEnabled) {}`,
+              output: `const isEnabled = !!value; if (isEnabled) {}`,
             },
           ],
         },
@@ -170,14 +347,14 @@ ruleTester.run("no-redundant-logic", rule, {
 
     // Pattern 1: complex expression needs parens when negating
     {
-      code: `if ((a && b) === false) {}`,
+      code: `if ((!a && !b) === false) {}`,
       errors: [
         {
           messageId: "redundantBooleanComparison" as const,
           suggestions: [
             {
               messageId: "redundantBooleanComparisonSuggest" as const,
-              output: `if (!(a && b)) {}`,
+              output: `if (!(!a && !b)) {}`,
             },
           ],
         },

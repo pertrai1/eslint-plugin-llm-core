@@ -16,6 +16,12 @@ Prefer `??` over `||` when providing fallback values so valid falsy values are p
 
 This rule uses syntax-only heuristics. It reports likely default-value expressions and intentionally skips common boolean logic patterns, including boolean contexts and boolean-like names such as `isReady`, `hasAccess`, or `canRetry`.
 
+It also recognizes `Set.has`, `RegExp.test`, and `String.endsWith` when syntax and scope establish the built-in receiver. Supported receivers include direct `new Set(...)`, `new RegExp(...)`, `new String(...)`, regular-expression/string/template literals, and earlier `const` bindings to them. Constructors must be unshadowed. Object receivers must be used only for calls to the relevant predicate; reassignment, method replacement, passing the object elsewhere, and alias escapes prevent proof. Primitive strings are immutable and can be used elsewhere.
+
+This applies to both variable initializers and return statements. Arbitrary methods named `has`, `test`, or `endsWith` are not assumed to return booleans.
+
+Built-in call recognition is a heuristic used only to suppress likely default-value warnings. It is not a return-type guarantee and is never used to remove strict boolean comparisons. Explicit access to the relevant built-in prototype, constructor aliases, or constructor values passed elsewhere disables that heuristic. Unrelated static reads and direct construction/calls remain supported.
+
 ## Examples
 
 ### Incorrect
@@ -46,8 +52,20 @@ if (isReady || isForced) {
 return flags.isReady || computeDefault();
 const enabled = config.enabled || false;
 const value = input || cached || "fallback";
+
+const knownNames = new Set();
+const suffixPattern = /_token$/;
+const name = "custom_token";
+const matches = knownNames.has(name) || suffixPattern.test(name);
+const technical = knownNames.has(name) || name.endsWith("_trace_id");
 ```
 
 ## Limitations
 
 This rule does not use type information. It avoids some obvious boolean false positives, but it cannot know the runtime type of every expression. It also skips chained logical expressions where a safe suggestion would require restructuring parentheses or converting the whole chain.
+
+Built-in recognition assumes standard, unmodified built-ins. Constructor-based proof is disabled when the file explicitly mutates or exposes `globalThis`, `global`, `window`, or `self`, including aliases, computed global-object access, and targets passed to reflective mutation APIs. Unrelated static member reads do not disable proof. Changes from code outside the analyzed file cannot be inferred.
+
+Global-property references inside assignment patterns, default/rest targets, `for-in`/`for-of` targets, TypeScript wrappers, or optional chains conservatively disable constructor proof as well. This includes destructuring assignments whose property target has no immediate assignment-expression parent.
+
+Unknown parameters, computed methods, optional calls, aliases to constructors/objects, and object receivers with other uses remain outside that conservative proof.

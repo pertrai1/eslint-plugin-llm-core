@@ -1,6 +1,7 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
 import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
+import { isBooleanExpression } from "../utils/is-boolean-expression";
 
 type MessageIds =
   | "redundantBooleanComparison"
@@ -170,6 +171,7 @@ export default createRule<[], MessageIds>({
         ? (node.left as TSESTree.Literal & { value: boolean })
         : (node.right as TSESTree.Literal & { value: boolean });
       const otherSide = leftIsBool ? node.right : node.left;
+      if (!isBooleanExpression(otherSide, sourceCode)) return;
 
       const boolVal = boolSide.value;
       const op = node.operator;
@@ -190,7 +192,10 @@ export default createRule<[], MessageIds>({
                   negateExpression(text, otherSide),
                 );
               }
-              return fixer.replaceText(node, text);
+              return fixer.replaceText(
+                node,
+                needsNegationParens(otherSide) ? `(${text})` : text,
+              );
             },
           },
         ],

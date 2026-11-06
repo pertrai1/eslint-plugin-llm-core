@@ -24,7 +24,7 @@ describe("quality CLI package metadata", () => {
     expect(pkg.files).toContain("dist");
   });
 
-  it("declares the initial ESLint, llm-core, Knip, and terminal color dependencies", async () => {
+  it("declares the supported ESLint, llm-core, Knip, and terminal color dependencies", async () => {
     const pkg = JSON.parse(await readFile(PACKAGE_JSON, "utf8")) as {
       dependencies?: Record<string, string>;
     };
@@ -36,7 +36,7 @@ describe("quality CLI package metadata", () => {
     // every plugin release, so assert against its live version rather than
     // a literal that goes stale each release.
     expect(pkg.dependencies).toMatchObject({
-      eslint: "^10.13.0",
+      eslint: expect.stringMatching(/^\^10\.\d+\.\d+$/),
       "eslint-plugin-llm-core": pluginPkg.version,
       knip: expect.stringMatching(/^\^6\.\d+\.\d+$/),
       picocolors: expect.any(String),

@@ -1,4 +1,4 @@
-import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, ASTUtils, TSESTree } from "@typescript-eslint/utils";
 import type { RuleInstruction } from "../instructions/types";
 import { createRule } from "../utils/create-rule";
 
@@ -36,6 +36,8 @@ export default createRule<[], MessageIds>({
   },
   defaultOptions: [],
   create(context) {
+    const checkedFunctions = new WeakSet<TSESTree.Node>();
+
     function isPrimitiveLiteralDefault(node: TSESTree.Expression): boolean {
       if (node.type === AST_NODE_TYPES.Literal) {
         return true;
@@ -139,6 +141,9 @@ export default createRule<[], MessageIds>({
         | TSESTree.FunctionExpression,
       fnName: string,
     ): void {
+      if (checkedFunctions.has(fn)) return;
+      checkedFunctions.add(fn);
+
       if (!fn.returnType) {
         const reportNode =
           fn.type === AST_NODE_TYPES.FunctionDeclaration && fn.id ? fn.id : fn;
@@ -154,9 +159,41 @@ export default createRule<[], MessageIds>({
       }
     }
 
+    function checkExportedIdentifier(id: TSESTree.Identifier): void {
+      const variable = ASTUtils.findVariable(
+        context.sourceCode.getScope(id),
+        id,
+      );
+      for (const definition of variable?.defs ?? []) {
+        if (definition.node.type === AST_NODE_TYPES.FunctionDeclaration) {
+          checkFunction(definition.node, id.name);
+        } else if (
+          definition.node.type === AST_NODE_TYPES.VariableDeclarator &&
+          definition.node.id.type === AST_NODE_TYPES.Identifier &&
+          (definition.node.init?.type ===
+            AST_NODE_TYPES.ArrowFunctionExpression ||
+            definition.node.init?.type === AST_NODE_TYPES.FunctionExpression)
+        ) {
+          checkFunction(definition.node.init, id.name);
+        }
+      }
+    }
+
     return {
       ExportNamedDeclaration(node: TSESTree.ExportNamedDeclaration) {
-        if (!node.declaration) return;
+        if (node.source || node.exportKind === "type") return;
+
+        if (!node.declaration) {
+          for (const specifier of node.specifiers) {
+            if (
+              specifier.exportKind !== "type" &&
+              specifier.local.type === AST_NODE_TYPES.Identifier
+            ) {
+              checkExportedIdentifier(specifier.local);
+            }
+          }
+          return;
+        }
 
         if (node.declaration.type === AST_NODE_TYPES.FunctionDeclaration) {
           checkFunction(node.declaration, getFunctionName(node.declaration));
@@ -182,6 +219,10 @@ export default createRule<[], MessageIds>({
       },
 
       ExportDefaultDeclaration(node: TSESTree.ExportDefaultDeclaration) {
+        if (node.declaration.type === AST_NODE_TYPES.Identifier) {
+          checkExportedIdentifier(node.declaration);
+          return;
+        }
         if (
           node.declaration.type !== AST_NODE_TYPES.FunctionDeclaration &&
           node.declaration.type !== AST_NODE_TYPES.ArrowFunctionExpression &&

@@ -79,6 +79,13 @@ Covered export forms:
 - `export default function foo(...)` — default function declaration
 - `export const foo = (...) => ...` — arrow function on exported const
 - `export const foo = function(...) { ... }` — function expression on exported const
+- `function foo(...) { ... } export { foo };` — local function exported by specifier, including renamed or default specifiers
+- `const foo = (...) => ...; export default foo;` — default identifier resolving to a local function
+
+Indirect exports resolve local function declarations and variables initialized directly
+with arrow functions or function expressions, including declarations after the export.
+Diagnostics point to the function or parameter declaration and use the local binding
+name. Exporting the same function more than once does not repeat diagnostics.
 
 ### What This Rule Does NOT Catch
 
@@ -90,13 +97,10 @@ Covered export forms:
 
 ### Known Limitations
 
-Two indirect export patterns are not checked because they require scope traversal to resolve:
-
-1. **Specifier exports** — `function foo(x) {} export { foo };` — the function is defined separately and exported via a specifier. The rule only checks inline `export function` declarations.
-
-2. **Identifier default exports** — `const fn = (x) => x; export default fn;` — the default export is a reference, not an inline function. The rule only checks `export default function` and `export default () =>` forms.
-
-Both are false negatives. They can be addressed in a follow-up by adding scope-aware analysis.
+The rule checks local function declarations and direct function initializers. It does
+not follow imported bindings, source re-exports, identifier alias chains, later
+assignments, or destructured bindings. Type-only exports and declarations without
+implementations are not checked.
 
 ## Why This Matters for LLMs
 

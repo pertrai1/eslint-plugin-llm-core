@@ -10,6 +10,43 @@ const ruleTester = new RuleTester();
 
 ruleTester.run("explicit-export-types", rule, {
   valid: [
+    // Typed local functions retain the same contract through indirect exports
+    `function fn(x: string): string { return x; } export { fn };`,
+    `const fn = (x: string): string => x; export { fn as renamed };`,
+    `const fn = function(x: string): string { return x; }; export { fn };`,
+    `function fn(x: string): string { return x; } export default fn;`,
+    `const fn = (x: string): string => x; export default fn;`,
+    `const fn = function(x: string): string { return x; }; export default fn;`,
+
+    // Preserve primitive-default inference for both indirect export forms
+    `function fn(n = 0, s = "", b = true, v = null, big = 0n, neg = -1, pos = +1): void {} export { fn };`,
+    `const fn = (n = 0, s = "", b = false, v = null, big = 0n, neg = -1, pos = +1): void => {}; export default fn;`,
+
+    // Imports and source re-exports must not resolve unrelated local functions
+    `import { fn } from "./module"; export { fn };`,
+    `import fn from "./module"; export default fn;`,
+    `function fn(x) { return x; } export { fn } from "./module";`,
+    `export * from "./module";`,
+
+    // Type-only exports do not expose a callable value
+    `function fn(x) { return x; } export type { fn };`,
+    `const fn = (x) => x; export { type fn };`,
+
+    // Non-functions and declarations without implementations remain out of scope
+    `const value = 42; export { value }; export default value;`,
+    `class Example { method(x) { return x; } } export default Example;`,
+    `declare function fn(x: string): string; export { fn };`,
+    `export default missing;`,
+
+    // Do not infer through alias chains, assignments or destructuring
+    `const fn = (x) => x; const alias = fn; export { alias };`,
+    `const fn = (x) => x; const alias = fn; export default alias;`,
+    `let fn; fn = (x) => x; export { fn };`,
+    `const { fn } = { fn: (x) => x }; export { fn };`,
+
+    // Scope resolution checks the exported binding, not a nested namesake
+    `const fn = (x: string): string => x; function internal() { const fn = (x) => x; } export { fn };`,
+
     // Exported function with all param types + return type
     `export function greet(name: string): string { return "Hello " + name; }`,
 
@@ -75,6 +112,133 @@ ruleTester.run("explicit-export-types", rule, {
   ],
 
   invalid: [
+    // Function declarations can be exported before they appear
+    {
+      code: `export { fn }; function fn(x) { return x; }`,
+      errors: [
+        { messageId: "missingReturnType", data: { fn: "fn" } },
+        { messageId: "missingParamType", data: { fn: "fn", param: "x" } },
+      ],
+    },
+    {
+      code: `export default fn; function fn(x) { return x; }`,
+      errors: [
+        { messageId: "missingReturnType", data: { fn: "fn" } },
+        { messageId: "missingParamType", data: { fn: "fn", param: "x" } },
+      ],
+    },
+    // Forward variable references and default specifiers also resolve locally
+    {
+      code: `export { fn as default }; const fn = (x: string) => x;`,
+      errors: [{ messageId: "missingReturnType", data: { fn: "fn" } }],
+    },
+    // Named function expressions use the exported local binding name
+    {
+      code: `const fn = function inner(x): string { return x; }; export { fn };`,
+      errors: [
+        { messageId: "missingParamType", data: { fn: "fn", param: "x" } },
+      ],
+    },
+    {
+      code: `const fn = function(x: string) { return x; }; export default fn;`,
+      errors: [{ messageId: "missingReturnType", data: { fn: "fn" } }],
+    },
+    // Both variables in a shared declaration are checked independently
+    {
+      code: `const first = () => 1, second = () => 2; export { first, second };`,
+      errors: [
+        { messageId: "missingReturnType", data: { fn: "first" } },
+        { messageId: "missingReturnType", data: { fn: "second" } },
+      ],
+    },
+    // A type-only reference does not prevent a later value export being checked
+    {
+      code: `function fn(x: string) { return x; } export { type fn, fn as value };`,
+      errors: [{ messageId: "missingReturnType", data: { fn: "fn" } }],
+    },
+    // Deduplication works when indirect export visitors run before inline visitors
+    {
+      code: `export { fn as alias }; export function fn(x: string) { return x; }`,
+      errors: [{ messageId: "missingReturnType", data: { fn: "fn" } }],
+    },
+    {
+      code: `export default function fn(x: string) { return x; } export { fn };`,
+      errors: [{ messageId: "missingReturnType", data: { fn: "fn" } }],
+    },
+    {
+      code: `function fn(x: string) { return x; } export { fn }; export { fn as alias };`,
+      errors: [{ messageId: "missingReturnType", data: { fn: "fn" } }],
+    },
+    // Non-literal defaults, destructuring and rest parameters still need types
+    {
+      code: `function fn(x = getDefault()): void {} export { fn };`,
+      errors: [
+        { messageId: "missingParamType", data: { fn: "fn", param: "x" } },
+      ],
+    },
+    {
+      code: `const fn = ({ id } = {}, ...args): void => {}; export default fn;`,
+      errors: [
+        {
+          messageId: "missingParamType",
+          data: { fn: "fn", param: "{ id }" },
+        },
+        { messageId: "missingParamType", data: { fn: "fn", param: "...args" } },
+      ],
+    },
+
+    // A function exported more than once is diagnosed only once
+    {
+      code: `export const fn = (x) => x; export { fn as alias, fn as second }; export default fn;`,
+      errors: [
+        { messageId: "missingReturnType", data: { fn: "fn" } },
+        { messageId: "missingParamType", data: { fn: "fn", param: "x" } },
+      ],
+    },
+
+    // Default identifiers resolve the local function initializer
+    {
+      code: `const handler = (req) => req.body; export default handler;`,
+      errors: [
+        { messageId: "missingReturnType", data: { fn: "handler" } },
+        {
+          messageId: "missingParamType",
+          data: { fn: "handler", param: "req" },
+        },
+      ],
+    },
+
+    // A local arrow is checked through its exported binding
+    {
+      code: `const handler = (req) => req.body; export { handler };`,
+      errors: [
+        { messageId: "missingReturnType", data: { fn: "handler" } },
+        {
+          messageId: "missingParamType",
+          data: { fn: "handler", param: "req" },
+        },
+      ],
+    },
+
+    // Named exports resolve the local function, not the exported alias
+    {
+      code: `function local(x) { return x; } export { local as publicName };`,
+      errors: [
+        {
+          messageId: "missingReturnType",
+          data: { fn: "local" },
+          line: 1,
+          column: 10,
+        },
+        {
+          messageId: "missingParamType",
+          data: { fn: "local", param: "x" },
+          line: 1,
+          column: 16,
+        },
+      ],
+    },
+
     // Missing return type only
     {
       code: `export function foo(x: string) { return x; }`,

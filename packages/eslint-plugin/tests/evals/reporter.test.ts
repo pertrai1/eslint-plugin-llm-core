@@ -274,6 +274,7 @@ describe("generateHistoryLine", () => {
     expect(lines).toHaveLength(1);
     const parsed = JSON.parse(lines[0]!);
     expect(parsed).toEqual({
+      ruleFilter: [],
       date: "2026-04-08",
       model: "claude-sonnet-4-20250514",
       pluginVersion: "0.11.1",
@@ -285,3 +286,93 @@ describe("generateHistoryLine", () => {
     });
   });
 });
+
+it.each([generateJson, generateCompactJson])(
+  "includes normalized rule metadata in JSON",
+  (generate) => {
+    const results: EvalResults = {
+      date: "2026-11-10",
+      model: "test",
+      pluginVersion: "1",
+      gitCommit: "abc",
+      ruleFilter: [
+        "structured-logging",
+        "no-magic-numbers",
+        "structured-logging",
+      ],
+      results: [],
+    };
+    expect(JSON.parse(generate(results)).ruleFilter).toEqual([
+      "no-magic-numbers",
+      "structured-logging",
+    ]);
+  },
+);
+
+it.each([
+  { ruleFilter: undefined, expected: [] },
+  { ruleFilter: [], expected: [] },
+  {
+    ruleFilter: [
+      "structured-logging",
+      "no-magic-numbers",
+      "structured-logging",
+    ],
+    expected: ["no-magic-numbers", "structured-logging"],
+  },
+])(
+  "labels history rows with selection $ruleFilter",
+  ({ ruleFilter, expected }) => {
+    const results: EvalResults = {
+      date: "2026-11-10",
+      model: "test",
+      pluginVersion: "1",
+      gitCommit: "abc",
+      ...(ruleFilter === undefined ? {} : { ruleFilter }),
+      results: [
+        {
+          fixture: "mixed.ts",
+          mode: "treatment",
+          iterations: 0,
+          resolved: true,
+          iterationRecords: [],
+          finalViolationCount: 0,
+        },
+      ],
+    };
+    expect(JSON.parse(generateHistoryLine(results)[0]!).ruleFilter).toEqual(
+      expected,
+    );
+  },
+);
+
+it("labels filtered Markdown success as selected-rule success", () => {
+  const results: EvalResults = {
+    date: "2026-11-10",
+    model: "test",
+    pluginVersion: "1",
+    gitCommit: "abc",
+    ruleFilter: ["no-magic-numbers"],
+    results: [],
+  };
+  expect(generateMarkdown(results)).toContain("**Rules**: no-magic-numbers");
+  expect(generateMarkdown(results)).toContain(
+    "Resolved status covers only the selected rules",
+  );
+});
+
+it.each([generateJson, generateCompactJson])(
+  "labels legacy JSON as unfiltered without mutating the input",
+  (generate) => {
+    const legacy: EvalResults = {
+      date: "2026-11-10",
+      model: "test",
+      pluginVersion: "1",
+      gitCommit: "abc",
+      results: [],
+    };
+    expect(JSON.parse(generate(legacy)).ruleFilter).toEqual([]);
+    expect(legacy).not.toHaveProperty("ruleFilter");
+    expect(generateMarkdown(legacy)).toContain("**Rules**: all rules");
+  },
+);

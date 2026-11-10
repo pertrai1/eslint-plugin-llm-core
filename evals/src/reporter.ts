@@ -110,9 +110,14 @@ function stripTraceFields(record: IterationRecord): IterationRecord {
   return stripped;
 }
 
+function reportRuleFilter(results: EvalResults): string[] {
+  return [...new Set(results.ruleFilter ?? [])].sort();
+}
+
 export function generateCompactJson(results: EvalResults): string {
   const compacted: EvalResults = {
     ...results,
+    ruleFilter: reportRuleFilter(results),
     results: results.results.map((r) => {
       if (r.resolved) {
         return {
@@ -130,6 +135,7 @@ export function generateHistoryLine(results: EvalResults): string[] {
   return results.results.map((r) =>
     JSON.stringify({
       date: results.date,
+      ruleFilter: reportRuleFilter(results),
       model: results.model,
       pluginVersion: results.pluginVersion,
       fixture: r.fixture,
@@ -142,11 +148,16 @@ export function generateHistoryLine(results: EvalResults): string[] {
 }
 
 export function generateJson(results: EvalResults): string {
-  return JSON.stringify(results, null, 2);
+  return JSON.stringify(
+    { ...results, ruleFilter: reportRuleFilter(results) },
+    null,
+    2,
+  );
 }
 
 export function generateMarkdown(results: EvalResults): string {
   const { model, pluginVersion, gitCommit } = results;
+  const ruleFilter = reportRuleFilter(results);
   const date = results.date.split("T")[0] ?? results.date;
 
   const treatmentResults = results.results.filter(
@@ -213,6 +224,13 @@ export function generateMarkdown(results: EvalResults): string {
     `**Model**: ${model}`,
     `**Plugin version**: ${pluginVersion}`,
     `**Commit**: ${gitCommit}`,
+    `**Rules**: ${ruleFilter.length ? ruleFilter.join(", ") : "all rules"}`,
+    ...(ruleFilter.length
+      ? [
+          "",
+          "Resolved status covers only the selected rules, not the entire plugin.",
+        ]
+      : []),
     "",
     "## Summary",
     "",

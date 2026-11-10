@@ -109,14 +109,18 @@ function prepareViolationsForMode(
 export async function runFixture(
   fixturePath: string,
   mode: EvalMode,
-  options: { model: string; maxIterations: number },
+  options: {
+    model: string;
+    maxIterations: number;
+    ruleFilter?: readonly string[];
+  },
 ): Promise<FixtureResult> {
   const fixtureName = basename(fixturePath);
   const initialCode = await readFile(fixturePath, "utf-8");
   const fixtureStartedAt = new Date();
 
   let currentCode = initialCode;
-  let currentViolations = lintCode(currentCode);
+  let currentViolations = lintCode(currentCode, options.ruleFilter);
 
   const iterationRecords: IterationRecord[] = [];
   let iterations = 0;
@@ -159,7 +163,7 @@ export async function runFixture(
       continue;
     }
 
-    const newViolations = lintCode(fixResult.code);
+    const newViolations = lintCode(fixResult.code, options.ruleFilter);
     const iterCompletedAt = new Date();
 
     iterationRecords.push({

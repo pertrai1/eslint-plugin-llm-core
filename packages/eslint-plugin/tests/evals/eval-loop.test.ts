@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fixViolations } from "../../../../evals/src/llm-client";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
+  runFixture,
   collectExportedSymbolNames,
   preservesExportedApi,
 } from "../../../../evals/src/eval-loop";
@@ -50,5 +55,157 @@ describe("eval fixture API preservation", () => {
     ].join("\n");
 
     expect(preservesExportedApi(original, candidate)).toBe(true);
+  });
+});
+
+vi.mock("../../../../evals/src/llm-client", () => ({ fixViolations: vi.fn() }));
+beforeEach(() => vi.mocked(fixViolations).mockReset());
+
+async function fixture(code: string): Promise<string> {
+  const dir = await mkdtemp(join(tmpdir(), "eval-selection-"));
+  const path = join(dir, "mixed.ts");
+  await writeFile(path, code);
+  return path;
+}
+
+it.each(["treatment", "control"] as const)(
+  "resolves a fixture clean for selected rules without calling the model in %s",
+  async (mode) => {
+    const path = await fixture("console.log(`User ${userId} logged in`);");
+    const result = await runFixture(path, mode, {
+      model: "unused",
+      maxIterations: 3,
+      ruleFilter: ["no-magic-numbers"],
+    });
+    expect(result).toMatchObject({
+      resolved: true,
+      iterations: 0,
+      finalViolationCount: 0,
+      iterationRecords: [],
+    });
+    expect(fixViolations).not.toHaveBeenCalled();
+  },
+);
+
+it.each(["treatment", "control"] as const)(
+  "ignores unselected violations after a candidate fix in %s",
+  async (mode) => {
+    const path = await fixture(
+      "let x = y * 100; console.log(`User ${userId} logged in`);",
+    );
+    vi.mocked(fixViolations).mockResolvedValue({
+      code: "const FACTOR = 100; let x = y * FACTOR; console.log(`User ${userId} logged in`);",
+      rawResponse: "fixed",
+      reasoning: null,
+      tokenUsage: { inputTokens: 1, outputTokens: 1 },
+      prompt: "saved prompt",
+    });
+    const result = await runFixture(path, mode, {
+      model: "unused",
+      maxIterations: 3,
+      ruleFilter: ["no-magic-numbers"],
+    });
+    expect(result).toMatchObject({
+      resolved: true,
+      iterations: 1,
+      finalViolationCount: 0,
+      iterationRecords: [
+        {
+          violationsBefore: 1,
+          violationsAfter: 0,
+          remainingRuleIds: [],
+          violationDiff: {
+            resolved: [
+              expect.objectContaining({ ruleId: "llm-core/no-magic-numbers" }),
+            ],
+            persisted: [],
+            introduced: [],
+          },
+        },
+      ],
+    });
+    expect(fixViolations).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(fixViolations).mock.calls[0]![1]).toEqual([
+      expect.objectContaining({ ruleId: "llm-core/no-magic-numbers" }),
+    ]);
+    expect(result.patterns).toEqual({
+      stuckRules: [],
+      oscillatingRules: [],
+      cascadingErrors: false,
+    });
+  },
+);
+
+it.each(["treatment", "control"] as const)(
+  "stops at the iteration limit for persistent selected violations in %s",
+  async (mode) => {
+    const code = "let x = y * 100; console.log(`User ${userId} logged in`);";
+    const path = await fixture(code);
+    vi.mocked(fixViolations).mockResolvedValue({
+      code,
+      rawResponse: "unchanged",
+      reasoning: null,
+      tokenUsage: { inputTokens: 1, outputTokens: 1 },
+      prompt: "saved prompt",
+    });
+    const result = await runFixture(path, mode, {
+      model: "unused",
+      maxIterations: 2,
+      ruleFilter: ["no-magic-numbers"],
+    });
+    expect(result).toMatchObject({
+      resolved: false,
+      iterations: 2,
+      finalViolationCount: 1,
+      iterationRecords: [
+        {
+          violationsBefore: 1,
+          violationsAfter: 1,
+          remainingRuleIds: ["llm-core/no-magic-numbers"],
+        },
+        {
+          violationsBefore: 1,
+          violationsAfter: 1,
+          remainingRuleIds: ["llm-core/no-magic-numbers"],
+        },
+      ],
+      patterns: {
+        stuckRules: ["llm-core/no-magic-numbers"],
+        oscillatingRules: [],
+        cascadingErrors: false,
+      },
+    });
+    expect(fixViolations).toHaveBeenCalledTimes(2);
+  },
+);
+
+it("retains the exported API guard with a filter", async () => {
+  const path = await fixture(
+    "export function calculate(): number { return 42; }",
+  );
+  vi.mocked(fixViolations).mockResolvedValue({
+    code: "",
+    rawResponse: "deleted",
+    reasoning: null,
+    tokenUsage: { inputTokens: 1, outputTokens: 1 },
+    prompt: "saved prompt",
+  });
+  const result = await runFixture(path, "treatment", {
+    model: "unused",
+    maxIterations: 1,
+    ruleFilter: ["no-magic-numbers"],
+  });
+  expect(result).toMatchObject({
+    resolved: false,
+    iterations: 1,
+    finalViolationCount: 1,
+    iterationRecords: [
+      {
+        rejectedCandidate: "dropped-exported-api",
+        violationsBefore: 1,
+        violationsAfter: 1,
+        remainingRuleIds: ["llm-core/no-magic-numbers"],
+      },
+    ],
   });
 });

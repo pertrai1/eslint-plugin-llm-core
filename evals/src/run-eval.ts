@@ -2,6 +2,7 @@ import { execSync } from "child_process";
 import { readFile, readdir } from "fs/promises";
 import { join, resolve } from "path";
 import type { EvalConfig, EvalMode, EvalResults, FixtureResult } from "./types";
+import { normalizeRuleFilter } from "./linter";
 import { runFixture } from "./eval-loop";
 import { writeReports } from "./reporter";
 import { findIterationTrace, type ReplayTarget } from "./replay";
@@ -22,6 +23,7 @@ Options:
   --mode treatment|control|both   Run mode (default: both)
   --model <name>                  Anthropic model (default: ${DEFAULTS.model})
   --fixture <name>                Run specific fixture only (repeatable)
+  --rule <short-name>             Enable only selected rules (repeatable; not with --replay)
   --max-iterations <n>            Max iterations per fixture (default: ${DEFAULTS.maxIterations})
   --output <dir>                  Output directory (default: evals/results)
   --compact                       Strip trace fields from resolved fixtures in JSON
@@ -40,13 +42,14 @@ Examples:
 `);
 }
 
-function parseArgs(argv: string[]): EvalConfig {
+export function parseArgs(argv: string[]): EvalConfig {
   const args = argv.slice(2);
 
   const config: EvalConfig = {
     mode: DEFAULTS.mode,
     model: DEFAULTS.model,
     fixtureFilter: [],
+    ruleFilter: [],
     maxIterations: DEFAULTS.maxIterations,
     outputDir: DEFAULTS.outputDir,
     compact: false,
@@ -72,6 +75,14 @@ function parseArgs(argv: string[]): EvalConfig {
       i++;
     } else if (arg === "--model" && next) {
       config.model = next;
+      i++;
+    } else if (arg === "--rule") {
+      if (!next || next.startsWith("--")) {
+        throw new Error(
+          "--rule requires a short rule name, for example --rule no-magic-numbers.",
+        );
+      }
+      config.ruleFilter.push(next);
       i++;
     } else if (arg === "--fixture" && next) {
       config.fixtureFilter.push(next);
@@ -107,6 +118,12 @@ function parseArgs(argv: string[]): EvalConfig {
     }
   }
 
+  if (config.ruleFilter.length > 0 && args.includes("--replay")) {
+    throw new Error(
+      "--rule cannot be combined with --replay: replay uses the recorded prompt.",
+    );
+  }
+  config.ruleFilter = normalizeRuleFilter(config.ruleFilter);
   return config;
 }
 
@@ -248,6 +265,9 @@ async function main(): Promise<void> {
 
   process.stdout.write(`Running evals\n`);
   process.stdout.write(`  mode:           ${config.mode}\n`);
+  process.stdout.write(
+    `  rules:          ${config.ruleFilter.length ? config.ruleFilter.join(", ") : "all rules"}\n`,
+  );
   process.stdout.write(`  model:          ${config.model}\n`);
   process.stdout.write(`  fixtures:       ${fixturePaths.length}\n`);
   process.stdout.write(`  max-iterations: ${config.maxIterations}\n\n`);
@@ -265,6 +285,7 @@ async function main(): Promise<void> {
         const result = await runFixture(fixturePath, mode, {
           model: config.model,
           maxIterations: config.maxIterations,
+          ruleFilter: config.ruleFilter,
         });
         results.push(result);
         const status = result.resolved
@@ -283,6 +304,7 @@ async function main(): Promise<void> {
 
   const evalResults: EvalResults = {
     date: new Date().toISOString(),
+    ruleFilter: config.ruleFilter,
     model: config.model,
     pluginVersion,
     gitCommit,
@@ -301,9 +323,11 @@ async function main(): Promise<void> {
   process.stdout.write(`  History: ${historyPath}\n`);
 }
 
-main().catch((err) => {
-  process.stderr.write(
-    `Fatal: ${err instanceof Error ? err.message : String(err)}\n`,
-  );
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    process.stderr.write(
+      `Fatal: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    process.exit(1);
+  });
+}

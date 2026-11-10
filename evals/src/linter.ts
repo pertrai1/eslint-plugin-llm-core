@@ -5,6 +5,19 @@ import * as pluginRules from "../../packages/eslint-plugin/src/rules/index";
 
 const rulesMap = pluginRules as unknown as Record<string, unknown>;
 
+export function normalizeRuleFilter(
+  ruleFilter: readonly string[] = [],
+): string[] {
+  for (const name of ruleFilter) {
+    if (!Object.hasOwn(rulesEnabled, `llm-core/${name}`)) {
+      throw new Error(
+        `Invalid rule "${name}". Use exact short names: ${Object.keys(rulesMap).sort().join(", ")}`,
+      );
+    }
+  }
+  return [...new Set(ruleFilter)].sort();
+}
+
 const rulesEnabled: Record<string, "error"> = Object.fromEntries(
   Object.keys(rulesMap).map((name) => [`llm-core/${name}`, "error"]),
 );
@@ -23,10 +36,26 @@ const flatConfig = [
   },
 ];
 
-export function lintCode(code: string): LintViolation[] {
+export function lintCode(
+  code: string,
+  ruleFilter: readonly string[] = [],
+): LintViolation[] {
+  const selected = normalizeRuleFilter(ruleFilter);
+  const config =
+    selected.length === 0
+      ? flatConfig
+      : flatConfig.map((entry) => ({
+          ...entry,
+          rules: Object.fromEntries(
+            selected.map((name) => {
+              const id = `llm-core/${name}`;
+              return [id, rulesEnabled[id]!];
+            }),
+          ),
+        }));
   const messages = linterInstance.verify(
     code,
-    flatConfig as unknown as Parameters<typeof linterInstance.verify>[1],
+    config as unknown as Parameters<typeof linterInstance.verify>[1],
     { filename: "file.ts" },
   );
 

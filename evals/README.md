@@ -33,11 +33,44 @@ npx tsx evals/src/run-eval.ts --output /tmp/eval-results
 | `--mode treatment\|control\|both` | `both`                     | Which message format to test                              |
 | `--model <name>`                  | `claude-sonnet-4-20250514` | Anthropic model                                           |
 | `--fixture <name>`                | _(all)_                    | Run one fixture; repeatable                               |
+| `--rule <short-name>`             | _(all)_                    | Select plugin rules by short name; repeatable             |
 | `--max-iterations <n>`            | `5`                        | Max fix cycles per fixture                                |
 | `--output <dir>`                  | `evals/results`            | Where to write reports                                    |
 | `--compact`                       |                            | Strip trace fields from resolved fixtures in JSON output  |
 | `--replay <file>`                 |                            | Replay a specific iteration from a saved eval (see below) |
 | `--iteration <n>`                 |                            | Iteration number to replay (use with `--replay`)          |
+
+## Selecting rules
+
+Use exact, case-sensitive short rule names from the plugin registry:
+
+```bash
+npx tsx evals/src/run-eval.ts --rule no-magic-numbers
+npx tsx evals/src/run-eval.ts --rule no-magic-numbers --rule structured-logging
+npx tsx evals/src/run-eval.ts --rule no-magic-numbers --fixture error-pipeline.ts
+```
+
+Repeat `--rule` for the union of selected rules. Duplicates are removed and names
+are sorted. Omitting the flag enables all rules, preserving the existing modes,
+fixture selection, severity/options, and iteration limits.
+
+Unknown names, `llm-core/` prefixes, comma-separated lists, empty values, and
+missing values fail the entire run with exit code 1 before a model call or report
+write. One invalid name rejects a mixed valid/invalid selection.
+
+A filtered run is **resolved only for its selected rules**, not the entire plugin.
+If those rules already pass, the fixture resolves in zero iterations without a
+model call. The exported-API preservation guard still applies to candidate fixes.
+
+Do not combine `--rule` with `--replay`: replay sends the recorded prompt unchanged,
+rather than starting a filtered lint/fix loop. Old and new saved traces remain
+replayable, even if a historical rule is no longer in the registry.
+
+Full JSON, compact JSON, and new `history.jsonl` rows include `ruleFilter`: sorted,
+unique short names, or `[]` for all rules. Legacy artifacts without the field mean
+all rules. Historical files are not rewritten. Console and Markdown output label
+the selection. Do not compare filtered and unfiltered trend rows as equivalent
+runs; compare runs with the same selection and other eval settings.
 
 ## Modes
 

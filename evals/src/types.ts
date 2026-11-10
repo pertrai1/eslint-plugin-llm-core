@@ -66,6 +66,7 @@ export interface EvalConfig {
   mode: EvalMode | "both";
   model: string;
   fixtureFilter: string[];
+  ruleFilter: string[];
   maxIterations: number;
   outputDir: string;
   compact: boolean;
@@ -74,6 +75,8 @@ export interface EvalConfig {
 }
 
 export interface EvalResults {
+  /** Absent in legacy artifacts; an empty selection means all rules. */
+  ruleFilter?: string[];
   date: string;
   model: string;
   pluginVersion: string;

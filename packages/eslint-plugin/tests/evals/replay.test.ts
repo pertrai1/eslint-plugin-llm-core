@@ -131,3 +131,20 @@ describe("findIterationTrace", () => {
     expect(findIterationTrace(resultsNoTrace, target)).toBeNull();
   });
 });
+
+it.each([undefined, [], ["no-magic-numbers"], ["historical-removed-rule"]])(
+  "keeps the recorded replay prompt unchanged for selection %j",
+  (ruleFilter) => {
+    const results: EvalResults = {
+      ...sampleResults,
+      ...(ruleFilter === undefined ? {} : { ruleFilter }),
+    };
+    expect(
+      findIterationTrace(results, {
+        fixture: "api-service.ts",
+        mode: "treatment",
+        iteration: 2,
+      })?.promptSent,
+    ).toBe("Fix these 2 violations...");
+  },
+);

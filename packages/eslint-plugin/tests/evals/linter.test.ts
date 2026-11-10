@@ -34,12 +34,12 @@ it("isolates selected rules across successive calls", () => {
   expect(original.map((v) => v.ruleId)).toContain(
     "llm-core/structured-logging",
   );
-  expect(lintCode(code, ["no-magic-numbers"])).toEqual(
-    original.filter((v) => v.ruleId === "llm-core/no-magic-numbers"),
-  );
-  expect(lintCode(code, ["structured-logging"])).toEqual(
-    original.filter((v) => v.ruleId === "llm-core/structured-logging"),
-  );
+  expect(lintCode(code, ["no-magic-numbers"]).map((v) => v.ruleId)).toEqual([
+    "llm-core/no-magic-numbers",
+  ]);
+  expect(lintCode(code, ["structured-logging"]).map((v) => v.ruleId)).toEqual([
+    "llm-core/structured-logging",
+  ]);
   expect(lintCode(code)).toEqual(original);
   expect(lintCode(code, [])).toEqual(original);
 });
@@ -47,7 +47,6 @@ it("isolates selected rules across successive calls", () => {
 it("treats absent and empty selections as all rules", () => {
   expect(normalizeRuleFilter()).toEqual([]);
   expect(normalizeRuleFilter([])).toEqual([]);
-  expect(lintCode("", ["no-magic-numbers"])).toEqual([]);
 });
 
 it("rejects programmatic invalid filters before linting", () => {

@@ -132,9 +132,14 @@ describe("findIterationTrace", () => {
   });
 });
 
-it.each([undefined, [], ["no-magic-numbers"], ["historical-removed-rule"]])(
-  "keeps the recorded replay prompt unchanged for selection %j",
-  (ruleFilter) => {
+it.each([
+  { ruleFilter: undefined },
+  { ruleFilter: [] },
+  { ruleFilter: ["no-magic-numbers"] },
+  { ruleFilter: ["historical-removed-rule"] },
+])(
+  "reads recorded trace metadata with selection $ruleFilter",
+  ({ ruleFilter }) => {
     const results: EvalResults = {
       ...sampleResults,
       ...(ruleFilter === undefined ? {} : { ruleFilter }),

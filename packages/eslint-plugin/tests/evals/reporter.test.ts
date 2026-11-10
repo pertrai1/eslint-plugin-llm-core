@@ -310,31 +310,41 @@ it.each([generateJson, generateCompactJson])(
 );
 
 it.each([
-  undefined,
-  [],
-  ["structured-logging", "no-magic-numbers", "structured-logging"],
-])("labels history rows with selection %j", (ruleFilter) => {
-  const results: EvalResults = {
-    date: "2026-11-10",
-    model: "test",
-    pluginVersion: "1",
-    gitCommit: "abc",
-    ...(ruleFilter === undefined ? {} : { ruleFilter }),
-    results: [
-      {
-        fixture: "mixed.ts",
-        mode: "treatment",
-        iterations: 0,
-        resolved: true,
-        iterationRecords: [],
-        finalViolationCount: 0,
-      },
+  { ruleFilter: undefined, expected: [] },
+  { ruleFilter: [], expected: [] },
+  {
+    ruleFilter: [
+      "structured-logging",
+      "no-magic-numbers",
+      "structured-logging",
     ],
-  };
-  expect(JSON.parse(generateHistoryLine(results)[0]!).ruleFilter).toEqual(
-    ruleFilter?.length ? ["no-magic-numbers", "structured-logging"] : [],
-  );
-});
+    expected: ["no-magic-numbers", "structured-logging"],
+  },
+])(
+  "labels history rows with selection $ruleFilter",
+  ({ ruleFilter, expected }) => {
+    const results: EvalResults = {
+      date: "2026-11-10",
+      model: "test",
+      pluginVersion: "1",
+      gitCommit: "abc",
+      ...(ruleFilter === undefined ? {} : { ruleFilter }),
+      results: [
+        {
+          fixture: "mixed.ts",
+          mode: "treatment",
+          iterations: 0,
+          resolved: true,
+          iterationRecords: [],
+          finalViolationCount: 0,
+        },
+      ],
+    };
+    expect(JSON.parse(generateHistoryLine(results)[0]!).ruleFilter).toEqual(
+      expected,
+    );
+  },
+);
 
 it("labels filtered Markdown success as selected-rule success", () => {
   const results: EvalResults = {

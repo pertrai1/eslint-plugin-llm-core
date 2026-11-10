@@ -84,6 +84,10 @@ export function parseArgs(argv: string[]): EvalConfig {
       }
       config.ruleFilter.push(next);
       i++;
+    } else if (arg?.startsWith("--rule")) {
+      throw new Error(
+        `Invalid rule option "${arg}". Use --rule <short-name> (repeatable).`,
+      );
     } else if (arg === "--fixture" && next) {
       config.fixtureFilter.push(next);
       i++;

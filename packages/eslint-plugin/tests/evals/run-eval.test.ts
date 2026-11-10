@@ -61,6 +61,7 @@ it("rejects rule selection with replay before reading the trace", () => {
 });
 
 it("runs both modes with selected rules and writes selection metadata without credentials", () => {
+  // Keep this fixture below max-file-length: the smoke test must resolve without a model call.
   const output = mkdtempSync(resolve(tmpdir(), "eval-selected-"));
   const result = spawnSync(
     process.execPath,
@@ -80,6 +81,7 @@ it("runs both modes with selected rules and writes selection metadata without cr
     { encoding: "utf8", env: { ...process.env, ANTHROPIC_API_KEY: "" } },
   );
   expect(result.status).toBe(0);
+  expect(result.stdout).not.toContain("error:");
   expect(result.stdout).toContain("rules:          max-file-length");
   const json = readdirSync(output).find((name) => name.endsWith(".json"))!;
   const report = JSON.parse(readFileSync(resolve(output, json), "utf8"));
@@ -202,3 +204,29 @@ it("preserves fixture, mode and iteration options with reordered rule flags", ()
     maxIterations: 2,
   });
 });
+
+it.each(["--rule=no-magic-numbers", "--rule=", "--rules"])(
+  "rejects unsupported rule option %s before running or writing reports",
+  (option) => {
+    const output = mkdtempSync(resolve(tmpdir(), "eval-invalid-option-"));
+    const result = spawnSync(
+      process.execPath,
+      [
+        "--import",
+        "tsx",
+        resolve(__dirname, "../../../../evals/src/run-eval.ts"),
+        "--output",
+        output,
+        "--fixture",
+        "api-service.ts",
+        option,
+      ],
+      { encoding: "utf8", env: { ...process.env, ANTHROPIC_API_KEY: "" } },
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(`Invalid rule option "${option}"`);
+    expect(result.stderr).toContain("Use --rule <short-name>");
+    expect(result.stdout).toBe("");
+    expect(readdirSync(output)).toEqual([]);
+  },
+);

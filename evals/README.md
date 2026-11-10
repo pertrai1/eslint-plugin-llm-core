@@ -56,7 +56,9 @@ fixture selection, severity/options, and iteration limits.
 
 Unknown names, `llm-core/` prefixes, comma-separated lists, empty values, and
 missing values fail the entire run with exit code 1 before a model call or report
-write. One invalid name rejects a mixed valid/invalid selection.
+write. One invalid name rejects a mixed valid/invalid selection. Unsupported
+spellings such as `--rule=no-magic-numbers` and `--rules` are rejected; use
+`--rule no-magic-numbers` instead.
 
 A filtered run is **resolved only for its selected rules**, not the entire plugin.
 If those rules already pass, the fixture resolves in zero iterations without a

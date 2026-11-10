@@ -1,5 +1,11 @@
 # eslint-plugin-llm-core
 
+## 0.37.3
+
+### Patch Changes
+
+- 060ba31: Check indirect local function exports in `explicit-export-types`, including named and default identifier exports. Preserve primitive-default inference and avoid duplicate diagnostics for functions exported more than once.
+
 ## 0.37.2
 
 ### Patch Changes

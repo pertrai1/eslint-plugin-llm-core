@@ -338,13 +338,14 @@ export default createRule<Options, MessageIds>({
     },
     messages: {
       weakRandomnessForSecret: [
-        "Use cryptographic randomness for security-sensitive values.",
+        "{{ target }} gets its value from a predictable source, not cryptographic randomness.",
         "",
-        "Why: Math.random(), timestamps, and counters are predictable. LLM-generated token or reset-code helpers often look unique but are guessable enough to compromise sessions, password resets, API keys, or nonces.",
+        "Why: Math.random(), timestamps, and counters are predictable, so a token built from them can be guessed and used to hijack sessions, password resets, or API keys.",
         "",
         "How to fix:",
-        '  Node: use crypto.randomBytes(32).toString("hex") or crypto.randomUUID().',
-        "  Browser: use crypto.getRandomValues() and encode the bytes.",
+        "  Before: const resetToken = Math.random().toString(36).slice(2);",
+        '  After:  const resetToken = crypto.randomBytes(32).toString("hex");  // Node; or crypto.randomUUID()',
+        "  After:  const bytes = crypto.getRandomValues(new Uint8Array(32));  // browser; then encode the bytes",
       ].join("\n"),
     },
     schema: [
@@ -362,6 +363,16 @@ export default createRule<Options, MessageIds>({
   defaultOptions,
   create(context) {
     const options = normalizeOptions(context.options[0]);
+
+    function report(node: TSESTree.Node, targetName: string | null): void {
+      context.report({
+        node,
+        messageId: "weakRandomnessForSecret",
+        data: {
+          target: targetName === null ? "This value" : `'${targetName}'`,
+        },
+      });
+    }
 
     function reportIfWeak(
       node: TSESTree.Node,
@@ -382,13 +393,13 @@ export default createRule<Options, MessageIds>({
         if (!options.checkFunctionReturnNames) return;
 
         if (functionReturnsReportableWeakSource(currentValue, true, options)) {
-          context.report({ node, messageId: "weakRandomnessForSecret" });
+          report(node, targetName);
         }
         return;
       }
 
       if (nodeContainsReportableWeakSource(value, targetIsSensitive, options)) {
-        context.report({ node, messageId: "weakRandomnessForSecret" });
+        report(node, targetName);
       }
     }
 
@@ -415,10 +426,7 @@ export default createRule<Options, MessageIds>({
         }
 
         if (functionReturnsReportableWeakSource(node, true, options)) {
-          context.report({
-            node: node.id ?? node,
-            messageId: "weakRandomnessForSecret",
-          });
+          report(node.id ?? node, functionName);
         }
       },
     };

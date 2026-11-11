@@ -116,6 +116,6 @@ Defaults to `true`. Set to `false` to skip checks for sensitive function declara
 
 The error message teaches:
 
-1. **What's wrong** — weak randomness is being used for a security-sensitive value
+1. **What's wrong** — names the variable, property, or function that gets its value from a predictable source
 2. **Why** — predictable values compromise sessions, reset flows, API keys, nonces, and similar secrets
 3. **How to fix** — use `crypto.randomBytes`, `crypto.randomUUID`, or browser `crypto.getRandomValues`

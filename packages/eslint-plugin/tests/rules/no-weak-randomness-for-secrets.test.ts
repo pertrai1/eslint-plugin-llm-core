@@ -1,6 +1,7 @@
 import { RuleTester } from "@typescript-eslint/rule-tester";
 import rule from "../../src/rules/no-weak-randomness-for-secrets";
-import { describe, it, afterAll } from "vitest";
+import { TSESLint } from "@typescript-eslint/utils";
+import { describe, expect, it, afterAll } from "vitest";
 
 RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
@@ -197,4 +198,38 @@ ruleTester.run("no-weak-randomness-for-secrets", rule, {
       errors: [{ messageId: "weakRandomnessForSecret" as const }],
     },
   ],
+});
+
+function lintMessages(code: string): string[] {
+  const config: TSESLint.Linter.ConfigType = [
+    {
+      plugins: { test: { rules: { "weak-randomness": rule } } },
+      rules: { "test/weak-randomness": "error" },
+    },
+  ];
+  return new TSESLint.Linter()
+    .verify(code, config)
+    .map((message) => message.message);
+}
+
+describe("no-weak-randomness-for-secrets message details", () => {
+  it("names the variable that receives the predictable value", () => {
+    const [message] = lintMessages(
+      `const resetToken = Math.random().toString(36);`,
+    );
+
+    expect(message).toContain(
+      "'resetToken' gets its value from a predictable source, not cryptographic randomness.",
+    );
+  });
+
+  it("names the function whose return value is predictable", () => {
+    const [message] = lintMessages(
+      `function generateSessionToken() { return Date.now().toString(); }`,
+    );
+
+    expect(message).toContain(
+      "'generateSessionToken' gets its value from a predictable source, not cryptographic randomness.",
+    );
+  });
 });

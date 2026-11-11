@@ -62,7 +62,8 @@ externally after a check; the checks reduce the window but are not a lock on
 other actors. Tests use local substitutes for GitHub and do not prove a live
 publication. Final pull-request CI verifies the supported Node 20/22 matrix.
 
-The workflow still identifies a release by the core package version. If only
-MCP or quality needs publishing and that core tag belongs to an earlier commit,
-the same fail-closed rule stops publication for maintainer investigation.
-Introducing per-package release identities is outside this fix.
+Amended by [Identify each published package by its own release
+tag](./2026-11-11-release-tag-identity.md): this fix identified every release by
+the core package version, so an MCP-only or quality-only release was stopped by
+the core tag on an earlier commit. Each package now has its own tag, and the
+same fail-closed rule applies to each tag separately.

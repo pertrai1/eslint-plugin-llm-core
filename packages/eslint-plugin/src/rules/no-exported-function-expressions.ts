@@ -41,7 +41,8 @@ export default createRule<[], MessageIds>({
         "",
         "How to fix:",
         "  Replace: export default {{ async }}({{ params }}) => { ... }",
-        "  With:    export default {{ async }}function myFunction({{ params }}) { ... }",
+        "  With:    export default {{ async }}function functionName({{ params }}) { ... }",
+        "  Replace `functionName` with a name that says what the function does.",
       ].join("\n"),
       convertToDeclaration:
         "Convert to function declaration: export {{ async }}function {{ name }}({{ params }}) { ... }",

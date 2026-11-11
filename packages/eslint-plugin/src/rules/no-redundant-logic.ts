@@ -77,7 +77,7 @@ export default createRule<[], MessageIds>({
     },
     messages: {
       redundantBooleanComparison: [
-        "Redundant comparison to boolean literal — compare directly to the value.",
+        "Redundant comparison to boolean literal — use the expression directly.",
         "",
         "Why: Comparing a boolean expression to `true` or `false` is redundant.",
         "The expression already evaluates to a boolean, so the comparison adds noise",

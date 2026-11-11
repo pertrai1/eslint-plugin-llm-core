@@ -61,15 +61,55 @@ Input:
 }
 ```
 
-Directory targets are capped to prevent broad accidental scans. Narrow the path
-when the tool asks for a smaller target.
+Result (`structuredContent`, also sent as compact JSON in the first text block):
+
+```json
+{
+  "source": "project-config",
+  "violationCount": 1,
+  "violations": [
+    {
+      "filePath": "src/index.ts",
+      "line": 3,
+      "column": 5,
+      "ruleId": "llm-core/no-empty-catch",
+      "severity": 2,
+      "message": "Empty catch block silently swallows errors — choose an explicit outcome.",
+      "guidanceId": "llm-core/no-empty-catch#1"
+    }
+  ],
+  "rules": {
+    "llm-core/no-empty-catch": {
+      "count": 1,
+      "instruction": "Never leave catch blocks empty — handle, rethrow, or log the error"
+    }
+  },
+  "guidance": {
+    "llm-core/no-empty-catch#1": "Why: …\n\nHow to fix: …"
+  },
+  "unlintedFileCount": 0,
+  "unlintedFiles": []
+}
+```
+
+Text that repeats is sent once. Each violation carries its file, location and
+the first paragraph of the rule message. The rest of the message, the why and
+how-to-fix text, is in `guidance` under the violation's `guidanceId`; violations
+with identical text share an entry, and violations whose text differs get their
+own. `rules` holds each rule's violation count and one-line instruction.
+
+The tool declares this shape as its output schema and is annotated read-only.
+
+Directory targets are capped to prevent broad accidental scans. When a directory
+is over the cap, or no ESLint config is found and fallback is off, the tool
+returns an error result explaining what to do instead of a lint result.
 
 Files that could not be linted are reported rather than treated as clean. A file
 with a parse error, or one ESLint ignores or has no configuration for, appears in
 `structuredContent.unlintedFiles` with a `reason` of `parse-error` or `ignored`,
-and is listed in a second text block after the violations. When none of the
+and is listed in a second text block after the result. When none of the
 targeted files could be linted, the tool returns an error describing why instead
-of an empty violations array.
+of an empty result.
 
 `ignored` applies to the path you pass. When the target is a directory, files
 that the project's ignore patterns exclude are skipped as ESLint normally does

@@ -136,13 +136,31 @@ export interface LintFileOptions {
 }
 
 interface LintViolation {
-  ruleId: string;
+  /** Path relative to the project root. */
+  filePath: string;
   line: number;
   column: number;
+  ruleId: string;
   severity: number;
+  /** The first paragraph of the rule message: what is wrong here. */
   message: string;
-  instruction: string | undefined;
-  source: LintSource;
+  /** Key into {@link LintReport.guidance} for the rest of the message. */
+  guidanceId?: string;
+}
+
+interface RuleSummary {
+  count: number;
+  instruction?: string;
+}
+
+/**
+ * The lint result. Text that repeats across violations is stored once: the
+ * per-rule instruction in `rules`, and each distinct why/how text in `guidance`.
+ */
+interface LintReport {
+  rules: Record<string, RuleSummary>;
+  guidance: Record<string, string>;
+  violations: LintViolation[];
 }
 
 interface FlatLintMessage {
@@ -194,6 +212,49 @@ const inputSchema = {
   path: z
     .string()
     .describe("Path to a file or directory to lint, within the project root"),
+};
+
+const outputSchema = {
+  source: z
+    .enum(["project-config", "fallback"])
+    .describe("Which ESLint configuration produced the result"),
+  violationCount: z.number().int(),
+  violations: z.array(
+    z.object({
+      filePath: z.string().describe("Path relative to the project root"),
+      line: z.number().int(),
+      column: z.number().int(),
+      ruleId: z.string(),
+      severity: z.number().int(),
+      message: z.string().describe("What is wrong at this location"),
+      guidanceId: z
+        .string()
+        .optional()
+        .describe("Key into `guidance` for the why and how-to-fix text"),
+    }),
+  ),
+  rules: z
+    .record(
+      z.string(),
+      z.object({
+        count: z.number().int(),
+        instruction: z.string().optional(),
+      }),
+    )
+    .describe("One entry per rule that fired, keyed by rule id"),
+  guidance: z
+    .record(z.string(), z.string())
+    .describe("Why and how-to-fix text, shared by the violations that cite it"),
+  unlintedFileCount: z.number().int(),
+  unlintedFiles: z.array(
+    z.object({
+      filePath: z.string(),
+      reason: z.enum(["parse-error", "ignored"]),
+      message: z.string(),
+      line: z.number().int().optional(),
+      column: z.number().int().optional(),
+    }),
+  ),
 };
 
 async function newFlatESLint(
@@ -310,12 +371,58 @@ function resolveRuleOptions(
   return { ...defaults };
 }
 
-async function toViolations(
+/**
+ * Splits a rule message at its first blank line: the first paragraph says what
+ * is wrong at this location, and the rest is the why and how-to-fix text.
+ */
+export function splitRuleMessage(text: string): {
+  message: string;
+  guidance: string | undefined;
+} {
+  const boundary = text.indexOf("\n\n");
+
+  if (boundary === -1) {
+    return { message: text, guidance: undefined };
+  }
+
+  return {
+    message: text.slice(0, boundary),
+    guidance: text.slice(boundary + 2),
+  };
+}
+
+/**
+ * Returns the id of `guidance` for `ruleId`, adding an entry the first time
+ * that exact text is seen. Identical text shares one id, so nothing is lost
+ * when a rule's guidance varies by violation.
+ */
+function internGuidance(
+  ruleId: string,
+  guidance: string,
+  idsByRule: Map<string, Map<string, string>>,
+  table: Record<string, string>,
+): string {
+  const ids = idsByRule.get(ruleId) ?? new Map<string, string>();
+  idsByRule.set(ruleId, ids);
+
+  const existing = ids.get(guidance);
+  if (existing) {
+    return existing;
+  }
+
+  const id = `${ruleId}#${ids.size + 1}`;
+  ids.set(guidance, id);
+  table[id] = guidance;
+  return id;
+}
+
+async function toLintReport(
   results: FlatLintResult[],
   eslint: FlatESLintInstance,
-  source: LintSource,
-): Promise<LintViolation[]> {
-  const violations: LintViolation[] = [];
+  projectRoot: string,
+): Promise<LintReport> {
+  const report: LintReport = { rules: {}, guidance: {}, violations: [] };
+  const guidanceIds = new Map<string, Map<string, string>>();
 
   for (const result of results) {
     const hasLlmCore = result.messages.some((m) =>
@@ -326,28 +433,52 @@ async function toViolations(
     const fileRules = hasLlmCore
       ? ((await eslint.calculateConfigForFile(result.filePath)).rules ?? {})
       : {};
+    const filePath = path.relative(projectRoot, result.filePath);
 
-    for (const message of result.messages) {
-      const ruleId = message.ruleId;
+    for (const lintMessage of result.messages) {
+      const ruleId = lintMessage.ruleId;
       if (!ruleId || !ruleId.startsWith(LLM_CORE_PREFIX)) {
         continue;
       }
 
-      const options = resolveRuleOptions(ruleId, fileRules[ruleId]);
+      const rule = report.rules[ruleId];
+      if (rule) {
+        rule.count += 1;
+      } else {
+        // The first violation's file decides the options the instruction is
+        // interpolated with.
+        const options = resolveRuleOptions(ruleId, fileRules[ruleId]);
+        const instruction = getRuleInstruction(ruleId, options);
+        report.rules[ruleId] = {
+          count: 1,
+          ...(instruction === undefined ? {} : { instruction }),
+        };
+      }
 
-      violations.push({
+      const { message, guidance } = splitRuleMessage(lintMessage.message);
+
+      report.violations.push({
+        filePath,
+        line: lintMessage.line ?? 0,
+        column: lintMessage.column ?? 0,
         ruleId,
-        line: message.line ?? 0,
-        column: message.column ?? 0,
-        severity: message.severity,
-        message: message.message,
-        instruction: getRuleInstruction(ruleId, options),
-        source,
+        severity: lintMessage.severity,
+        message,
+        ...(guidance === undefined
+          ? {}
+          : {
+              guidanceId: internGuidance(
+                ruleId,
+                guidance,
+                guidanceIds,
+                report.guidance,
+              ),
+            }),
       });
     }
   }
 
-  return violations;
+  return report;
 }
 
 // ESLint reports a skipped file as a rule-less warning with no message id; the
@@ -415,12 +546,14 @@ async function toToolResult(
   source: LintSource,
   projectRoot: string,
 ) {
-  const violations = await toViolations(results, eslint, source);
+  const report = await toLintReport(results, eslint, projectRoot);
   const unlintedFiles = toUnlintedFiles(results, projectRoot);
   const structuredContent = {
     source,
-    violationCount: violations.length,
-    violations,
+    violationCount: report.violations.length,
+    violations: report.violations,
+    rules: report.rules,
+    guidance: report.guidance,
     unlintedFileCount: unlintedFiles.length,
     unlintedFiles,
   };
@@ -441,7 +574,7 @@ async function toToolResult(
   }
 
   const content = [
-    { type: "text" as const, text: JSON.stringify(violations, null, 2) },
+    { type: "text" as const, text: JSON.stringify(structuredContent) },
   ];
   if (unlintedFiles.length > 0) {
     content.push({
@@ -469,8 +602,18 @@ export function registerLintFile(
         "Lints a file (or directory) with the project's own ESLint config, " +
         "or the opt-in read-only fallback when no config is found, and returns " +
         "each eslint-plugin-llm-core violation with its what/why/how-to-fix " +
-        "instruction attached. Call after editing a file to self-correct.",
+        "instruction attached. Call after editing a file to self-correct. " +
+        "Read-only. Each violation gives its file, location and what is " +
+        "wrong; `guidance[violation.guidanceId]` holds the why and how-to-fix " +
+        "text, and `rules[ruleId].instruction` the rule's one-line principle.",
       inputSchema,
+      outputSchema,
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
     },
     async ({ path: targetPath }) => {
       const absoluteTarget = path.resolve(projectRoot, targetPath);
@@ -515,6 +658,7 @@ export function registerLintFile(
         const fileCount = await countSourceFiles(realTarget, maxFiles);
         if (fileCount > maxFiles) {
           return {
+            isError: true,
             content: [
               {
                 type: "text" as const,
@@ -550,6 +694,7 @@ export function registerLintFile(
           }
 
           return {
+            isError: true,
             content: [{ type: "text" as const, text: NO_CONFIG_MESSAGE }],
           };
         }

@@ -39,43 +39,49 @@ jobs:
         env:
           NPM_PUBLISH_CLI: npm@11.18.0
         run: |
-          CURRENT_VERSION=$(node -p "require('./packages/eslint-plugin/package.json').version")
-          MCP_VERSION=$(node -p "require('./packages/mcp-server/package.json').version")
-          QUALITY_VERSION=$(node -p "require('./packages/quality-cli/package.json').version")
-          NPM_VERSION=$(npm view eslint-plugin-llm-core version 2>/dev/null || echo "0.0.0")
-          MCP_NPM_VERSION=$(npm view eslint-plugin-llm-core-mcp version 2>/dev/null || echo "0.0.0")
-          QUALITY_NPM_VERSION=$(npm view llm-core-quality version 2>/dev/null || echo "0.0.0")
-          if [ "$CURRENT_VERSION" != "$NPM_VERSION" ] || [ "$MCP_VERSION" != "$MCP_NPM_VERSION" ] || [ "$QUALITY_VERSION" != "$QUALITY_NPM_VERSION" ]; then
-            bash .github/scripts/release-tag.sh "v$CURRENT_VERSION" "$GITHUB_SHA" --verify-only
-          fi
-          published=false
-          if [ "$CURRENT_VERSION" != "$NPM_VERSION" ]; then
-            echo "Publishing $CURRENT_VERSION (npm has $NPM_VERSION)"
-            npx -y "$NPM_PUBLISH_CLI" publish --workspace eslint-plugin-llm-core --access public --provenance
-            published=true
-          else
-            echo "Core version $CURRENT_VERSION already published, skipping"
-          fi
-          if [ "$MCP_VERSION" != "$MCP_NPM_VERSION" ]; then
-            echo "Publishing MCP $MCP_VERSION (npm has $MCP_NPM_VERSION)"
-            npx -y "$NPM_PUBLISH_CLI" publish --workspace eslint-plugin-llm-core-mcp --access public --provenance
-            published=true
-          else
-            echo "MCP version $MCP_VERSION already published, skipping"
-          fi
-          if [ "$QUALITY_VERSION" != "$QUALITY_NPM_VERSION" ]; then
-            echo "Publishing quality CLI $QUALITY_VERSION (npm has $QUALITY_NPM_VERSION)"
-            npx -y "$NPM_PUBLISH_CLI" publish --workspace llm-core-quality --access public --provenance
-            published=true
-          else
-            echo "Quality CLI version $QUALITY_VERSION already published, skipping"
-          fi
-          echo "published=$published" >> "$GITHUB_OUTPUT"
-          echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+          # Each package has its own release tag: core keeps v<version>, the
+          # others use <package-name>@<version>. Only packages whose version
+          # is not on npm yet are verified, published, and tagged.
+          workspaces=()
+          tags=()
+          plan() {
+            local workspace="$1" directory="$2" tag_prefix="$3"
+            local version npm_version
+            version=$(node -p "require('./packages/$directory/package.json').version")
+            npm_version=$(npm view "$workspace" version 2>/dev/null || echo "0.0.0")
+            if [ "$version" != "$npm_version" ]; then
+              echo "Will publish $workspace $version (npm has $npm_version)"
+              workspaces+=("$workspace")
+              tags+=("$tag_prefix$version")
+            else
+              echo "$workspace $version already published, skipping"
+            fi
+          }
+          plan eslint-plugin-llm-core eslint-plugin v
+          plan eslint-plugin-llm-core-mcp mcp-server eslint-plugin-llm-core-mcp@
+          plan llm-core-quality quality-cli llm-core-quality@
+          # Verify every needed tag before the first publish, so a mismatch on
+          # one package publishes nothing.
+          for tag in "${tags[@]}"; do
+            bash .github/scripts/release-tag.sh "$tag" "$GITHUB_SHA" --verify-only
+          done
+          for workspace in "${workspaces[@]}"; do
+            npx -y "$NPM_PUBLISH_CLI" publish --workspace "$workspace" --access public --provenance
+          done
+          echo "tags=${tags[*]}" >> "$GITHUB_OUTPUT"
       - name: Create GitHub Release
-        if: steps.publish.outputs.published == 'true'
+        if: steps.publish.outputs.tags != ''
         run: |
-          tag="v${{ steps.publish.outputs.version }}"
-          bash .github/scripts/release-tag.sh "$tag" "$GITHUB_SHA"
+          for tag in $RELEASE_TAGS; do
+            bash .github/scripts/release-tag.sh "$tag" "$GITHUB_SHA" --verify-only
+          done
+          for tag in $RELEASE_TAGS; do
+            case "$tag" in
+              # Core releases keep GitHub's "Latest" marker.
+              v*) bash .github/scripts/release-tag.sh "$tag" "$GITHUB_SHA" ;;
+              *) bash .github/scripts/release-tag.sh "$tag" "$GITHUB_SHA" --latest=false ;;
+            esac
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAGS: ${{ steps.publish.outputs.tags }}

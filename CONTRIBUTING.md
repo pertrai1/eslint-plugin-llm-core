@@ -134,6 +134,13 @@ behavior or documentation should be described against the affected package:
 - Quality CLI command, reporter, engine, exit-code, or CLI README changes affect
   `llm-core-quality`.
 
+Each published version gets its own GitHub release and tag on the commit that
+published it: `v<version>` for `eslint-plugin-llm-core`, and
+`<package-name>@<version>` for `eslint-plugin-llm-core-mcp` and
+`llm-core-quality`. The release workflow creates these tags; never move or
+recreate one by hand. See
+[docs/decisions/2026-11-11-release-tag-identity.md](docs/decisions/2026-11-11-release-tag-identity.md).
+
 ## Questions?
 
 Open an issue if something is unclear. We're happy to help.

@@ -33,5 +33,6 @@ fi
 if gh release view "$tag" >/dev/null 2>&1; then
   echo "Release $tag already exists at $target, skipping"
 else
-  gh release create "$tag" --target "$target" --generate-notes
+  # Remaining arguments (for example --latest=false) go to gh release create.
+  gh release create "$tag" --target "$target" --generate-notes "${@:3}"
 fi

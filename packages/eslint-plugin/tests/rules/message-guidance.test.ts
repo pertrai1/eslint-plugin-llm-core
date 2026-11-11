@@ -99,21 +99,10 @@ describe("rule message guidance", () => {
 
     expectSingleWhyLine(noAsyncArrayCallback);
     expectTemplateShape(noAsyncArrayCallback);
-    expect(noAsyncArrayCallback).toContain(
-      "Choose the rewrite that preserves the original method semantics:",
-    );
-    expect(noAsyncArrayCallback).toContain(
-      "forEach: for (const item of items) { await processItem(item); }",
-    );
-    expect(noAsyncArrayCallback).toContain(
-      "reduce: let acc = initial; for (const item of items) { acc = await step(acc, item); }",
-    );
-    expect(noAsyncArrayCallback).toContain(
-      "Before: const matches = await Promise.all(items.map(async (item) => isMatch(item)));",
-    );
-    expect(noAsyncArrayCallback).toContain(
-      "After:  const filtered = items.filter((_, index) => matches[index]);",
-    );
+    // The rewrite is selected per flagged method at report time; the rendered
+    // text for each method is asserted in no-async-array-callbacks.test.ts.
+    expect(noAsyncArrayCallback).toContain("  Before: {{ before }}");
+    expect(noAsyncArrayCallback).toContain("  After:  {{ after }}");
 
     expectSingleWhyLine(noAsyncMapCallback);
     expectTemplateShape(noAsyncMapCallback);

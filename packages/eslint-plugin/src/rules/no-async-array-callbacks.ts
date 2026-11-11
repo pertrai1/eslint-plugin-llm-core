@@ -7,13 +7,70 @@ type MessageIds = "noAsyncArrayCallback" | "noAsyncMapCallback";
 // Array methods where async callbacks are almost always a bug — the return
 // value of the callback is either ignored or used in a boolean/accumulator
 // context that doesn't understand Promises.
-const ALWAYS_FLAGGED_METHODS = new Set([
-  "forEach",
-  "filter",
-  "some",
-  "every",
-  "reduce",
-  "flatMap",
+type Rewrite = { before: string; after: string };
+
+const AFTER_CONTINUATION = "\n          ";
+const RESOLVE_MATCHES =
+  "const matches = await Promise.all(items.map((item) => isMatch(item)));";
+
+// Methods that never await their callback, each with the rewrite that
+// preserves that method's semantics.
+const REWRITES_BY_METHOD = new Map<string, Rewrite>([
+  [
+    "forEach",
+    {
+      before: "items.forEach(async (item) => { await processItem(item); });",
+      after: "for (const item of items) { await processItem(item); }",
+    },
+  ],
+  [
+    "filter",
+    {
+      before: "const kept = items.filter(async (item) => isMatch(item));",
+      after: [
+        RESOLVE_MATCHES,
+        "const kept = items.filter((_, index) => matches[index]);",
+      ].join(AFTER_CONTINUATION),
+    },
+  ],
+  [
+    "some",
+    {
+      before: "const found = items.some(async (item) => isMatch(item));",
+      after: [RESOLVE_MATCHES, "const found = matches.some(Boolean);"].join(
+        AFTER_CONTINUATION,
+      ),
+    },
+  ],
+  [
+    "every",
+    {
+      before: "const allMatch = items.every(async (item) => isMatch(item));",
+      after: [RESOLVE_MATCHES, "const allMatch = matches.every(Boolean);"].join(
+        AFTER_CONTINUATION,
+      ),
+    },
+  ],
+  [
+    "reduce",
+    {
+      before:
+        "const total = items.reduce(async (acc, item) => step(await acc, item), initial);",
+      after: [
+        "let total = initial;",
+        "for (const item of items) { total = await step(total, item); }",
+      ].join(AFTER_CONTINUATION),
+    },
+  ],
+  [
+    "flatMap",
+    {
+      before:
+        "const children = items.flatMap(async (item) => loadChildren(item));",
+      after:
+        "const children = (await Promise.all(items.map((item) => loadChildren(item)))).flat();",
+    },
+  ],
 ]);
 
 export default createRule<[], MessageIds>({
@@ -31,12 +88,8 @@ export default createRule<[], MessageIds>({
         "Why: `{{ method }}` expects a synchronous callback, so `async` changes the meaning of the code.",
         "",
         "How to fix:",
-        "  Choose the rewrite that preserves the original method semantics:",
-        "  forEach: for (const item of items) { await processItem(item); }",
-        "  reduce: let acc = initial; for (const item of items) { acc = await step(acc, item); }",
-        "  Before: const matches = await Promise.all(items.map(async (item) => isMatch(item)));",
-        "  After:  const filtered = items.filter((_, index) => matches[index]);",
-        "  Use the same pattern for some/every/flatMap: await first, then apply the synchronous array method to resolved values.",
+        "  Before: {{ before }}",
+        "  After:  {{ after }}",
       ].join("\n"),
 
       noAsyncMapCallback: [
@@ -177,11 +230,12 @@ export default createRule<[], MessageIds>({
         if (!callback) return;
         if (!isAsyncCallback(callback)) return;
 
-        if (ALWAYS_FLAGGED_METHODS.has(methodName)) {
+        const rewrite = REWRITES_BY_METHOD.get(methodName);
+        if (rewrite !== undefined) {
           context.report({
             node: callback,
             messageId: "noAsyncArrayCallback",
-            data: { method: methodName },
+            data: { method: methodName, ...rewrite },
           });
           return;
         }

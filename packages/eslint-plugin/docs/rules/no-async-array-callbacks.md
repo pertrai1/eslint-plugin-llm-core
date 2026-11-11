@@ -90,5 +90,5 @@ That means custom collection APIs that intentionally expose array-like method na
 
 Two distinct messages are used:
 
-1. **`noAsyncArrayCallback`** — for forEach, filter, some, every, reduce, flatMap: teaches that Promises are discarded or misused and offers concrete alternatives
+1. **`noAsyncArrayCallback`** — for forEach, filter, some, every, reduce, flatMap: teaches that Promises are discarded or misused and shows the one before/after rewrite that fits the flagged method
 2. **`noAsyncMapCallback`** — for map without immediate await/return through `Promise.all(...)`: teaches the `await Promise.all(items.map(...))` pattern

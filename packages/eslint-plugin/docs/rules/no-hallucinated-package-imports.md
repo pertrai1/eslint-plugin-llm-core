@@ -109,6 +109,6 @@ type Options = [
 
 The teaching message explains:
 
-1. **What's wrong** — the imported package root is not declared in the relevant package manifest
+1. **What's wrong** — names the package root and the manifest that was checked, e.g. `'super-retry-utils' is not declared in packages/api/package.json.`
 2. **Why** — hallucinated package imports hide dependency changes and break install/build/test/runtime paths
-3. **How to fix** — use an existing declared dependency, add the dependency intentionally, or configure an explicit allow/workspace entry
+3. **How to fix** — one of three explicit outcomes: use an already-declared dependency, add the dependency intentionally, or add an internal module to the `allow` option

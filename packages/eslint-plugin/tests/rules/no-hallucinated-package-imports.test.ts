@@ -1,7 +1,8 @@
 import path from "node:path";
 import { RuleTester } from "@typescript-eslint/rule-tester";
 import rule from "../../src/rules/no-hallucinated-package-imports";
-import { describe, it, afterAll } from "vitest";
+import { TSESLint } from "@typescript-eslint/utils";
+import { describe, expect, it, afterAll } from "vitest";
 
 RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
@@ -254,4 +255,37 @@ ruleTester.run("no-hallucinated-package-imports", rule, {
       errors: [{ messageId: "undeclaredPackage" as const }],
     },
   ],
+});
+
+function lintFixture(code: string): string[] {
+  const config: TSESLint.Linter.ConfigType = [
+    {
+      files: ["**/*.ts"],
+      plugins: { test: { rules: { "package-imports": rule } } },
+      rules: { "test/package-imports": ["error", { packageJsonPath }] },
+    },
+  ];
+  return new TSESLint.Linter()
+    .verify(code, config, { filename: fixtureFilename })
+    .map((message) => message.message);
+}
+
+describe("no-hallucinated-package-imports message details", () => {
+  it("names the undeclared package and the manifest that was checked", () => {
+    const [message] = lintFixture(`import { retry } from "super-retry-utils";`);
+
+    expect(message).toContain(
+      "'super-retry-utils' is not declared in tests/fixtures/no-hallucinated-package-imports/package.json.",
+    );
+  });
+
+  it("names the package root, not the imported subpath", () => {
+    const [message] = lintFixture(
+      `import { Client } from "@vendor/nonexistent-sdk/client";`,
+    );
+
+    expect(message).toContain(
+      "'@vendor/nonexistent-sdk' is not declared in tests/fixtures/no-hallucinated-package-imports/package.json.",
+    );
+  });
 });

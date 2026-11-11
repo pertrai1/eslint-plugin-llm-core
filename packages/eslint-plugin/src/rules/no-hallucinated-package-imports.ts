@@ -313,13 +313,15 @@ export default createRule<Options, MessageIds>({
     },
     messages: {
       undeclaredPackage: [
-        "Package import is not declared in the relevant package manifest.",
+        "'{{ packageRoot }}' is not declared in {{ manifest }}.",
         "",
-        "Why: LLMs often invent plausible package names or assume dependencies are installed.",
-        "Undeclared imports hide dependency changes and fail at install, build, test, or runtime.",
+        "Why: LLMs often invent plausible package names or assume a dependency is installed, and the import then fails at install, build, or runtime.",
         "",
         "How to fix:",
-        "  Use an existing declared dependency, add the package intentionally to package.json, or add a configured allowlist/workspace entry for internal modules.",
+        "  Choose one explicit outcome:",
+        "  After: import from a dependency already declared in {{ manifest }}, or a Node built-in, that provides this.",
+        "  After: if '{{ packageRoot }}' is a real package this code needs, add it to {{ manifest }} intentionally.",
+        "  After: if it is an internal workspace module or path alias, add it to this rule's `allow` option.",
       ].join("\n"),
     },
     schema: [
@@ -347,6 +349,14 @@ export default createRule<Options, MessageIds>({
   create(context, [rawOptions]) {
     const declaredPackages = loadDeclaredPackages(context.filename, rawOptions);
     const options = normalizeOptions(rawOptions);
+    const manifestPath = resolvePackageJsonPath(
+      context.filename,
+      rawOptions?.packageJsonPath,
+    );
+    const manifest =
+      manifestPath === null
+        ? "package.json"
+        : path.relative(context.cwd, manifestPath).split(path.sep).join("/");
 
     function checkSource(node: TSESTree.Node, source: string): void {
       const packageRoot = getPackageRoot(source);
@@ -367,7 +377,11 @@ export default createRule<Options, MessageIds>({
         return;
       }
 
-      context.report({ node, messageId: "undeclaredPackage" });
+      context.report({
+        node,
+        messageId: "undeclaredPackage",
+        data: { packageRoot, manifest },
+      });
     }
 
     function checkLiteralSource(

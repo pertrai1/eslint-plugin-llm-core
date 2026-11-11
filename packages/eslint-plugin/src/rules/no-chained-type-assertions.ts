@@ -64,9 +64,13 @@ export default createRule<[], "chained">({
     messages: {
       chained: [
         "This assertion chain discards type evidence.",
+        "",
         "Why: Each additional assertion hides information the compiler could have used to catch a mismatch.",
+        "",
         "How to fix:",
-        "  Keep the original precise type, or parse untrusted input once at its boundary before narrowing it.",
+        "  Before: const user = payload as unknown as User;",
+        "  After:  const user = UserSchema.parse(payload);",
+        "  If the value already has a precise type, delete the assertions and use it as it is.",
       ].join("\n"),
     },
     schema: [],

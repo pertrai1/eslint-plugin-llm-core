@@ -48,9 +48,14 @@ export default createRule<[], "widening">({
     messages: {
       widening: [
         "The explicit type on '{{ name }}' discards known type evidence.",
-        "Why: The initializer already establishes a more useful concrete type, but the annotation widens it to an escape hatch.",
+        "",
+        "Why: The initializer already has a precise type, and the annotation widens it to `any`, `unknown`, `object`, or an untyped dictionary.",
+        "",
         "How to fix:",
-        "  Keep inference, validate with `satisfies`, or use a named owner contract instead of `any`, `unknown`, `object`, or an unsafe dictionary.",
+        "  Choose one explicit outcome:",
+        '  Before: const settings: Record<string, unknown> = { baseUrl: "/api", verbose: true };',
+        '  After:  const settings = { baseUrl: "/api", verbose: true };',
+        '  After:  const settings = { baseUrl: "/api", verbose: true } satisfies AppSettings;',
       ].join("\n"),
     },
     schema: [],

@@ -21,6 +21,7 @@ export default createRule<[], MessageIds>({
         "How to fix:",
         "  Before: export function processOrder(order) { ... }",
         "  After:  export function processOrder(order: Order) { ... }",
+        "  Annotate '{{ param }}' with its concrete type; do not use `any` or `unknown`, which other rules flag.",
       ].join("\n"),
       missingReturnType: [
         "Exported function '{{ fn }}' is missing an explicit return type annotation.",
@@ -30,6 +31,7 @@ export default createRule<[], MessageIds>({
         "How to fix:",
         "  Before: export function processOrder(order: Order) { ... }",
         "  After:  export function processOrder(order: Order): ProcessedOrder { ... }",
+        "  Declare the concrete return type of '{{ fn }}'; do not use `any` or `unknown`, which other rules flag.",
       ].join("\n"),
     },
     schema: [],

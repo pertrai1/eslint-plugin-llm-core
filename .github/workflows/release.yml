@@ -45,6 +45,9 @@ jobs:
           NPM_VERSION=$(npm view eslint-plugin-llm-core version 2>/dev/null || echo "0.0.0")
           MCP_NPM_VERSION=$(npm view eslint-plugin-llm-core-mcp version 2>/dev/null || echo "0.0.0")
           QUALITY_NPM_VERSION=$(npm view llm-core-quality version 2>/dev/null || echo "0.0.0")
+          if [ "$CURRENT_VERSION" != "$NPM_VERSION" ] || [ "$MCP_VERSION" != "$MCP_NPM_VERSION" ] || [ "$QUALITY_VERSION" != "$QUALITY_NPM_VERSION" ]; then
+            bash .github/scripts/release-tag.sh "v$CURRENT_VERSION" "$GITHUB_SHA" --verify-only
+          fi
           published=false
           if [ "$CURRENT_VERSION" != "$NPM_VERSION" ]; then
             echo "Publishing $CURRENT_VERSION (npm has $NPM_VERSION)"
@@ -73,10 +76,6 @@ jobs:
         if: steps.publish.outputs.published == 'true'
         run: |
           tag="v${{ steps.publish.outputs.version }}"
-          if gh release view "$tag" >/dev/null 2>&1; then
-            echo "Release $tag already exists, skipping"
-          else
-            gh release create "$tag" --generate-notes
-          fi
+          bash .github/scripts/release-tag.sh "$tag" "$GITHUB_SHA"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

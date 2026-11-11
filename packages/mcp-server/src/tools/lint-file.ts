@@ -147,10 +147,23 @@ interface LintViolation {
 
 interface FlatLintMessage {
   ruleId: string | null;
-  line: number;
-  column: number;
+  line?: number;
+  column?: number;
   severity: number;
   message: string;
+  fatal?: boolean;
+}
+
+/**
+ * A targeted file ESLint returned no rule results for. Reported separately so
+ * an empty violations list is never mistaken for "this file is clean".
+ */
+interface UnlintedFile {
+  filePath: string;
+  reason: "parse-error" | "ignored";
+  message: string;
+  line?: number;
+  column?: number;
 }
 
 interface FlatLintResult {
@@ -324,8 +337,8 @@ async function toViolations(
 
       violations.push({
         ruleId,
-        line: message.line,
-        column: message.column,
+        line: message.line ?? 0,
+        column: message.column ?? 0,
         severity: message.severity,
         message: message.message,
         instruction: getRuleInstruction(ruleId, options),
@@ -335,6 +348,109 @@ async function toViolations(
   }
 
   return violations;
+}
+
+// ESLint reports a skipped file as a rule-less warning with no message id; the
+// message prefix is the only marker it exposes.
+const IGNORED_FILE_MESSAGE = /^File ignored/;
+
+/**
+ * Finds files that produced no rule results: a fatal parse error stops every
+ * rule, and an ignored or unmatched file is never linted. Both arrive as
+ * messages without a rule id, which the llm-core filter would otherwise drop.
+ */
+function toUnlintedFiles(
+  results: FlatLintResult[],
+  projectRoot: string,
+): UnlintedFile[] {
+  const unlinted: UnlintedFile[] = [];
+
+  for (const result of results) {
+    const fatal = result.messages.find((m) => m.fatal === true);
+    const ignored = result.messages.find(
+      (m) => m.ruleId === null && IGNORED_FILE_MESSAGE.test(m.message),
+    );
+    const filePath = path.relative(projectRoot, result.filePath);
+
+    if (fatal) {
+      unlinted.push({
+        filePath,
+        reason: "parse-error",
+        message: fatal.message,
+        line: fatal.line,
+        column: fatal.column,
+      });
+    } else if (ignored) {
+      unlinted.push({ filePath, reason: "ignored", message: ignored.message });
+    }
+  }
+
+  return unlinted;
+}
+
+function describeUnlintedFile(file: UnlintedFile): string {
+  if (file.reason === "parse-error") {
+    return `- ${file.filePath}:${file.line ?? 0}:${file.column ?? 0} — parse error: ${file.message}`;
+  }
+
+  return `- ${file.filePath} — not linted: ${file.message}`;
+}
+
+function describeUnlintedFiles(
+  unlintedFiles: UnlintedFile[],
+  nothingLinted: boolean,
+): string {
+  const heading = nothingLinted
+    ? "No file was linted, so there is no llm-core result for this path. " +
+      "This does not mean the code is clean."
+    : `${unlintedFiles.length} file(s) were not linted and are not covered by ` +
+      "the violations above. This does not mean they are clean.";
+
+  return [heading, "", ...unlintedFiles.map(describeUnlintedFile)].join("\n");
+}
+
+async function toToolResult(
+  results: FlatLintResult[],
+  eslint: FlatESLintInstance,
+  source: LintSource,
+  projectRoot: string,
+) {
+  const violations = await toViolations(results, eslint, source);
+  const unlintedFiles = toUnlintedFiles(results, projectRoot);
+  const structuredContent = {
+    source,
+    violationCount: violations.length,
+    violations,
+    unlintedFileCount: unlintedFiles.length,
+    unlintedFiles,
+  };
+  const nothingLinted =
+    unlintedFiles.length > 0 && unlintedFiles.length === results.length;
+
+  if (nothingLinted) {
+    return {
+      isError: true,
+      structuredContent,
+      content: [
+        {
+          type: "text" as const,
+          text: describeUnlintedFiles(unlintedFiles, true),
+        },
+      ],
+    };
+  }
+
+  const content = [
+    { type: "text" as const, text: JSON.stringify(violations, null, 2) },
+  ];
+  if (unlintedFiles.length > 0) {
+    content.push({
+      type: "text" as const,
+      text: describeUnlintedFiles(unlintedFiles, false),
+    });
+  }
+
+  return { structuredContent, content };
 }
 
 export function registerLintFile(
@@ -424,26 +540,13 @@ export function registerLintFile(
             const fallbackResults = await fallbackEslint.lintFiles([
               absoluteTarget,
             ]);
-            const source = "fallback";
-            const violations = await toViolations(
+
+            return toToolResult(
               fallbackResults,
               fallbackEslint,
-              source,
+              "fallback",
+              projectRoot,
             );
-
-            return {
-              structuredContent: {
-                source,
-                violationCount: violations.length,
-                violations,
-              },
-              content: [
-                {
-                  type: "text" as const,
-                  text: JSON.stringify(violations, null, 2),
-                },
-              ],
-            };
           }
 
           return {
@@ -453,19 +556,7 @@ export function registerLintFile(
         throw error;
       }
 
-      const source = "project-config";
-      const violations = await toViolations(results, eslint, source);
-
-      return {
-        structuredContent: {
-          source,
-          violationCount: violations.length,
-          violations,
-        },
-        content: [
-          { type: "text" as const, text: JSON.stringify(violations, null, 2) },
-        ],
-      };
+      return toToolResult(results, eslint, "project-config", projectRoot);
     },
   );
 }

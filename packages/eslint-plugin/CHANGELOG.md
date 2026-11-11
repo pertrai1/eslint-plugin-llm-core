@@ -1,5 +1,15 @@
 # eslint-plugin-llm-core
 
+## 0.37.5
+
+### Patch Changes
+
+- 0d70885: `no-async-array-callbacks` now shows only the rewrite for the flagged method (`forEach`, `filter`, `some`, `every`, `reduce`, or `flatMap`) as a true before/after pair, instead of listing every method's recipe on each report.
+- 0d70885: `explicit-export-types` messages now end with a line naming the parameter or function to annotate and warning not to satisfy the rule with `any` or `unknown`.
+- 0d70885: `no-hallucinated-local-imports` messages now name the import path and missing binding, and list what does exist: the target module's direct named exports, or the modules in the target directory when the path does not resolve.
+- 0d70885: `no-hallucinated-package-imports` now names the undeclared package and the `package.json` it checked, and presents the fix as three explicit outcomes.
+- 0d70885: `no-weak-randomness-for-secrets` now names the variable, property, or function that receives the predictable value and shows a before/after rewrite.
+
 ## 0.37.4
 
 ### Patch Changes

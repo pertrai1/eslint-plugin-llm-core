@@ -3,7 +3,14 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { mkdtemp, readdir, writeFile, rm, symlink } from "node:fs/promises";
+import {
+  mkdir,
+  mkdtemp,
+  readdir,
+  writeFile,
+  rm,
+  symlink,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import {
   makeTestServer,
@@ -343,7 +350,7 @@ describe("lint_file with no discoverable ESLint config", () => {
       await writeFile(
         target,
         [
-          "function Greeting({ name }: { name: string }) {",
+          "function Greeting({ name }) {",
           "  return <div>Hello, {name}!</div>;",
           "}",
           "",
@@ -394,6 +401,152 @@ describe("lint_file with no discoverable ESLint config", () => {
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
+  });
+});
+
+interface UnlintedFile {
+  filePath: string;
+  reason: "parse-error" | "ignored";
+  message: string;
+  line?: number;
+  column?: number;
+}
+
+interface UnlintedToolResult {
+  isError?: boolean;
+  content: Array<{ type: string; text: string }>;
+  structuredContent?: {
+    violationCount?: number;
+    unlintedFileCount?: number;
+    unlintedFiles?: UnlintedFile[];
+  };
+}
+
+describe("lint_file files that could not be linted", () => {
+  async function lintInTempProject(
+    files: Record<string, string>,
+    target: string,
+  ): Promise<UnlintedToolResult> {
+    const dir = await mkdtemp(path.join(tmpdir(), "llmcore-mcp-unlinted-"));
+    try {
+      for (const [relativePath, contents] of Object.entries(files)) {
+        const filePath = path.join(dir, relativePath);
+        await mkdir(path.dirname(filePath), { recursive: true });
+        await writeFile(filePath, contents);
+      }
+
+      const client = await connectClient({
+        projectRoot: dir,
+        fallbackEnabled: true,
+      });
+      return (await client.callTool({
+        name: "lint_file",
+        arguments: { path: target },
+      })) as UnlintedToolResult;
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  }
+
+  it("reports a parse error as an error instead of an empty result", async () => {
+    const result = await lintInTempProject(
+      { "broken.ts": "export function f( {\n" },
+      "broken.ts",
+    );
+
+    expect(result.isError).toBe(true);
+    expect(result.content).toHaveLength(1);
+    expect(result.content[0].text).toMatch(
+      /- broken\.ts:\d+:\d+ — parse error/,
+    );
+    expect(result.structuredContent).toMatchObject({
+      violationCount: 0,
+      unlintedFileCount: 1,
+    });
+    expect(result.structuredContent!.unlintedFiles).toEqual([
+      {
+        filePath: "broken.ts",
+        reason: "parse-error",
+        message: expect.stringMatching(/Parsing error/),
+        line: expect.any(Number),
+        column: expect.any(Number),
+      },
+    ]);
+  });
+
+  it("keeps violations and lists the unparseable file when a directory is partly lintable", async () => {
+    const result = await lintInTempProject(
+      {
+        "src/broken.ts": "export function f( {\n",
+        "src/empty-catch.ts": "try {} catch (error) {}\n",
+      },
+      "src",
+    );
+
+    expect(result.isError).toBeFalsy();
+    expect(result.content).toHaveLength(2);
+    const violations = JSON.parse(result.content[0].text) as LintViolation[];
+    expect(violations.map((v) => v.ruleId)).toContain(
+      "llm-core/no-empty-catch",
+    );
+    expect(result.content[1].text).toContain(
+      `- ${path.join("src", "broken.ts")}:`,
+    );
+    expect(result.structuredContent).toMatchObject({
+      violationCount: violations.length,
+      unlintedFileCount: 1,
+      unlintedFiles: [
+        { filePath: path.join("src", "broken.ts"), reason: "parse-error" },
+      ],
+    });
+  });
+
+  it("reports a file matched by an ignore pattern as not linted", async () => {
+    const result = await lintInTempProject(
+      { "dist/out.ts": "try {} catch (error) {}\n" },
+      "dist/out.ts",
+    );
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain(path.join("dist", "out.ts"));
+    expect(result.structuredContent!.unlintedFiles).toEqual([
+      {
+        filePath: path.join("dist", "out.ts"),
+        reason: "ignored",
+        message: expect.stringMatching(/^File ignored/),
+      },
+    ]);
+  });
+
+  it("reports a file type no configuration matches as not linted", async () => {
+    const result = await lintInTempProject(
+      { "styles.css": "body {}\n" },
+      "styles.css",
+    );
+
+    expect(result.isError).toBe(true);
+    expect(result.structuredContent!.unlintedFiles).toEqual([
+      {
+        filePath: "styles.css",
+        reason: "ignored",
+        message: expect.stringMatching(/^File ignored/),
+      },
+    ]);
+  });
+
+  it("does not treat an unused disable directive as an unlinted file", async () => {
+    const result = await lintInTempProject(
+      { "unused-directive.js": "// eslint-disable-next-line no-debugger\n" },
+      "unused-directive.js",
+    );
+
+    expect(result.isError).toBeFalsy();
+    expect(result.content).toHaveLength(1);
+    expect(Array.isArray(JSON.parse(result.content[0].text))).toBe(true);
+    expect(result.structuredContent).toMatchObject({
+      unlintedFileCount: 0,
+      unlintedFiles: [],
+    });
   });
 });
 

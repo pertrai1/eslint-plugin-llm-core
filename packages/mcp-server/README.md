@@ -64,6 +64,13 @@ Input:
 Directory targets are capped to prevent broad accidental scans. Narrow the path
 when the tool asks for a smaller target.
 
+Files that could not be linted are reported rather than treated as clean. A file
+with a parse error, or one ESLint ignores or has no configuration for, appears in
+`structuredContent.unlintedFiles` with a `reason` of `parse-error` or `ignored`,
+and is listed in a second text block after the violations. When none of the
+targeted files could be linted, the tool returns an error describing why instead
+of an empty violations array.
+
 ### `get_active_instructions`
 
 Returns generated lint guidance for the active ESLint config. Call it when an

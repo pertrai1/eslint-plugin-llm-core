@@ -30,10 +30,11 @@ function workflowStep(name: string): string {
     if (!line.startsWith("          ")) break;
     lines.push(line.slice(10));
   }
-  return lines
-    .join("\n")
-    .replaceAll("${{ steps.publish.outputs.version }}", "0.0.0");
+  return lines.join("\n");
 }
+
+const mcpTag = "eslint-plugin-llm-core-mcp@0.0.0";
+const qualityTag = "llm-core-quality@0.0.0";
 
 function fixture() {
   const directory = mkdtempSync(resolve(tmpdir(), "release-tag-test-"));
@@ -111,6 +112,7 @@ function fixture() {
           NPM_CALLS: npmCalls,
           PUBLISH_CALLS: publishCalls,
           GITHUB_OUTPUT: resolve(directory, "output"),
+          RELEASE_TAGS: "v0.0.0",
           ...env,
         },
       },
@@ -128,6 +130,22 @@ function fixture() {
     npmCalls,
     publishCalls,
     run,
+    setVersion(name: string, version: string) {
+      writeFileSync(
+        resolve(work, "packages", name, "package.json"),
+        JSON.stringify({ version }),
+      );
+    },
+    output: () => readFileSync(resolve(directory, "output"), "utf8"),
+    githubCalls: () =>
+      existsSync(calls) ? readFileSync(calls, "utf8").trim().split("\n") : [],
+    publishedWorkspaces: () =>
+      existsSync(publishCalls)
+        ? readFileSync(publishCalls, "utf8")
+            .split("\n")
+            .filter((_, index, lines) => lines[index - 1] === "--workspace")
+        : [],
+    remoteTags: () => git("ls-remote", "--tags", "origin"),
   };
 }
 
@@ -212,9 +230,7 @@ it("preserves the no-op for a later push whose package versions are already publ
   });
 
   expect(result.status, result.stderr).toBe(0);
-  expect(readFileSync(resolve(context.directory, "output"), "utf8")).toBe(
-    "published=false\nversion=0.0.0\n",
-  );
+  expect(context.output()).toBe("tags=\n");
   expect(existsSync(context.publishCalls)).toBe(false);
   expect(existsSync(context.calls)).toBe(false);
 });
@@ -304,9 +320,7 @@ it("leaves an absent tag unchanged during publication preflight", () => {
   const context = fixture();
   const result = context.run("Publish to npm");
   expect(result.status, result.stderr).toBe(0);
-  expect(readFileSync(resolve(context.directory, "output"), "utf8")).toBe(
-    "published=true\nversion=0.0.0\n",
-  );
+  expect(context.output()).toBe(`tags=v0.0.0 ${mcpTag} ${qualityTag}\n`);
   expect(
     readFileSync(context.publishCalls, "utf8").match(/publish\n/g),
   ).toHaveLength(3);
@@ -314,24 +328,139 @@ it("leaves an absent tag unchanged during publication preflight", () => {
   expect(existsSync(context.calls)).toBe(false);
 });
 
-it("stops a package-only publication whose shared core tag belongs to an earlier commit", () => {
+it("publishes and tags only MCP when the core tag belongs to an earlier commit", () => {
   const context = fixture();
   context.git("tag", "v0.0.0", context.published);
   context.git("push", "origin", "refs/tags/v0.0.0");
-  writeFileSync(
-    resolve(context.work, "packages/mcp-server/package.json"),
-    '{"version":"0.0.1"}',
-  );
-  const result = context.run("Publish to npm", {
+  context.setVersion("mcp-server", "0.0.1");
+  const env = { GITHUB_SHA: context.advanced, NPM_REMOTE_VERSION: "0.0.0" };
+
+  const publish = context.run("Publish to npm", env);
+
+  expect(publish.status, publish.stderr).toBe(0);
+  expect(context.publishedWorkspaces()).toEqual(["eslint-plugin-llm-core-mcp"]);
+  expect(context.output()).toBe("tags=eslint-plugin-llm-core-mcp@0.0.1\n");
+
+  const release = context.run("Create GitHub Release", {
+    ...env,
+    RELEASE_TAGS: "eslint-plugin-llm-core-mcp@0.0.1",
+  });
+
+  expect(release.status, release.stderr).toBe(0);
+  expect(context.githubCalls()).toEqual([
+    "release",
+    "create",
+    "eslint-plugin-llm-core-mcp@0.0.1",
+    "--target",
+    context.advanced,
+    "--generate-notes",
+    "--latest=false",
+  ]);
+  expect(context.remoteTags()).toBe(`${context.published}\trefs/tags/v0.0.0`);
+});
+
+it("publishes and tags only quality when the core tag belongs to an earlier commit", () => {
+  const context = fixture();
+  context.git("tag", "v0.0.0", context.published);
+  context.git("push", "origin", "refs/tags/v0.0.0");
+  context.setVersion("quality-cli", "0.0.1");
+
+  const publish = context.run("Publish to npm", {
     GITHUB_SHA: context.advanced,
     NPM_REMOTE_VERSION: "0.0.0",
   });
+
+  expect(publish.status, publish.stderr).toBe(0);
+  expect(context.publishedWorkspaces()).toEqual(["llm-core-quality"]);
+  expect(context.output()).toBe("tags=llm-core-quality@0.0.1\n");
+});
+
+it("publishes and tags only core when only the core version is unpublished", () => {
+  const context = fixture();
+  context.git("tag", mcpTag, context.published);
+  context.git("push", "origin", `refs/tags/${mcpTag}`);
+  context.setVersion("eslint-plugin", "0.0.1");
+  const env = { GITHUB_SHA: context.advanced, NPM_REMOTE_VERSION: "0.0.0" };
+
+  const publish = context.run("Publish to npm", env);
+
+  expect(publish.status, publish.stderr).toBe(0);
+  expect(context.publishedWorkspaces()).toEqual(["eslint-plugin-llm-core"]);
+  expect(context.output()).toBe("tags=v0.0.1\n");
+
+  const release = context.run("Create GitHub Release", {
+    ...env,
+    RELEASE_TAGS: "v0.0.1",
+  });
+
+  expect(release.status, release.stderr).toBe(0);
+  expect(context.githubCalls()).toEqual([
+    "release",
+    "create",
+    "v0.0.1",
+    "--target",
+    context.advanced,
+    "--generate-notes",
+  ]);
+});
+
+it("creates one release per package when all three are published together", () => {
+  const context = fixture();
+
+  const publish = context.run("Publish to npm");
+
+  expect(publish.status, publish.stderr).toBe(0);
+  expect(context.publishedWorkspaces()).toEqual([
+    "eslint-plugin-llm-core",
+    "eslint-plugin-llm-core-mcp",
+    "llm-core-quality",
+  ]);
+
+  const release = context.run("Create GitHub Release", {
+    RELEASE_TAGS: `v0.0.0 ${mcpTag} ${qualityTag}`,
+  });
+
+  expect(release.status, release.stderr).toBe(0);
+  const target = ["--target", context.published, "--generate-notes"];
+  expect(context.githubCalls()).toEqual([
+    ...["release", "create", "v0.0.0", ...target],
+    ...["release", "create", mcpTag, ...target, "--latest=false"],
+    ...["release", "create", qualityTag, ...target, "--latest=false"],
+  ]);
+});
+
+it("publishes nothing when one package tag targets a different commit", () => {
+  const context = fixture();
+  context.git("tag", qualityTag, context.advanced);
+  context.git("push", "origin", `refs/tags/${qualityTag}`);
+
+  const result = context.run("Publish to npm");
+
   expect(result.status).toBe(1);
   expect(result.stderr).toContain(
-    `expected publishing commit ${context.advanced}`,
+    `Release tag ${qualityTag} points to ${context.advanced}`,
   );
-  expect(existsSync(context.publishCalls)).toBe(false);
-  expect(existsSync(context.calls)).toBe(false);
+  expect(context.publishedWorkspaces()).toEqual([]);
+  expect(context.githubCalls()).toEqual([]);
+});
+
+it("creates no release when one package tag targets a different commit", () => {
+  const context = fixture();
+  context.git("tag", qualityTag, context.advanced);
+  context.git("push", "origin", `refs/tags/${qualityTag}`);
+
+  const result = context.run("Create GitHub Release", {
+    RELEASE_TAGS: `v0.0.0 ${mcpTag} ${qualityTag}`,
+  });
+
+  expect(result.status).toBe(1);
+  expect(result.stderr).toContain(
+    `Release tag ${qualityTag} points to ${context.advanced}`,
+  );
+  expect(context.githubCalls()).toEqual([]);
+  expect(context.remoteTags()).toBe(
+    `${context.advanced}\trefs/tags/${qualityTag}`,
+  );
 });
 
 it("rejects a missing publishing SHA before any release operation", () => {

@@ -19,8 +19,14 @@ selection.
 
 - A file with a fatal parse error is reported as unlinted with reason
   `parse-error`, the parser's message, and its line and column.
-- A file ESLint skips, because of an ignore pattern or because no configuration
-  matches it, is reported as unlinted with reason `ignored` and ESLint's message.
+- A file passed as the target that ESLint skips, because of an ignore pattern or
+  because no configuration matches it, is reported as unlinted with reason
+  `ignored` and ESLint's message.
+- For a directory target, files that ESLint's ignore patterns exclude during
+  traversal are not listed. Excluding them is the project's configured intent,
+  ESLint returns no result for them, and listing every ignored descendant would
+  add unbounded noise to directory results. Parse errors in a directory are
+  still reported, because ESLint attempted those files.
 - `structuredContent` always carries `unlintedFileCount` and `unlintedFiles`;
   each entry has `filePath` (relative to the project root), `reason`, `message`,
   and `line`/`column` when ESLint provides them.

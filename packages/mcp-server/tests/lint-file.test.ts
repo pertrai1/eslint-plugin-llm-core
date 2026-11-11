@@ -518,6 +518,23 @@ describe("lint_file files that could not be linted", () => {
     ]);
   });
 
+  it("does not list ignored descendants when the target is a directory", async () => {
+    const result = await lintInTempProject(
+      {
+        "pkg/ok.ts": "export const ok = 1;\n",
+        "pkg/dist/out.ts": "try {} catch (error) {}\n",
+      },
+      "pkg",
+    );
+
+    expect(result.isError).toBeFalsy();
+    expect(result.content).toHaveLength(1);
+    expect(result.structuredContent).toMatchObject({
+      unlintedFileCount: 0,
+      unlintedFiles: [],
+    });
+  });
+
   it("reports a file type no configuration matches as not linted", async () => {
     const result = await lintInTempProject(
       { "styles.css": "body {}\n" },

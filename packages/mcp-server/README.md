@@ -71,6 +71,10 @@ and is listed in a second text block after the violations. When none of the
 targeted files could be linted, the tool returns an error describing why instead
 of an empty violations array.
 
+`ignored` applies to the path you pass. When the target is a directory, files
+that the project's ignore patterns exclude are skipped as ESLint normally does
+and are not listed; lint such a file directly to see why it is skipped.
+
 ### `get_active_instructions`
 
 Returns generated lint guidance for the active ESLint config. Call it when an

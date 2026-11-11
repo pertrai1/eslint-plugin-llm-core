@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import * as path from "node:path";
 import { TSESTree } from "@typescript-eslint/utils";
 import type { RuleInstruction } from "../instructions/types";
@@ -11,6 +11,13 @@ type ExportSurface = {
   named: Set<string>;
   hasDefault: boolean;
 };
+
+type ResolvedTarget = {
+  source: string;
+  surface: ExportSurface;
+};
+
+const MAX_LISTED_NAMES = 20;
 
 const moduleExtensions = [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"];
 
@@ -51,6 +58,59 @@ function resolveLocalModule(
   }
 
   return null;
+}
+
+function formatNameList(names: string[]): string {
+  const listed = names.slice(0, MAX_LISTED_NAMES).join(", ");
+  const remaining = names.length - MAX_LISTED_NAMES;
+  return remaining > 0 ? `${listed}, and ${remaining} more` : listed;
+}
+
+function hasIndexModule(directory: string): boolean {
+  return moduleExtensions.some((extension) =>
+    isFile(path.join(directory, `index${extension}`)),
+  );
+}
+
+function listModuleNames(directory: string): string[] {
+  const names = new Set<string>();
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const extension = path.extname(entry.name);
+    const name = path.basename(entry.name, extension);
+    if (entry.isFile() && moduleExtensions.includes(extension)) {
+      if (!name.endsWith(".d")) {
+        names.add(name);
+      }
+    } else if (
+      entry.isDirectory() &&
+      hasIndexModule(path.join(directory, entry.name))
+    ) {
+      names.add(entry.name);
+    }
+  }
+  return [...names].sort();
+}
+
+function describeSiblingModules(fromFilename: string, source: string): string {
+  const prefix = source.slice(0, source.lastIndexOf("/") + 1);
+  const fromDirectory = path.dirname(fromFilename);
+  const directory = path.resolve(fromDirectory, prefix);
+
+  let names: string[];
+  try {
+    names = listModuleNames(directory);
+  } catch {
+    return `none (directory '${prefix}' does not exist)`;
+  }
+
+  if (directory === fromDirectory) {
+    const self = path.basename(fromFilename, path.extname(fromFilename));
+    names = names.filter((name) => name !== self);
+  }
+
+  return names.length > 0
+    ? formatNameList(names.map((name) => `${prefix}${name}`))
+    : `none (no other modules found in '${prefix}')`;
 }
 
 function stripComments(sourceText: string): string {
@@ -113,6 +173,16 @@ function getDirectExportSurface(filename: string): ExportSurface | null {
   return { named, hasDefault };
 }
 
+function describeNamedExports(surface: ExportSurface): string {
+  if (surface.named.size > 0) {
+    return formatNameList([...surface.named].sort());
+  }
+
+  return surface.hasDefault
+    ? "none (the module only has a default export)"
+    : "none (the module has no direct exports)";
+}
+
 function getImportedName(specifier: TSESTree.ImportSpecifier): string | null {
   if (specifier.imported.type === "Identifier") {
     return specifier.imported.name;
@@ -149,43 +219,43 @@ export default createRule<[], MessageIds>({
     },
     messages: {
       missingLocalModule: [
-        "Relative import points to a local module that does not exist.",
+        "'{{ source }}' does not resolve to a local module.",
         "",
-        "Why: LLMs often invent nearby file names that sound plausible but are not in the repo.",
-        "This creates code that fails at runtime or during build resolution.",
+        "Why: LLMs often invent plausible nearby file names, and the import then fails at build resolution or runtime.",
         "",
         "How to fix:",
-        "  Check the target filename and update the import to an existing local module.",
+        "  Local modules in that directory: {{ siblings }}",
+        "  Import from one of those, or create '{{ source }}' intentionally.",
       ].join("\n"),
       missingNamedExport: [
-        "Named import does not exist in the target local module's direct exports.",
+        "'{{ source }}' has no export named '{{ name }}'.",
         "",
-        "Why: LLMs often invent helper names that sound adjacent to real exports.",
-        "This creates code that fails during module binding or type checking.",
+        "Why: LLMs often invent helper names adjacent to real exports, and the import then fails at module binding or type checking.",
         "",
         "How to fix:",
-        "  Import an exported name from the target module, or add the missing export intentionally.",
+        "  Named exports available in '{{ source }}': {{ available }}",
+        "  Import one of those names, or add '{{ name }}' to the module intentionally.",
       ].join("\n"),
       missingDefaultExport: [
-        "Default import points to a local module that does not have a default export.",
+        "'{{ source }}' has no default export.",
         "",
-        "Why: LLMs often assume a file exports a default when it only has named exports.",
-        "This creates code that fails during module binding.",
+        "Why: LLMs often assume a default export where a file only has named exports, and the import then fails at module binding.",
         "",
         "How to fix:",
-        "  Import named exports using destructuring, or add a default export to the target module.",
+        "  Named exports available in '{{ source }}': {{ available }}",
+        "  Import one of those with a named import ({ name }), or add a default export to the module intentionally.",
       ].join("\n"),
     },
     schema: [],
   },
   defaultOptions: [],
   create(context) {
-    function resolveSource(
+    function resolveTarget(
       node:
         | TSESTree.ImportDeclaration
         | TSESTree.ExportNamedDeclaration
         | TSESTree.ExportAllDeclaration,
-    ): string | null {
+    ): ResolvedTarget | null {
       if (node.source === null) {
         return null;
       }
@@ -205,65 +275,62 @@ export default createRule<[], MessageIds>({
         context.report({
           node: node.source,
           messageId: "missingLocalModule",
+          data: { source, siblings: describeSiblingModules(filename, source) },
         });
         return null;
       }
 
-      return resolvedModule;
+      const surface = getDirectExportSurface(resolvedModule);
+      return surface === null ? null : { source, surface };
     }
 
     function checkNamedImport(
       specifier: TSESTree.ImportSpecifier | TSESTree.ExportSpecifier,
       name: string | null,
-      namedExports: Set<string> | null,
+      target: ResolvedTarget,
     ): void {
-      if (name === null || namedExports === null || namedExports.has(name)) {
+      if (name === null || target.surface.named.has(name)) {
         return;
       }
 
       context.report({
         node: specifier,
         messageId: "missingNamedExport",
+        data: {
+          source: target.source,
+          name,
+          available: describeNamedExports(target.surface),
+        },
       });
     }
 
     return {
       ImportDeclaration(node: TSESTree.ImportDeclaration) {
-        const resolvedModule = resolveSource(node);
-        if (resolvedModule === null) {
-          return;
-        }
-
-        const exportSurface = getDirectExportSurface(resolvedModule);
-        if (exportSurface === null) {
+        const target = resolveTarget(node);
+        if (target === null) {
           return;
         }
 
         for (const specifier of node.specifiers) {
           if (specifier.type === "ImportSpecifier") {
-            checkNamedImport(
-              specifier,
-              getImportedName(specifier),
-              exportSurface.named,
-            );
+            checkNamedImport(specifier, getImportedName(specifier), target);
           } else if (specifier.type === "ImportDefaultSpecifier") {
-            if (!exportSurface.hasDefault) {
+            if (!target.surface.hasDefault) {
               context.report({
                 node: specifier,
                 messageId: "missingDefaultExport",
+                data: {
+                  source: target.source,
+                  available: describeNamedExports(target.surface),
+                },
               });
             }
           }
         }
       },
       ExportNamedDeclaration(node: TSESTree.ExportNamedDeclaration) {
-        const resolvedModule = resolveSource(node);
-        if (resolvedModule === null) {
-          return;
-        }
-
-        const exportSurface = getDirectExportSurface(resolvedModule);
-        if (exportSurface === null) {
+        const target = resolveTarget(node);
+        if (target === null) {
           return;
         }
 
@@ -271,12 +338,12 @@ export default createRule<[], MessageIds>({
           checkNamedImport(
             specifier,
             getReExportedLocalName(specifier),
-            exportSurface.named,
+            target,
           );
         }
       },
       ExportAllDeclaration(node: TSESTree.ExportAllDeclaration) {
-        resolveSource(node);
+        resolveTarget(node);
       },
     };
   },

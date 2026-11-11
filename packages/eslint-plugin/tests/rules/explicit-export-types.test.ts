@@ -1,6 +1,7 @@
 import { RuleTester } from "@typescript-eslint/rule-tester";
 import rule from "../../src/rules/explicit-export-types";
-import { describe, it, afterAll } from "vitest";
+import { TSESLint } from "@typescript-eslint/utils";
+import { describe, expect, it, afterAll } from "vitest";
 
 RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
@@ -356,4 +357,38 @@ ruleTester.run("explicit-export-types", rule, {
       errors: [{ messageId: "missingParamType" as const }],
     },
   ],
+});
+
+function lintMessages(code: string): string[] {
+  const config: TSESLint.Linter.ConfigType = [
+    {
+      plugins: { test: { rules: { "export-types": rule } } },
+      rules: { "test/export-types": "error" },
+    },
+  ];
+  return new TSESLint.Linter()
+    .verify(code, config)
+    .map((message) => message.message);
+}
+
+describe("explicit-export-types message details", () => {
+  it("tells the agent to annotate the named parameter with a concrete type", () => {
+    const messages = lintMessages(
+      `export function saveUser(user) { return user; }`,
+    );
+
+    expect(messages[1]).toContain(
+      "  Annotate 'user' with its concrete type; do not use `any` or `unknown`, which other rules flag.",
+    );
+  });
+
+  it("tells the agent to declare the named function's concrete return type", () => {
+    const messages = lintMessages(
+      `export function saveUser(user) { return user; }`,
+    );
+
+    expect(messages[0]).toContain(
+      "  Declare the concrete return type of 'saveUser'; do not use `any` or `unknown`, which other rules flag.",
+    );
+  });
 });

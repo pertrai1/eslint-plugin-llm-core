@@ -60,6 +60,18 @@ export { createCache } from "./cache";
 
 The teaching messages explain:
 
-1. **What's wrong** — the local module path or named export does not exist
+1. **What's wrong** — names the import path and, for a missing binding, the name that was requested
 2. **Why** — hallucinated imports are a common LLM failure mode that break builds
-3. **How to fix** — update the import to an existing local module/export, or add the missing export intentionally
+3. **How to fix** — lists what does exist so the fix is a choice, not a search: the target module's direct named exports, or the modules in the target directory when the path does not resolve
+
+For example:
+
+```text
+'./cache' has no export named 'createCacheFactory'.
+...
+How to fix:
+  Named exports available in './cache': clearCache, createCache
+  Import one of those names, or add 'createCacheFactory' to the module intentionally.
+```
+
+Lists are sorted and capped at 20 entries. Only direct exports are listed; names reachable through `export * from` are not.

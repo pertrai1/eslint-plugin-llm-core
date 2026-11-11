@@ -98,12 +98,13 @@ describe("fix guidance steers toward a real fix", () => {
     expect(message).toContain("update its callers");
   });
 
-  it("max-complexity offers extraction and early returns as well as a lookup table", () => {
+  it("max-complexity offers helper extraction, which removes branches, and not early returns, which do not", () => {
     const message = maxComplexity.meta.messages.maxComplexity;
 
     expect(message).toContain(
-      "  Otherwise extract one group of branches into a named helper, or return early so later branches are not nested.",
+      "  Otherwise move one group of branches into a named helper so they are counted there. Reordering or un-nesting the same branches does not lower the count.",
     );
+    expect(message).not.toContain("return early");
   });
 
   it("no-magic-numbers does not anchor every constant on MAX_RETRIES", () => {

@@ -32,7 +32,7 @@ export default createRule<Options, MessageIds>({
         "  Before: if (type === 'a') return 1; else if (type === 'b') return 2; else if (type === 'c') return 3;",
         "  After:  const VALUES: Record<string, number> = { a: 1, b: 2, c: 3 };",
         "          function getValue(type: string): number { return VALUES[type] ?? 0; }",
-        "  Otherwise extract one group of branches into a named helper, or return early so later branches are not nested.",
+        "  Otherwise move one group of branches into a named helper so they are counted there. Reordering or un-nesting the same branches does not lower the count.",
       ].join("\n"),
     },
     schema: [

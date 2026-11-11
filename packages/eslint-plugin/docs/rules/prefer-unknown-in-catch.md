@@ -74,4 +74,4 @@ The error message teaches:
 
 1. **What's wrong** — `any` disables type-safety for the caught value
 2. **Why** — TS 4.0 made this `unknown` by default for good reason
-3. **How to fix** — use `unknown` with `instanceof Error` narrowing or a `toError` helper
+3. **How to fix** — use `unknown` with `instanceof Error` narrowing, and `in` narrowing for custom properties (the `toError` helper above is documented here only, not in the lint message)

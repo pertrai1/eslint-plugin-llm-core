@@ -60,6 +60,7 @@ export default createRule<[], MessageIds>({
         "How to fix:",
         "  For numbers: arr.sort((a, b) => a - b)",
         "  For strings with locale: arr.sort((a, b) => a.localeCompare(b))",
+        "  For strings in default code-unit order: arr.sort((a, b) => (a < b ? -1 : Number(a > b)))",
         "  For objects by property: arr.sort((a, b) => a.key.localeCompare(b.key))",
         "  For descending order: arr.sort((a, b) => b - a)",
       ].join("\n"),

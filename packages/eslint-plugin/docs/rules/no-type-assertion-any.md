@@ -36,15 +36,8 @@ const value = <any>data;
 // Assert to a specific known type
 const result = data as ExpectedType;
 
-// Double assertion through unknown (explicit escape hatch)
-const result = data as unknown as ExpectedType;
-
-// Use unknown and narrow with type guards
-function process(data: unknown) {
-  if (typeof data === "string") {
-    handle(data); // TypeScript knows it's a string
-  }
-}
+// Validate an unproven value instead of asserting it
+const result = ExpectedTypeSchema.parse(data);
 
 // Properly type the response
 const body = (response as ResponseWithBody).body;
@@ -69,4 +62,4 @@ The error message teaches the proper alternative:
 
 1. **What's wrong** — the assertion bypasses all type checking
 2. **Why** — `any` disables TypeScript's safety and leaks into downstream code
-3. **How to fix** — assert to a specific type, or use `unknown` with type guards
+3. **How to fix** — assert to a specific named type, or validate the value with a schema or type guard

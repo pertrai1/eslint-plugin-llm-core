@@ -42,9 +42,9 @@ const cache: Record<string, CacheEntry> = {};
 const lookup: Map<string, Handler> = new Map();
 const promise: Promise<Response> = fetch("/api");
 
-// unknown when the type is genuinely dynamic
+// unknown in a non-dictionary container when the type is genuinely dynamic
+// (Record<string, unknown> is flagged by llm-core/no-unsafe-dictionary-type)
 const items: Array<unknown> = [];
-const cache: Record<string, unknown> = {};
 
 // Narrow unknown values with type guards
 for (const item of items) {
@@ -74,4 +74,4 @@ The error message teaches the proper alternative:
 
 1. **What's wrong** — `any` inside a generic disables type checking for contained values
 2. **Why** — the `any` leaks into every access and assignment through the container
-3. **How to fix** — use a specific type, or `unknown` with type guards for dynamic data
+3. **How to fix** — use a specific type; `unknown` only in non-dictionary containers, narrowed before use

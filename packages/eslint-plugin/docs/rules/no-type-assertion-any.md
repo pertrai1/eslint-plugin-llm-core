@@ -36,7 +36,7 @@ const value = <any>data;
 // Assert to a specific known type
 const result = data as ExpectedType;
 
-// Validate an unproven value instead of asserting it
+// Validate an unproven value instead of asserting it, even when the assertion compiles
 const result = ExpectedTypeSchema.parse(data);
 
 // Properly type the response

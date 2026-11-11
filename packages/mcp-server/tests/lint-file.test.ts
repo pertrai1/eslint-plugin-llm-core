@@ -16,6 +16,7 @@ import {
   makeTestServer,
   type MakeTestServerOptions,
 } from "./helpers/make-test-server.js";
+import { splitRuleMessage } from "../src/tools/lint-file.js";
 
 /**
  * Integration tests for the lint_file tool (Task 3).
@@ -27,22 +28,29 @@ import {
  */
 
 interface LintViolation {
+  filePath: string;
   ruleId: string;
   line: number;
   column: number;
   severity: number;
   message: string;
-  instruction: string | undefined;
+  guidanceId?: string;
+}
+
+interface LintReport {
   source: "project-config" | "fallback";
+  violationCount: number;
+  violations: LintViolation[];
+  rules: Record<string, { count: number; instruction?: string }>;
+  guidance: Record<string, string>;
+  unlintedFileCount: number;
+  unlintedFiles: unknown[];
 }
 
 interface LintToolResult {
+  isError?: boolean;
   content: Array<{ type: string; text: string }>;
-  structuredContent?: {
-    source?: unknown;
-    violationCount?: unknown;
-    violations?: unknown[];
-  };
+  structuredContent?: LintReport;
 }
 
 const PROJECT_WITH_CONFIG = fileURLToPath(
@@ -92,9 +100,16 @@ async function connectClient(options?: MakeTestServerOptions): Promise<Client> {
   return client;
 }
 
-function readViolations(result: LintToolResult): LintViolation[] {
-  const text = result.content[0].text;
-  return JSON.parse(text) as LintViolation[];
+function readReport(result: unknown): LintReport {
+  const report = (result as LintToolResult).structuredContent;
+  if (!report) {
+    throw new Error("lint_file returned no structuredContent");
+  }
+  return report;
+}
+
+function readViolations(result: unknown): LintViolation[] {
+  return readReport(result).violations;
 }
 
 describe("lint_file tool", () => {
@@ -119,23 +134,17 @@ describe("lint_file tool", () => {
     expect(violation?.severity).toBe(2);
     expect(typeof violation?.message).toBe("string");
     expect(violation?.message.length).toBeGreaterThan(0);
-    expect(violation?.source).toBe("project-config");
-    const sc = (result as LintToolResult).structuredContent!;
-    expect(sc).toMatchObject({
+    const report = readReport(result);
+    expect(report).toMatchObject({
       source: "project-config",
       violationCount: violations.length,
     });
-    expect(sc.violations).toHaveLength(violations.length);
-    expect(sc.violations![0] as LintViolation).toMatchObject({
-      ruleId: "llm-core/no-empty-catch",
-      severity: 2,
+    // The rule's instruction is sent once, in the rules table.
+    expect(report.rules["llm-core/no-empty-catch"]).toEqual({
+      count: 1,
       instruction:
         "Never leave catch blocks empty — handle, rethrow, or log the error",
     });
-    // Instruction must be attached and carry the rule's guidance verbatim.
-    expect(violation?.instruction).toBe(
-      "Never leave catch blocks empty — handle, rethrow, or log the error",
-    );
   });
 
   it("excludes non-llm-core diagnostics (e.g. no-debugger) from results", async () => {
@@ -146,9 +155,7 @@ describe("lint_file tool", () => {
       arguments: { path: BAD_FILE },
     });
 
-    const violations = readViolations(
-      result as { content: Array<{ type: string; text: string }> },
-    );
+    const violations = readViolations(result);
 
     // The fixture also trips core no-debugger; it must not appear in results,
     // and every returned violation must be an llm-core/ rule.
@@ -162,10 +169,10 @@ describe("lint_file tool", () => {
 
 describe("lint_file option-template interpolation", () => {
   function findInstruction(
-    violations: LintViolation[],
+    result: unknown,
     ruleId: string,
   ): string | undefined {
-    return violations.find((v) => v.ruleId === ruleId)?.instruction;
+    return readReport(result).rules[ruleId]?.instruction;
   }
 
   it("interpolates explicit option values into the optionTemplate", async () => {
@@ -176,10 +183,7 @@ describe("lint_file option-template interpolation", () => {
       arguments: { path: CONFIGURABLE_EXPLICIT_FILE },
     });
 
-    const violations = readViolations(
-      result as { content: Array<{ type: string; text: string }> },
-    );
-    const instruction = findInstruction(violations, "llm-core/max-params");
+    const instruction = findInstruction(result, "llm-core/max-params");
 
     // max-params optionTemplate interpolated with the configured { max: 1,
     // maxConstructor: 1 }; no literal {placeholder} tokens may remain.
@@ -197,10 +201,7 @@ describe("lint_file option-template interpolation", () => {
       arguments: { path: CONFIGURABLE_DEFAULT_FILE },
     });
 
-    const violations = readViolations(
-      result as { content: Array<{ type: string; text: string }> },
-    );
-    const instruction = findInstruction(violations, "llm-core/max-params");
+    const instruction = findInstruction(result, "llm-core/max-params");
 
     // No options configured: defaults { max: 2, maxConstructor: 5 } must be
     // merged in and interpolated, with no {placeholder} leaks.
@@ -234,8 +235,8 @@ describe("lint_file with no discoverable ESLint config", () => {
       expect(text).toContain("eslint-plugin-llm-core");
       expect(text.toLowerCase()).toMatch(/install/);
       expect(text.toLowerCase()).toMatch(/configure|config/);
-      // Informational guidance, not a thrown protocol error.
-      expect(result.isError).toBeFalsy();
+      // The requested lint did not happen, so it is a tool error result.
+      expect(result.isError).toBe(true);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -270,26 +271,14 @@ describe("lint_file with no discoverable ESLint config", () => {
         (v) => v.ruleId === "llm-core/no-empty-catch",
       );
 
-      expect(violation).toEqual(
-        expect.objectContaining({
-          ruleId: "llm-core/no-empty-catch",
-          source: "fallback",
-          instruction:
-            "Never leave catch blocks empty — handle, rethrow, or log the error",
-        }),
-      );
+      expect(violation).toBeDefined();
       expect(result.structuredContent).toMatchObject({
         source: "fallback",
         violationCount: violations.length,
       });
-      expect(result.structuredContent!.violations).toHaveLength(
-        violations.length,
-      );
       expect(
-        result.structuredContent!.violations![0] as LintViolation,
+        result.structuredContent!.rules["llm-core/no-empty-catch"],
       ).toMatchObject({
-        ruleId: "llm-core/no-empty-catch",
-        source: "fallback",
         instruction:
           "Never leave catch blocks empty — handle, rethrow, or log the error",
       });
@@ -335,9 +324,9 @@ describe("lint_file with no discoverable ESLint config", () => {
       expect(readViolations(result)).toEqual([
         expect.objectContaining({
           ruleId: "llm-core/no-any-in-generic",
-          source: "fallback",
         }),
       ]);
+      expect(result.structuredContent!.source).toBe("fallback");
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -394,9 +383,8 @@ describe("lint_file with no discoverable ESLint config", () => {
       const after = await readdir(dir);
 
       expect(before).toEqual(["foo.ts"]);
-      expect(readViolations(result)).toEqual([
-        expect.objectContaining({ source: "fallback" }),
-      ]);
+      expect(readViolations(result)).toHaveLength(1);
+      expect(result.structuredContent!.source).toBe("fallback");
       expect(after).toEqual(["foo.ts"]);
     } finally {
       await rm(dir, { recursive: true, force: true });
@@ -485,7 +473,9 @@ describe("lint_file files that could not be linted", () => {
 
     expect(result.isError).toBeFalsy();
     expect(result.content).toHaveLength(2);
-    const violations = JSON.parse(result.content[0].text) as LintViolation[];
+    const violations = (
+      JSON.parse(result.content[0].text) as { violations: LintViolation[] }
+    ).violations;
     expect(violations.map((v) => v.ruleId)).toContain(
       "llm-core/no-empty-catch",
     );
@@ -559,7 +549,12 @@ describe("lint_file files that could not be linted", () => {
 
     expect(result.isError).toBeFalsy();
     expect(result.content).toHaveLength(1);
-    expect(Array.isArray(JSON.parse(result.content[0].text))).toBe(true);
+    expect(
+      Array.isArray(
+        (JSON.parse(result.content[0].text) as { violations: unknown })
+          .violations,
+      ),
+    ).toBe(true);
     expect(result.structuredContent).toMatchObject({
       unlintedFileCount: 0,
       unlintedFiles: [],
@@ -649,9 +644,7 @@ describe("lint_file directory file-count guard", () => {
       arguments: { path: SRC_DIR },
     });
 
-    const violations = readViolations(
-      result as { content: Array<{ type: string; text: string }> },
-    );
+    const violations = readViolations(result);
     // src/ is well under the default cap, so it lints normally.
     expect(violations.some((v) => v.ruleId === "llm-core/no-empty-catch")).toBe(
       true,
@@ -677,7 +670,8 @@ describe("lint_file directory file-count guard", () => {
     expect(() => JSON.parse(text)).toThrow();
     expect(text.toLowerCase()).toContain("narrow");
     expect(text).toContain("1");
-    expect(result.isError).toBeFalsy();
+    // The requested lint did not happen, so it is a tool error result.
+    expect(result.isError).toBe(true);
   });
 });
 
@@ -695,5 +689,159 @@ describe("lint_file registration", () => {
     };
     expect(schema?.properties?.path?.type).toBe("string");
     expect(schema?.required).toContain("path");
+  });
+
+  it("declares itself read-only and publishes its output schema", async () => {
+    const client = await connectClient({ projectRoot: PROJECT_WITH_CONFIG });
+
+    const { tools } = await client.listTools();
+    const tool = tools.find((t) => t.name === "lint_file");
+
+    expect(tool?.annotations).toMatchObject({
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    });
+    const outputSchema = tool?.outputSchema as {
+      properties?: Record<string, unknown>;
+      required?: string[];
+    };
+    expect(Object.keys(outputSchema?.properties ?? {}).sort()).toEqual([
+      "guidance",
+      "rules",
+      "source",
+      "unlintedFileCount",
+      "unlintedFiles",
+      "violationCount",
+      "violations",
+    ]);
+  });
+});
+
+describe("lint_file result shape", () => {
+  const EMPTY_CATCH = "try {\n  g();\n} catch (error) {}\n";
+
+  async function lintTempProject(
+    files: Record<string, string>,
+    target: string,
+  ): Promise<LintToolResult> {
+    const dir = await mkdtemp(path.join(tmpdir(), "llmcore-mcp-shape-"));
+    try {
+      for (const [relativePath, contents] of Object.entries(files)) {
+        const filePath = path.join(dir, relativePath);
+        await mkdir(path.dirname(filePath), { recursive: true });
+        await writeFile(filePath, contents);
+      }
+
+      const client = await connectClient({
+        projectRoot: dir,
+        fallbackEnabled: true,
+      });
+      return (await client.callTool({
+        name: "lint_file",
+        arguments: { path: target },
+      })) as LintToolResult;
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  }
+
+  function emptyCatches(report: LintReport): LintViolation[] {
+    return report.violations.filter(
+      (v) => v.ruleId === "llm-core/no-empty-catch",
+    );
+  }
+
+  it("names the file of each violation relative to the project root", async () => {
+    const report = readReport(
+      await lintTempProject(
+        { "src/one.js": EMPTY_CATCH, "src/nested/two.js": EMPTY_CATCH },
+        "src",
+      ),
+    );
+
+    expect(
+      emptyCatches(report)
+        .map((v) => v.filePath)
+        .sort(),
+    ).toEqual([
+      path.join("src", "nested", "two.js"),
+      path.join("src", "one.js"),
+    ]);
+  });
+
+  it("sends a rule's why/how text once when violations share it", async () => {
+    const report = readReport(
+      await lintTempProject(
+        { "src/one.js": EMPTY_CATCH, "src/two.js": EMPTY_CATCH },
+        "src",
+      ),
+    );
+    const violations = emptyCatches(report);
+
+    expect(violations).toHaveLength(2);
+    expect(violations.map((v) => v.guidanceId)).toEqual([
+      "llm-core/no-empty-catch#1",
+      "llm-core/no-empty-catch#1",
+    ]);
+    expect(report.guidance["llm-core/no-empty-catch#1"]).toMatch(/^Why: /);
+    expect(report.guidance["llm-core/no-empty-catch#1"]).toContain(
+      "How to fix:",
+    );
+    // The per-violation message is only the first paragraph.
+    for (const violation of violations) {
+      expect(violation.message).not.toContain("\n\n");
+      expect(violation.message).not.toContain("Why:");
+    }
+    expect(report.rules["llm-core/no-empty-catch"]).toMatchObject({ count: 2 });
+  });
+
+  it("keeps separate guidance entries when a rule's why/how text differs", async () => {
+    const report = readReport(
+      await lintTempProject(
+        {
+          "three.js": "function three(a, b, c) {\n  return a + b + c;\n}\n",
+          "four.js":
+            "function four(a, b, c, d) {\n  return a + b + c + d;\n}\n",
+        },
+        ".",
+      ),
+    );
+    const violations = report.violations.filter(
+      (v) => v.ruleId === "llm-core/max-params",
+    );
+
+    expect(violations).toHaveLength(2);
+    const [first, second] = violations.map((v) => v.guidanceId as string);
+    expect(new Set([first, second])).toEqual(
+      new Set(["llm-core/max-params#1", "llm-core/max-params#2"]),
+    );
+    expect(report.guidance[first]).not.toBe(report.guidance[second]);
+  });
+
+  it("returns the whole report as compact JSON in the first text block", async () => {
+    const result = await lintTempProject({ "one.js": EMPTY_CATCH }, "one.js");
+
+    expect(result.content).toHaveLength(1);
+    expect(result.content[0].text).toBe(
+      JSON.stringify(result.structuredContent),
+    );
+  });
+});
+
+describe("splitRuleMessage", () => {
+  it("splits a message at its first blank line", () => {
+    expect(splitRuleMessage("What.\n\nWhy: a\n\nHow to fix: b")).toEqual({
+      message: "What.",
+      guidance: "Why: a\n\nHow to fix: b",
+    });
+  });
+
+  it("keeps a message without a blank line whole", () => {
+    expect(splitRuleMessage("Only one paragraph.")).toEqual({
+      message: "Only one paragraph.",
+      guidance: undefined,
+    });
   });
 });

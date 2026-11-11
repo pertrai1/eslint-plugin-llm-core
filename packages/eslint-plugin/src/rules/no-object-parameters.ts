@@ -22,9 +22,13 @@ export default createRule<[], "objectParameter">({
     messages: {
       objectParameter: [
         "Parameter '{{ name }}' uses the broad `object` type.",
-        "Why: A broad input contract pushes parsing and validation into every caller.",
+        "",
+        "Why: `object` says nothing about the fields this function reads, so every caller has to guess what to pass.",
+        "",
         "How to fix:",
-        "  Accept a named owner type and parse external input at its boundary before calling this function.",
+        "  Before: function saveUser(user: object): void { store.save(user); }",
+        "  After:  function saveUser(user: User): void { store.save(user); }",
+        "  Use a type that names the fields the function reads (interface User { id: string; email: string }).",
       ].join("\n"),
     },
     schema: [],

@@ -10,9 +10,13 @@ export default createRule<[], "unknownAlias">({
     messages: {
       unknownAlias: [
         "Type alias '{{ name }}' conceals `unknown`.",
-        "Why: Naming the escape hatch makes an undecoded boundary value look like a domain contract.",
+        "",
+        "Why: A named alias makes an unvalidated value look like a checked domain type.",
+        "",
         "How to fix:",
-        "  Keep `unknown` visible at the boundary, then decode it into a named validated type.",
+        "  Before: type Payload = unknown;",
+        "  After:  type Payload = { id: string; items: string[] };",
+        "  Give the alias the real validated shape, or delete it and write `unknown` where the raw value enters.",
       ].join("\n"),
     },
     schema: [],

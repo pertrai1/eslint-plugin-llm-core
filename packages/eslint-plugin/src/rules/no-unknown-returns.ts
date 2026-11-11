@@ -23,9 +23,13 @@ export default createRule<[], "unknownReturn">({
     messages: {
       unknownReturn: [
         "Function '{{ name }}' returns `unknown`.",
-        "Why: Callers cannot safely use an unknown result without repeating boundary decoding.",
+        "",
+        "Why: Every caller of an `unknown` result has to validate it again before using it.",
+        "",
         "How to fix:",
-        "  Decode the value inside this function and return a named domain type instead.",
+        "  Before: function loadUser(): unknown { return JSON.parse(readUserFile()); }",
+        "  After:  function loadUser(): User { return UserSchema.parse(JSON.parse(readUserFile())); }",
+        "  Validate inside the function and return the named type. The same applies to Promise<unknown>.",
       ].join("\n"),
     },
     schema: [],

@@ -52,9 +52,13 @@ export default createRule<[], "unsafeDictionary">({
     messages: {
       unsafeDictionary: [
         "This dictionary has an unsafe value type.",
-        "Why: `any`, `unknown`, `object`, or `{}` gives callers no concrete value contract and spreads unchecked data through the codebase.",
+        "",
+        "Why: A value type of `any`, `unknown`, `object`, `never`, or `{}` tells readers nothing about what the dictionary holds.",
+        "",
         "How to fix:",
-        "  Use an owner/schema-derived value type and parse external payloads before insertion.",
+        "  Before: const scores: Record<string, unknown> = loadScores();",
+        "  After:  const scores: Record<string, number> = loadScores();",
+        "  For structured values, name the shape (Record<string, UserProfile>) and validate entries before inserting them.",
       ].join("\n"),
     },
     schema: [],

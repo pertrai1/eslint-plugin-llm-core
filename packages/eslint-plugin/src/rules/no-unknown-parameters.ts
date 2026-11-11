@@ -25,9 +25,14 @@ export default createRule<[], "unknownParameter">({
     messages: {
       unknownParameter: [
         "Parameter '{{ name }}' is explicitly `unknown`.",
-        "Why: An unknown input should be decoded once at the I/O boundary, not passed through the application contract.",
+        "",
+        "Why: An unknown input should be decoded once where it enters the program, not passed on for every function to re-check.",
+        "",
         "How to fix:",
-        "  Parse the external value into a named domain type before calling this function. The `cause` parameter is allowed for error enrichment.",
+        "  Before: function saveUser(input: unknown): void { store.save(input); }",
+        "  After:  function saveUser(user: User): void { store.save(user); }",
+        "  Then decode at the call site: saveUser(UserSchema.parse(payload));",
+        "  Exception: a parameter named `cause` may stay `unknown`, for wrapping caught errors.",
       ].join("\n"),
     },
     schema: [],

@@ -43,6 +43,7 @@ interface LintReport {
   violations: LintViolation[];
   rules: Record<string, { count: number; instruction?: string }>;
   guidance: Record<string, string>;
+  omittedViolationCount: number;
   unlintedFileCount: number;
   unlintedFiles: unknown[];
 }
@@ -709,6 +710,7 @@ describe("lint_file registration", () => {
     };
     expect(Object.keys(outputSchema?.properties ?? {}).sort()).toEqual([
       "guidance",
+      "omittedViolationCount",
       "rules",
       "source",
       "unlintedFileCount",
@@ -827,6 +829,84 @@ describe("lint_file result shape", () => {
     expect(result.content[0].text).toBe(
       JSON.stringify(result.structuredContent),
     );
+  });
+});
+
+describe("lint_file violation cap", () => {
+  const EMPTY_CATCH = "try {\n  g();\n} catch (error) {}\n";
+  const THREE_FILES = {
+    "src/a.js": EMPTY_CATCH,
+    "src/b.js": EMPTY_CATCH,
+    "src/c.js": EMPTY_CATCH,
+  };
+
+  async function lintThreeFiles(
+    options: MakeTestServerOptions,
+  ): Promise<LintToolResult> {
+    const dir = await mkdtemp(path.join(tmpdir(), "llmcore-mcp-cap-"));
+    try {
+      await mkdir(path.join(dir, "src"));
+      for (const [relativePath, contents] of Object.entries(THREE_FILES)) {
+        await writeFile(path.join(dir, relativePath), contents);
+      }
+
+      const client = await connectClient({
+        ...options,
+        projectRoot: dir,
+        fallbackEnabled: true,
+      });
+      return (await client.callTool({
+        name: "lint_file",
+        arguments: { path: "src" },
+      })) as LintToolResult;
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  }
+
+  it("returns only the first maxViolations violations and counts the rest", async () => {
+    const uncapped = readReport(await lintThreeFiles({}));
+    const total = uncapped.violationCount;
+    expect(total).toBeGreaterThan(2);
+
+    const result = await lintThreeFiles({ maxViolations: 2 });
+    const report = readReport(result);
+
+    expect(result.isError).toBeFalsy();
+    expect(report.violations).toEqual(uncapped.violations.slice(0, 2));
+    expect(report.violationCount).toBe(total);
+    expect(report.omittedViolationCount).toBe(total - 2);
+  });
+
+  it("counts omitted violations per rule but keeps only cited guidance", async () => {
+    const uncapped = readReport(await lintThreeFiles({}));
+    const report = readReport(await lintThreeFiles({ maxViolations: 1 }));
+
+    expect(report.rules).toEqual(uncapped.rules);
+    expect(Object.keys(report.guidance)).toEqual(
+      report.violations.flatMap((v) => (v.guidanceId ? [v.guidanceId] : [])),
+    );
+  });
+
+  it("tells the caller how many violations are shown and what to do next", async () => {
+    const result = await lintThreeFiles({ maxViolations: 2 });
+    const report = readReport(result);
+
+    expect(result.content).toHaveLength(2);
+    expect(result.content[0].text).toBe(JSON.stringify(report));
+    expect(result.content[1].text).toContain(
+      `first 2 of ${report.violationCount} violations`,
+    );
+    expect(result.content[1].text.toLowerCase()).toContain("narrow");
+  });
+
+  it("omits nothing and adds no note when the result is within the cap", async () => {
+    const result = await lintThreeFiles({});
+    const report = readReport(result);
+
+    expect(report.omittedViolationCount).toBe(0);
+    expect(report.violations).toHaveLength(report.violationCount);
+    expect(result.content).toHaveLength(1);
   });
 });
 

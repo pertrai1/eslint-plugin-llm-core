@@ -87,6 +87,7 @@ Result (`structuredContent`, also sent as compact JSON in the first text block):
   "guidance": {
     "llm-core/no-empty-catch#1": "Why: …\n\nHow to fix: …"
   },
+  "omittedViolationCount": 0,
   "unlintedFileCount": 0,
   "unlintedFiles": []
 }
@@ -97,6 +98,12 @@ the first paragraph of the rule message. The rest of the message, the why and
 how-to-fix text, is in `guidance` under the violation's `guidanceId`; violations
 with identical text share an entry, and violations whose text differs get their
 own. `rules` holds each rule's violation count and one-line instruction.
+
+One call returns at most 100 violations, in ESLint's order. `violationCount` is
+the total found and `omittedViolationCount` is how many were left out;
+`rules[ruleId].count` still counts every violation. When some are omitted, a
+second text block says so. Fix what is shown and lint again, or narrow the path
+to reach the rest.
 
 The tool declares this shape as its output schema and is annotated read-only.
 

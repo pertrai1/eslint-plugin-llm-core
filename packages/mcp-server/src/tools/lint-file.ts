@@ -16,6 +16,10 @@ const LLM_CORE_PREFIX = "llm-core/";
 // Default directory-lint cap (Assumption A1); validated/tuned by sub-task 3.7.
 const DEFAULT_MAX_FILES = 200;
 
+// Most violations returned by one call. Bounds the result size; the caller
+// fixes what is shown and lints again, or narrows the path.
+const DEFAULT_MAX_VIOLATIONS = 100;
+
 // Extensions ESLint may lint; used to estimate a directory's size for the cap.
 const LINTABLE_EXTENSIONS = new Set([
   ".ts",
@@ -128,6 +132,11 @@ export interface LintFileOptions {
    */
   maxFiles?: number;
   /**
+   * Maximum number of violations one call returns. Further violations are
+   * counted but omitted. Defaults to {@link DEFAULT_MAX_VIOLATIONS}.
+   */
+  maxViolations?: number;
+  /**
    * Enables a transient zero-config fallback when no project ESLint config is
    * discoverable. Disabled by default so v1 project-config behavior remains the
    * default contract.
@@ -160,7 +169,10 @@ interface RuleSummary {
 interface LintReport {
   rules: Record<string, RuleSummary>;
   guidance: Record<string, string>;
+  /** The violations returned, at most the configured cap. */
   violations: LintViolation[];
+  /** Every violation found, including those omitted by the cap. */
+  violationCount: number;
 }
 
 interface FlatLintMessage {
@@ -245,6 +257,10 @@ const outputSchema = {
   guidance: z
     .record(z.string(), z.string())
     .describe("Why and how-to-fix text, shared by the violations that cite it"),
+  omittedViolationCount: z
+    .number()
+    .int()
+    .describe("Violations found but left out of `violations` by the cap"),
   unlintedFileCount: z.number().int(),
   unlintedFiles: z.array(
     z.object({
@@ -420,8 +436,14 @@ async function toLintReport(
   results: FlatLintResult[],
   eslint: FlatESLintInstance,
   projectRoot: string,
+  maxViolations: number,
 ): Promise<LintReport> {
-  const report: LintReport = { rules: {}, guidance: {}, violations: [] };
+  const report: LintReport = {
+    rules: {},
+    guidance: {},
+    violations: [],
+    violationCount: 0,
+  };
   const guidanceIds = new Map<string, Map<string, string>>();
 
   for (const result of results) {
@@ -453,6 +475,12 @@ async function toLintReport(
           count: 1,
           ...(instruction === undefined ? {} : { instruction }),
         };
+      }
+
+      report.violationCount += 1;
+      if (report.violations.length >= maxViolations) {
+        // Over the cap: counted above and in `rules`, but not returned.
+        continue;
       }
 
       const { message, guidance } = splitRuleMessage(lintMessage.message);
@@ -545,15 +573,24 @@ async function toToolResult(
   eslint: FlatESLintInstance,
   source: LintSource,
   projectRoot: string,
+  maxViolations: number,
 ) {
-  const report = await toLintReport(results, eslint, projectRoot);
+  const report = await toLintReport(
+    results,
+    eslint,
+    projectRoot,
+    maxViolations,
+  );
+  const omittedViolationCount =
+    report.violationCount - report.violations.length;
   const unlintedFiles = toUnlintedFiles(results, projectRoot);
   const structuredContent = {
     source,
-    violationCount: report.violations.length,
+    violationCount: report.violationCount,
     violations: report.violations,
     rules: report.rules,
     guidance: report.guidance,
+    omittedViolationCount,
     unlintedFileCount: unlintedFiles.length,
     unlintedFiles,
   };
@@ -576,6 +613,15 @@ async function toToolResult(
   const content = [
     { type: "text" as const, text: JSON.stringify(structuredContent) },
   ];
+  if (omittedViolationCount > 0) {
+    content.push({
+      type: "text" as const,
+      text:
+        `Showing the first ${report.violations.length} of ` +
+        `${report.violationCount} violations. Fix these and run lint_file ` +
+        "again, or narrow the path to a file or subdirectory to see the rest.",
+    });
+  }
   if (unlintedFiles.length > 0) {
     content.push({
       type: "text" as const,
@@ -592,6 +638,7 @@ export function registerLintFile(
 ): void {
   const projectRoot = path.resolve(options.projectRoot ?? process.cwd());
   const maxFiles = options.maxFiles ?? DEFAULT_MAX_FILES;
+  const maxViolations = options.maxViolations ?? DEFAULT_MAX_VIOLATIONS;
   const fallbackEnabled = options.fallbackEnabled === true;
 
   server.registerTool(
@@ -603,8 +650,10 @@ export function registerLintFile(
         "or the opt-in read-only fallback when no config is found, and returns " +
         "each eslint-plugin-llm-core violation with its what/why/how-to-fix " +
         "instruction attached. Call after editing a file to self-correct. " +
-        "Read-only. Each violation gives its file, location and what is " +
-        "wrong; `guidance[violation.guidanceId]` holds the why and how-to-fix " +
+        `Read-only. Returns at most ${maxViolations} violations per call; ` +
+        "`omittedViolationCount` says how many more there are. Each " +
+        "violation gives its file, location and what is wrong; " +
+        "`guidance[violation.guidanceId]` holds the why and how-to-fix " +
         "text, and `rules[ruleId].instruction` the rule's one-line principle.",
       inputSchema,
       outputSchema,
@@ -690,6 +739,7 @@ export function registerLintFile(
               fallbackEslint,
               "fallback",
               projectRoot,
+              maxViolations,
             );
           }
 
@@ -701,7 +751,13 @@ export function registerLintFile(
         throw error;
       }
 
-      return toToolResult(results, eslint, "project-config", projectRoot);
+      return toToolResult(
+        results,
+        eslint,
+        "project-config",
+        projectRoot,
+        maxViolations,
+      );
     },
   );
 }

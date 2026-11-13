@@ -37,7 +37,7 @@
     "@typescript-eslint/parser": "^8.72.1",
     "@typescript-eslint/rule-tester": "^8.72.1",
     "@typescript-eslint/utils": "^8.72.1",
-    "@vitest/coverage-v8": "^5.0.5",
+    "@vitest/coverage-v8": "^5.1.0",
     "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.0.0",
     "eslint-doc-generator": "^3.7.1",

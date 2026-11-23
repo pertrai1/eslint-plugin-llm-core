@@ -7,6 +7,7 @@ import {
   mkdir,
   mkdtemp,
   readdir,
+  readFile,
   writeFile,
   rm,
   symlink,
@@ -35,6 +36,12 @@ interface LintViolation {
   severity: number;
   message: string;
   guidanceId?: string;
+  instructionId?: string;
+  suggestions?: Array<{
+    desc: string;
+    fix: { range: [number, number]; text: string };
+  }>;
+  omittedSuggestionCount?: number;
 }
 
 interface LintReport {
@@ -43,6 +50,9 @@ interface LintReport {
   violations: LintViolation[];
   rules: Record<string, { count: number; instruction?: string }>;
   guidance: Record<string, string>;
+  instructions?: Record<string, string>;
+  coveredFileCount: number;
+  uncoveredFileCount: number;
   omittedViolationCount: number;
   unlintedFileCount: number;
   unlintedFiles: unknown[];
@@ -689,6 +699,8 @@ describe("lint_file registration", () => {
       required?: string[];
     };
     expect(schema?.properties?.path?.type).toBe("string");
+    expect(schema?.properties?.includeSuggestions?.type).toBe("boolean");
+    expect(schema?.required).not.toContain("includeSuggestions");
     expect(schema?.required).toContain("path");
   });
 
@@ -709,10 +721,13 @@ describe("lint_file registration", () => {
       required?: string[];
     };
     expect(Object.keys(outputSchema?.properties ?? {}).sort()).toEqual([
+      "coveredFileCount",
       "guidance",
+      "instructions",
       "omittedViolationCount",
       "rules",
       "source",
+      "uncoveredFileCount",
       "unlintedFileCount",
       "unlintedFiles",
       "violationCount",
@@ -727,6 +742,7 @@ describe("lint_file result shape", () => {
   async function lintTempProject(
     files: Record<string, string>,
     target: string,
+    options: { maxViolations?: number; includeSuggestions?: boolean } = {},
   ): Promise<LintToolResult> {
     const dir = await mkdtemp(path.join(tmpdir(), "llmcore-mcp-shape-"));
     try {
@@ -739,11 +755,23 @@ describe("lint_file result shape", () => {
       const client = await connectClient({
         projectRoot: dir,
         fallbackEnabled: true,
+        maxViolations: options.maxViolations,
       });
-      return (await client.callTool({
+      const result = (await client.callTool({
         name: "lint_file",
-        arguments: { path: target },
+        arguments: {
+          path: target,
+          ...(options.includeSuggestions === undefined
+            ? {}
+            : { includeSuggestions: options.includeSuggestions }),
+        },
       })) as LintToolResult;
+      for (const [relativePath, contents] of Object.entries(files)) {
+        expect(await readFile(path.join(dir, relativePath), "utf8")).toBe(
+          contents,
+        );
+      }
+      return result;
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -820,6 +848,197 @@ describe("lint_file result shape", () => {
       new Set(["llm-core/max-params#1", "llm-core/max-params#2"]),
     );
     expect(report.guidance[first]).not.toBe(report.guidance[second]);
+  });
+
+  const pluginImport = `import plugin from ${JSON.stringify(
+    new URL("../../eslint-plugin/dist/index.js", import.meta.url).href,
+  )};`;
+  const instructionsFor = (report: LintReport) =>
+    report.violations.map((violation) =>
+      violation.instructionId
+        ? report.instructions?.[violation.instructionId]
+        : report.rules[violation.ruleId]?.instruction,
+    );
+
+  it("distinguishes covered, uncovered, and unlinted files without falling back", async () => {
+    const files = {
+      "eslint.config.mjs":
+        pluginImport +
+        `
+        export default [
+          { files: ["src/*.js"], rules: { "no-debugger": "error" } },
+          {
+            files: ["src/covered.js", "src/broken.js"],
+            plugins: { "llm-core": plugin },
+            rules: { "llm-core/no-empty-catch": "warn" },
+          },
+          {
+            files: ["src/uncovered.js"],
+            plugins: { "llm-core": plugin },
+            rules: { "llm-core/no-empty-catch": "off" },
+          },
+        ];
+      `,
+      "src/covered.js": "const answer = 42;\n",
+      "src/uncovered.js": "debugger;\n",
+      "src/broken.js": "function (\n",
+    };
+    const covered = readReport(await lintTempProject(files, "src/covered.js"));
+    expect(covered).toMatchObject({
+      source: "project-config",
+      violationCount: 0,
+      coveredFileCount: 1,
+      uncoveredFileCount: 0,
+      unlintedFileCount: 0,
+    });
+    const uncovered = await lintTempProject(files, "src/uncovered.js");
+    expect(uncovered.isError).toBeFalsy();
+    expect(readReport(uncovered)).toMatchObject({
+      source: "project-config",
+      violationCount: 0,
+      coveredFileCount: 0,
+      uncoveredFileCount: 1,
+      unlintedFileCount: 0,
+    });
+    expect(uncovered.content[1]?.text).toContain("no enabled llm-core rules");
+    const mixed = await lintTempProject(files, "src");
+    const expected = {
+      violationCount: 0,
+      coveredFileCount: 1,
+      uncoveredFileCount: 1,
+      unlintedFileCount: 1,
+      unlintedFiles: [
+        { filePath: path.join("src", "broken.js"), reason: "parse-error" },
+      ],
+    };
+    expect(readReport(mixed)).toMatchObject(expected);
+    expect(JSON.parse(mixed.content[0].text)).toMatchObject(expected);
+  });
+
+  it.each([
+    [1, 2],
+    [2, 1],
+  ])(
+    "resolves per-file instructions in the %s then %s file order",
+    async (firstLimit, secondLimit) => {
+      const sample = "function example(a, b, c) { return a + b + c; }\n";
+      const files = {
+        "eslint.config.mjs":
+          pluginImport +
+          `
+          export default [
+            {
+              files: ["src/*.js"], plugins: { "llm-core": plugin },
+              rules: { "llm-core/max-params": ["error", { max: ${secondLimit}, maxConstructor: 5 }] },
+            },
+            {
+              files: ["src/a.js"],
+              rules: { "llm-core/max-params": ["error", { max: ${firstLimit}, maxConstructor: 5 }] },
+            },
+          ];
+        `,
+        "src/a.js": sample,
+        "src/b.js": sample,
+        "src/c.js": sample,
+      };
+      const result = await lintTempProject(files, "src");
+      const report = readReport(result);
+      const expected = [firstLimit, secondLimit, secondLimit].map(
+        (limit) =>
+          `Limit function parameters to ${limit} (constructors: 5) — use object parameter patterns`,
+      );
+      expect(instructionsFor(report)).toEqual(expected);
+      expect(
+        instructionsFor(JSON.parse(result.content[0].text) as LintReport),
+      ).toEqual(expected);
+      expect(report.rules["llm-core/max-params"]?.count).toBe(3);
+      expect(Object.values(report.instructions ?? {})).toEqual([expected[1]]);
+      expect(report.violations[1].instructionId).toBe(
+        report.violations[2].instructionId,
+      );
+      const capped = readReport(
+        await lintTempProject(files, "src", { maxViolations: 1 }),
+      );
+      expect(capped).toMatchObject({
+        violationCount: 3,
+        omittedViolationCount: 2,
+      });
+      expect(capped.rules).toEqual(report.rules);
+      expect(instructionsFor(capped)).toEqual([expected[0]]);
+      expect(capped.instructions).toBeUndefined();
+    },
+  );
+
+  it("returns exact advisory suggestions only when requested and never writes", async () => {
+    const files = {
+      "eslint.config.mjs":
+        pluginImport +
+        `
+        export default [{
+          files: ["*.js"],
+          plugins: { "llm-core": plugin },
+          rules: { "llm-core/no-redundant-logic": "error" },
+        }];
+      `,
+      "input.js":
+        'const enabled = 123 > 2;\nif (enabled === true) { console.log("enabled"); }\n',
+    };
+    const expected = [
+      {
+        desc: "Remove redundant boolean comparison",
+        fix: { range: [29, 45], text: "enabled" },
+      },
+    ];
+    const defaultResult = readReport(await lintTempProject(files, "input.js"));
+    expect(defaultResult.violations[0].suggestions).toBeUndefined();
+    const result = await lintTempProject(files, "input.js", {
+      includeSuggestions: true,
+    });
+    expect(readReport(result).violations[0].suggestions).toEqual(expected);
+    expect(
+      (JSON.parse(result.content[0].text) as LintReport).violations[0]
+        .suggestions,
+    ).toEqual(expected);
+  });
+
+  it("bounds advisory suggestions and omits oversized edits whole", async () => {
+    const files = {
+      "eslint.config.mjs": `
+        const testRule = {
+          meta: { hasSuggestions: true, schema: [] },
+          create(context) {
+            return {
+              ExpressionStatement(node) {
+                context.report({
+                  node,
+                  message: "Test problem",
+                  suggest: ["x".repeat(513), "one", "two", "three", "four"].map(
+                    text => ({ desc: "Replace expression", fix: fixer => fixer.replaceText(node, text) }),
+                  ),
+                });
+              },
+            };
+          },
+        };
+        export default [{
+          files: ["*.js"],
+          plugins: { "llm-core": { rules: { "test-suggestions": testRule } } },
+          rules: { "llm-core/test-suggestions": "error" },
+        }];
+      `,
+      "input.js": "start;\n".repeat(7),
+    };
+    const report = readReport(
+      await lintTempProject(files, "input.js", { includeSuggestions: true }),
+    );
+    expect(
+      report.violations[0].suggestions?.map(({ fix }) => fix.text),
+    ).toEqual(["one", "two", "three"]);
+    expect(report.violations[0].omittedSuggestionCount).toBe(2);
+    expect(
+      report.violations.flatMap((item) => item.suggestions ?? []),
+    ).toHaveLength(20);
+    expect(report.violations[6].omittedSuggestionCount).toBe(3);
   });
 
   it("returns the whole report as compact JSON in the first text block", async () => {

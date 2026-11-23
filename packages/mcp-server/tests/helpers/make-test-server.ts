@@ -21,7 +21,7 @@ export async function makeTestServer(
   lintFileOptions?: MakeTestServerOptions,
 ): Promise<McpServer> {
   const server = new McpServer({ name: "test-server", version: "0.0.0" });
-  registerGetActiveInstructions(server);
+  registerGetActiveInstructions(server, lintFileOptions?.projectRoot);
   registerLintFile(server, lintFileOptions);
   registerRuleResources(server);
   return server;

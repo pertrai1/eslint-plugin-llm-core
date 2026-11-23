@@ -104,12 +104,12 @@ violations per call.
 With the default cap, the 96-file sample returns 100 of its 917 violations in
 44 KB of text, down from 310 KB.
 
-## Known limitation
+## Per-file options
 
-`rules[ruleId].instruction` is interpolated with the options of the first file
-in which the rule fired. If one directory lint spans files that configure the
-same rule with different options, later files' violations cite an instruction
-built from the first file's options. The rule message itself is unaffected.
+The initial shape associated every violation with the first file’s rendered
+instruction. The [file-aware guidance follow-up](mcp-file-aware-guidance.md)
+resolves this limitation by adding a compact override reference for violations
+whose files need different instructions.
 
 ## Measured result
 

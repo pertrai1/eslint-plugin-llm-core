@@ -4,14 +4,16 @@ import { loadESLint } from "eslint";
 import tsParser from "@typescript-eslint/parser";
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-// ESM importing the CJS plugin's ./instructions subpath via interop.
-import { getRuleInstruction } from "eslint-plugin-llm-core/instructions";
-// Default export = the plugin object; plugin.rules[name].defaultOptions is the
-// public source of a rule's defaults, merged in so option-template placeholders
-// resolve even when a project enables a rule without explicit options.
 import plugin from "eslint-plugin-llm-core";
+import {
+  getConfiguredRuleInstruction,
+  isEnabledRuleConfig,
+  LLM_CORE_PREFIX,
+} from "./rule-guidance.js";
 
-const LLM_CORE_PREFIX = "llm-core/";
+const MAX_SUGGESTIONS_PER_VIOLATION = 3;
+const MAX_SUGGESTIONS_PER_REPORT = 20;
+const MAX_SUGGESTION_TEXT_LENGTH = 512;
 
 // Default directory-lint cap (Assumption A1); validated/tuned by sub-task 3.7.
 const DEFAULT_MAX_FILES = 200;
@@ -109,14 +111,6 @@ async function countSourceFiles(dir: string, limit: number): Promise<number> {
   return count;
 }
 
-interface RuleModuleWithDefaults {
-  defaultOptions?: readonly unknown[];
-}
-
-const coreRules = (
-  plugin as unknown as { rules: Record<string, RuleModuleWithDefaults> }
-).rules;
-
 /**
  * Options that configure the lint_file tool at registration time. Kept separate
  * from the per-call `path` input so tests can target a self-contained fixture
@@ -155,6 +149,9 @@ interface LintViolation {
   message: string;
   /** Key into {@link LintReport.guidance} for the rest of the message. */
   guidanceId?: string;
+  instructionId?: string;
+  suggestions?: LintSuggestion[];
+  omittedSuggestionCount?: number;
 }
 
 interface RuleSummary {
@@ -169,10 +166,24 @@ interface RuleSummary {
 interface LintReport {
   rules: Record<string, RuleSummary>;
   guidance: Record<string, string>;
+  instructions: Record<string, string>;
+  coveredFileCount: number;
+  uncoveredFileCount: number;
+  unlintedFiles: UnlintedFile[];
   /** The violations returned, at most the configured cap. */
   violations: LintViolation[];
   /** Every violation found, including those omitted by the cap. */
   violationCount: number;
+}
+
+interface LintSuggestion {
+  desc: string;
+  fix: { range: [number, number]; text: string };
+}
+
+interface ReportOptions {
+  maxViolations: number;
+  includeSuggestions: boolean;
 }
 
 interface FlatLintMessage {
@@ -182,15 +193,17 @@ interface FlatLintMessage {
   severity: number;
   message: string;
   fatal?: boolean;
+  suggestions?: LintSuggestion[];
 }
 
 /**
- * A targeted file ESLint returned no rule results for. Reported separately so
+ * A targeted file ESLint could not fully lint. Reported separately so
  * an empty violations list is never mistaken for "this file is clean".
  */
 interface UnlintedFile {
   filePath: string;
   reason: "parse-error" | "ignored";
+  partial?: true;
   message: string;
   line?: number;
   column?: number;
@@ -207,7 +220,9 @@ interface ResolvedFileConfig {
 
 interface FlatESLintInstance {
   lintFiles(patterns: string[]): Promise<FlatLintResult[]>;
-  calculateConfigForFile(filePath: string): Promise<ResolvedFileConfig>;
+  calculateConfigForFile(
+    filePath: string,
+  ): Promise<ResolvedFileConfig | undefined>;
 }
 
 type FlatESLintConstructor = new (options?: {
@@ -224,6 +239,10 @@ const inputSchema = {
   path: z
     .string()
     .describe("Path to a file or directory to lint, within the project root"),
+  includeSuggestions: z
+    .boolean()
+    .optional()
+    .describe("Return bounded, advisory ESLint suggestions; never edits files"),
 };
 
 const outputSchema = {
@@ -239,6 +258,31 @@ const outputSchema = {
       ruleId: z.string(),
       severity: z.number().int(),
       message: z.string().describe("What is wrong at this location"),
+      instructionId: z
+        .string()
+        .optional()
+        .describe(
+          "Resolve from instructions instead of rules[ruleId].instruction",
+        ),
+      suggestions: z
+        .array(
+          z.object({
+            desc: z.string().max(MAX_SUGGESTION_TEXT_LENGTH),
+            fix: z.object({
+              range: z.tuple([
+                z.number().int().nonnegative(),
+                z.number().int().nonnegative(),
+              ]),
+              text: z.string().max(MAX_SUGGESTION_TEXT_LENGTH),
+            }),
+          }),
+        )
+        .max(MAX_SUGGESTIONS_PER_VIOLATION)
+        .optional()
+        .describe(
+          "Advisory only. Ranges are zero-based UTF-16 with an exclusive end.",
+        ),
+      omittedSuggestionCount: z.number().int().positive().optional(),
       guidanceId: z
         .string()
         .optional()
@@ -257,15 +301,39 @@ const outputSchema = {
   guidance: z
     .record(z.string(), z.string())
     .describe("Why and how-to-fix text, shared by the violations that cite it"),
+  instructions: z
+    .record(z.string(), z.string())
+    .optional()
+    .describe(
+      "Shared per-file instruction overrides, referenced by instructionId",
+    ),
+  coveredFileCount: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe(
+      "Fully linted files with llm-core rules enabled or an llm-core finding",
+    ),
+  uncoveredFileCount: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe(
+      "Fully linted files with no enabled llm-core rules; not a clean result",
+    ),
   omittedViolationCount: z
     .number()
     .int()
     .describe("Violations found but left out of `violations` by the cap"),
-  unlintedFileCount: z.number().int(),
+  unlintedFileCount: z.number().int().describe("Files not fully linted"),
   unlintedFiles: z.array(
     z.object({
       filePath: z.string(),
       reason: z.enum(["parse-error", "ignored"]),
+      partial: z
+        .literal(true)
+        .optional()
+        .describe("Another processor block produced a rule diagnostic"),
       message: z.string(),
       line: z.number().int().optional(),
       column: z.number().int().optional(),
@@ -355,38 +423,6 @@ function createFallbackConfig(): FlatConfig[] {
   ];
 }
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-/** A rule's default options object from the public plugin export. */
-function getRuleDefaultOptions(bareName: string): Record<string, unknown> {
-  const first = coreRules[bareName]?.defaultOptions?.[0];
-  return isPlainObject(first) ? { ...first } : {};
-}
-
-/**
- * Resolves the options a rule effectively fired with: the rule's defaults
- * merged with whatever the project's config configured. Mirrors the core
- * plugin's own option resolution so instructions interpolate identically.
- */
-function resolveRuleOptions(
-  ruleId: string,
-  configEntry: unknown,
-): Record<string, unknown> {
-  const bareName = ruleId.slice(LLM_CORE_PREFIX.length);
-  const defaults = getRuleDefaultOptions(bareName);
-
-  if (Array.isArray(configEntry)) {
-    const configured = configEntry[1];
-    return isPlainObject(configured)
-      ? { ...defaults, ...configured }
-      : { ...defaults };
-  }
-
-  return { ...defaults };
-}
-
 /**
  * Splits a rule message at its first blank line: the first paragraph says what
  * is wrong at this location, and the rest is the why and how-to-fix text.
@@ -407,149 +443,193 @@ export function splitRuleMessage(text: string): {
   };
 }
 
-/**
- * Returns the id of `guidance` for `ruleId`, adding an entry the first time
- * that exact text is seen. Identical text shares one id, so nothing is lost
- * when a rule's guidance varies by violation.
- */
-function internGuidance(
+/** Intern identical text for one rule without repeating it in the payload. */
+function internRuleText(
   ruleId: string,
-  guidance: string,
+  value: string,
   idsByRule: Map<string, Map<string, string>>,
   table: Record<string, string>,
 ): string {
   const ids = idsByRule.get(ruleId) ?? new Map<string, string>();
   idsByRule.set(ruleId, ids);
 
-  const existing = ids.get(guidance);
+  const existing = ids.get(value);
   if (existing) {
     return existing;
   }
 
   const id = `${ruleId}#${ids.size + 1}`;
-  ids.set(guidance, id);
-  table[id] = guidance;
+  ids.set(value, id);
+  table[id] = value;
   return id;
+}
+
+function selectSuggestions(
+  candidates: LintSuggestion[],
+  remaining: number,
+): LintSuggestion[] {
+  return candidates
+    .filter(
+      ({ desc, fix }) =>
+        desc.length <= MAX_SUGGESTION_TEXT_LENGTH &&
+        fix.text.length <= MAX_SUGGESTION_TEXT_LENGTH,
+    )
+    .slice(0, Math.min(remaining, MAX_SUGGESTIONS_PER_VIOLATION))
+    .map(({ desc, fix: { range, text } }) => ({ desc, fix: { range, text } }));
+}
+
+function hasEnabledLlmCoreRule(rules: Record<string, unknown>): boolean {
+  return Object.entries(rules).some(
+    ([ruleId, entry]) =>
+      ruleId.startsWith(LLM_CORE_PREFIX) && isEnabledRuleConfig(entry),
+  );
 }
 
 async function toLintReport(
   results: FlatLintResult[],
   eslint: FlatESLintInstance,
   projectRoot: string,
-  maxViolations: number,
+  options: ReportOptions,
 ): Promise<LintReport> {
   const report: LintReport = {
     rules: {},
     guidance: {},
+    instructions: {},
     violations: [],
     violationCount: 0,
+    coveredFileCount: 0,
+    uncoveredFileCount: 0,
+    unlintedFiles: [],
   };
   const guidanceIds = new Map<string, Map<string, string>>();
+  const instructionIds = new Map<string, Map<string, string>>();
+  let remainingSuggestions = MAX_SUGGESTIONS_PER_REPORT;
 
   for (const result of results) {
-    const hasLlmCore = result.messages.some((m) =>
-      m.ruleId?.startsWith(LLM_CORE_PREFIX),
-    );
-    // Resolve the file's config once (only when it has llm-core diagnostics) so
-    // option-template placeholders interpolate against the configured options.
-    const fileRules = hasLlmCore
-      ? ((await eslint.calculateConfigForFile(result.filePath)).rules ?? {})
-      : {};
     const filePath = path.relative(projectRoot, result.filePath);
+    const unlintedFile = getUnlintedFile(result, filePath);
+    if (unlintedFile) {
+      report.unlintedFiles.push(unlintedFile);
+      if (!unlintedFile.partial) continue;
+    }
 
+    const hasLlmCoreFinding = result.messages.some((message) =>
+      message.ruleId?.startsWith(LLM_CORE_PREFIX),
+    );
+    const fileRules =
+      !unlintedFile || hasLlmCoreFinding
+        ? ((await eslint.calculateConfigForFile(result.filePath))?.rules ?? {})
+        : {};
+    if (!unlintedFile) {
+      // A finding is also evidence of coverage, even when enabled inline.
+      if (hasLlmCoreFinding || hasEnabledLlmCoreRule(fileRules)) {
+        report.coveredFileCount += 1;
+      } else {
+        report.uncoveredFileCount += 1;
+      }
+    }
+
+    const instructionsForFile = new Map<string, string | undefined>();
     for (const lintMessage of result.messages) {
       const ruleId = lintMessage.ruleId;
       if (!ruleId || !ruleId.startsWith(LLM_CORE_PREFIX)) {
         continue;
       }
 
-      const rule = report.rules[ruleId];
-      if (rule) {
-        rule.count += 1;
-      } else {
-        // The first violation's file decides the options the instruction is
-        // interpolated with.
-        const options = resolveRuleOptions(ruleId, fileRules[ruleId]);
-        const instruction = getRuleInstruction(ruleId, options);
-        report.rules[ruleId] = {
-          count: 1,
-          ...(instruction === undefined ? {} : { instruction }),
-        };
+      if (!instructionsForFile.has(ruleId)) {
+        instructionsForFile.set(
+          ruleId,
+          getConfiguredRuleInstruction(ruleId, fileRules[ruleId]),
+        );
       }
-
+      const instruction = instructionsForFile.get(ruleId);
+      const rule = (report.rules[ruleId] ??= { count: 0, instruction });
+      rule.count += 1;
       report.violationCount += 1;
-      if (report.violations.length >= maxViolations) {
-        // Over the cap: counted above and in `rules`, but not returned.
+      if (report.violations.length >= options.maxViolations) {
         continue;
       }
 
       const { message, guidance } = splitRuleMessage(lintMessage.message);
-
-      report.violations.push({
+      const violation: LintViolation = {
         filePath,
         line: lintMessage.line ?? 0,
         column: lintMessage.column ?? 0,
         ruleId,
         severity: lintMessage.severity,
         message,
-        ...(guidance === undefined
-          ? {}
-          : {
-              guidanceId: internGuidance(
-                ruleId,
-                guidance,
-                guidanceIds,
-                report.guidance,
-              ),
-            }),
-      });
+      };
+      if (guidance !== undefined) {
+        violation.guidanceId = internRuleText(
+          ruleId,
+          guidance,
+          guidanceIds,
+          report.guidance,
+        );
+      }
+      if (instruction !== undefined && instruction !== rule.instruction) {
+        violation.instructionId = internRuleText(
+          ruleId,
+          instruction,
+          instructionIds,
+          report.instructions,
+        );
+      }
+      if (options.includeSuggestions && lintMessage.suggestions?.length) {
+        const suggestions = selectSuggestions(
+          lintMessage.suggestions,
+          remainingSuggestions,
+        );
+        remainingSuggestions -= suggestions.length;
+        const omitted = lintMessage.suggestions.length - suggestions.length;
+        if (suggestions.length > 0) violation.suggestions = suggestions;
+        if (omitted > 0) violation.omittedSuggestionCount = omitted;
+      }
+
+      report.violations.push(violation);
     }
   }
 
   return report;
 }
 
-// ESLint reports a skipped file as a rule-less warning with no message id; the
-// message prefix is the only marker it exposes.
 const IGNORED_FILE_MESSAGE = /^File ignored/;
 
-/**
- * Finds files that produced no rule results: a fatal parse error stops every
- * rule, and an ignored or unmatched file is never linted. Both arrive as
- * messages without a rule id, which the llm-core filter would otherwise drop.
- */
-function toUnlintedFiles(
-  results: FlatLintResult[],
-  projectRoot: string,
-): UnlintedFile[] {
-  const unlinted: UnlintedFile[] = [];
-
-  for (const result of results) {
-    const fatal = result.messages.find((m) => m.fatal === true);
-    const ignored = result.messages.find(
-      (m) => m.ruleId === null && IGNORED_FILE_MESSAGE.test(m.message),
+/** Track files that were wholly or partially unlinted, separately from coverage. */
+function getUnlintedFile(
+  result: FlatLintResult,
+  filePath: string,
+): UnlintedFile | undefined {
+  const fatal = result.messages.find((message) => message.fatal === true);
+  if (fatal) {
+    // Processors can aggregate a parse error from one block with rule
+    // diagnostics from another. A silent block leaves no observable evidence.
+    const partial = result.messages.some(
+      (message) => message.fatal !== true && message.ruleId !== null,
     );
-    const filePath = path.relative(projectRoot, result.filePath);
-
-    if (fatal) {
-      unlinted.push({
-        filePath,
-        reason: "parse-error",
-        message: fatal.message,
-        line: fatal.line,
-        column: fatal.column,
-      });
-    } else if (ignored) {
-      unlinted.push({ filePath, reason: "ignored", message: ignored.message });
-    }
+    return {
+      filePath,
+      reason: "parse-error",
+      ...(partial ? { partial: true as const } : {}),
+      message: fatal.message,
+      line: fatal.line,
+      column: fatal.column,
+    };
   }
 
-  return unlinted;
+  const ignored = result.messages.find(
+    (message) =>
+      message.ruleId === null && IGNORED_FILE_MESSAGE.test(message.message),
+  );
+  if (ignored) return { filePath, reason: "ignored", message: ignored.message };
 }
 
 function describeUnlintedFile(file: UnlintedFile): string {
   if (file.reason === "parse-error") {
-    return `- ${file.filePath}:${file.line ?? 0}:${file.column ?? 0} — parse error: ${file.message}`;
+    const description = file.partial
+      ? "partially linted (parse error)"
+      : "parse error";
+    return `- ${file.filePath}:${file.line ?? 0}:${file.column ?? 0} — ${description}: ${file.message}`;
   }
 
   return `- ${file.filePath} — not linted: ${file.message}`;
@@ -562,8 +642,11 @@ function describeUnlintedFiles(
   const heading = nothingLinted
     ? "No file was linted, so there is no llm-core result for this path. " +
       "This does not mean the code is clean."
-    : `${unlintedFiles.length} file(s) were not linted and are not covered by ` +
-      "the violations above. This does not mean they are clean.";
+    : unlintedFiles.some((file) => file.partial)
+      ? "Some files were not fully linted. Diagnostics from successfully linted blocks " +
+        "are included when available. Fix parse errors and recheck; skipped blocks are not known to be clean."
+      : `${unlintedFiles.length} file(s) were not linted and are not covered by ` +
+        "the violations above. This does not mean they are clean.";
 
   return [heading, "", ...unlintedFiles.map(describeUnlintedFile)].join("\n");
 }
@@ -573,29 +656,31 @@ async function toToolResult(
   eslint: FlatESLintInstance,
   source: LintSource,
   projectRoot: string,
-  maxViolations: number,
+  options: ReportOptions,
 ) {
-  const report = await toLintReport(
-    results,
-    eslint,
-    projectRoot,
-    maxViolations,
-  );
+  const report = await toLintReport(results, eslint, projectRoot, options);
   const omittedViolationCount =
     report.violationCount - report.violations.length;
-  const unlintedFiles = toUnlintedFiles(results, projectRoot);
+  const { unlintedFiles } = report;
   const structuredContent = {
     source,
     violationCount: report.violationCount,
     violations: report.violations,
     rules: report.rules,
     guidance: report.guidance,
+    ...(Object.keys(report.instructions).length > 0
+      ? { instructions: report.instructions }
+      : {}),
+    coveredFileCount: report.coveredFileCount,
+    uncoveredFileCount: report.uncoveredFileCount,
     omittedViolationCount,
     unlintedFileCount: unlintedFiles.length,
     unlintedFiles,
   };
   const nothingLinted =
-    unlintedFiles.length > 0 && unlintedFiles.length === results.length;
+    unlintedFiles.length > 0 &&
+    unlintedFiles.length === results.length &&
+    unlintedFiles.every((file) => !file.partial);
 
   if (nothingLinted) {
     return {
@@ -629,6 +714,15 @@ async function toToolResult(
     });
   }
 
+  if (report.uncoveredFileCount > 0) {
+    content.push({
+      type: "text" as const,
+      text:
+        `${report.uncoveredFileCount} linted file(s) have no enabled llm-core rules. ` +
+        "This does not mean they are clean. Check that the project config enables llm-core for those paths.",
+    });
+  }
+
   return { structuredContent, content };
 }
 
@@ -654,7 +748,10 @@ export function registerLintFile(
         "`omittedViolationCount` says how many more there are. Each " +
         "violation gives its file, location and what is wrong; " +
         "`guidance[violation.guidanceId]` holds the why and how-to-fix " +
-        "text, and `rules[ruleId].instruction` the rule's one-line principle.",
+        "text. For one-line instructions, use `instructions[violation.instructionId]` " +
+        "when referenced, otherwise `rules[ruleId].instruction`. Check coverage counts " +
+        "before treating zero violations as clean. Use `includeSuggestions` for " +
+        "bounded, read-only ESLint suggestions.",
       inputSchema,
       outputSchema,
       annotations: {
@@ -664,7 +761,8 @@ export function registerLintFile(
         openWorldHint: false,
       },
     },
-    async ({ path: targetPath }) => {
+    async ({ path: targetPath, includeSuggestions = false }) => {
+      const reportOptions = { maxViolations, includeSuggestions };
       const absoluteTarget = path.resolve(projectRoot, targetPath);
       const realProjectRoot = await realpath(projectRoot).catch(
         () => projectRoot,
@@ -739,7 +837,7 @@ export function registerLintFile(
               fallbackEslint,
               "fallback",
               projectRoot,
-              maxViolations,
+              reportOptions,
             );
           }
 
@@ -756,7 +854,7 @@ export function registerLintFile(
         eslint,
         "project-config",
         projectRoot,
-        maxViolations,
+        reportOptions,
       );
     },
   );

@@ -860,6 +860,113 @@ describe("lint_file result shape", () => {
         : report.rules[violation.ruleId]?.instruction,
     );
 
+  const processorConfig =
+    pluginImport +
+    `
+    const blocks = {
+      preprocess: (text) => text.split("// next block\\n"),
+      postprocess: (messages) => messages.flat(),
+    };
+    export default [
+      {
+        files: ["src/*.js"],
+        plugins: { "llm-core": plugin },
+        rules: { "llm-core/no-empty-catch": "error", "no-debugger": "error" },
+      },
+      { files: ["src/mixed.js"], processor: blocks },
+    ];
+  `;
+
+  function processorProject(secondBlock: string): Record<string, string> {
+    return {
+      "eslint.config.mjs": processorConfig,
+      "src/mixed.js": "function (\n// next block\n" + secondBlock,
+      "src/clean.js": "const clean = 1;\n",
+    };
+  }
+
+  it.each([
+    ["src/mixed.js", 0, 100],
+    ["src", 1, 100],
+    ["src/mixed.js", 0, 0],
+  ])(
+    "preserves partly linted findings for %s with a cap of %s covered and %s violations",
+    async (target, coveredFileCount, maxViolations) => {
+      const result = await lintTempProject(
+        processorProject("try {} catch (error) {}\n"),
+        target,
+        { maxViolations },
+      );
+      expect(result.isError).toBeFalsy();
+      const report = readReport(result);
+      expect(JSON.parse(result.content[0].text)).toEqual(report);
+      expect(report).toMatchObject({
+        coveredFileCount,
+        uncoveredFileCount: 0,
+        unlintedFileCount: 1,
+        unlintedFiles: [
+          {
+            filePath: path.join("src", "mixed.js"),
+            reason: "parse-error",
+            partial: true,
+          },
+        ],
+        violationCount: 1,
+        omittedViolationCount: maxViolations === 0 ? 1 : 0,
+        rules: { "llm-core/no-empty-catch": { count: 1 } },
+      });
+      if (maxViolations === 0) {
+        expect(report.violations).toEqual([]);
+      } else {
+        expect(report.violations).toMatchObject([
+          {
+            filePath: path.join("src", "mixed.js"),
+            ruleId: "llm-core/no-empty-catch",
+          },
+        ]);
+      }
+      expect(result.content.at(-1)?.text).toContain("partially linted");
+      expect(result.content.at(-1)?.text).toContain("parse error");
+    },
+  );
+
+  it("labels observable partial parsing even with no llm-core diagnostics", async () => {
+    const result = await lintTempProject(
+      processorProject("debugger;\n"),
+      "src/mixed.js",
+    );
+    expect(result.isError).toBeFalsy();
+    const report = readReport(result);
+    expect(JSON.parse(result.content[0].text)).toEqual(report);
+    expect(report).toMatchObject({
+      violationCount: 0,
+      violations: [],
+      coveredFileCount: 0,
+      uncoveredFileCount: 0,
+      unlintedFileCount: 1,
+      unlintedFiles: [{ reason: "parse-error", partial: true }],
+    });
+    expect(result.content.at(-1)?.text).toContain("partially linted");
+  });
+
+  it("does not infer coverage from a silent processor block", async () => {
+    const result = await lintTempProject(
+      processorProject("const clean = 1;\n"),
+      "src/mixed.js",
+    );
+    expect(result.isError).toBe(true);
+    const report = readReport(result);
+    expect(report).toMatchObject({
+      violationCount: 0,
+      coveredFileCount: 0,
+      uncoveredFileCount: 0,
+      unlintedFileCount: 1,
+      unlintedFiles: [{ reason: "parse-error" }],
+    });
+    expect(report.unlintedFiles[0]).not.toHaveProperty("partial");
+    expect(result.content[0].text).toContain("No file was linted");
+  });
+
   it("distinguishes covered, uncovered, and unlinted files without falling back", async () => {
     const files = {
       "eslint.config.mjs":

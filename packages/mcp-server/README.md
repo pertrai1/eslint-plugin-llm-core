@@ -140,12 +140,18 @@ Directory targets are capped to prevent broad accidental scans. When a directory
 is over the cap, or no ESLint config is found and fallback is off, the tool
 returns an error result explaining what to do instead of a lint result.
 
-Files that could not be linted are reported rather than treated as clean. A file
-with a parse error, or one ESLint ignores or has no configuration for, appears in
-`structuredContent.unlintedFiles` with a `reason` of `parse-error` or `ignored`,
-and is listed in a second text block after the result. When none of the
-targeted files could be linted, the tool returns an error describing why instead
-of an empty result.
+Files that could not be fully linted are reported rather than treated as clean.
+A file with a parse error, or one ESLint ignores or has no configuration for,
+appears in `structuredContent.unlintedFiles` with a `reason` of `parse-error`
+or `ignored` and is listed in a text note after the result.
+
+If ESLint reports a parse error and a rule diagnostic from separate processor
+blocks in the same file, its parse entry has `partial: true`. It counts once in
+`unlintedFileCount`, not in either coverage count. Valid llm-core findings from
+that file still contribute to violation counts and can be returned within the
+cap. Fix the parse error and recheck; a blank findings list does not prove that
+every block was checked. When no targeted file has an observable lint result
+beyond parse errors or ignore notices, the tool returns an error explaining why.
 
 `ignored` applies to the path you pass. When the target is a directory, files
 that the project's ignore patterns exclude are skipped as ESLint normally does

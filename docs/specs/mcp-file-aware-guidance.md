@@ -17,6 +17,15 @@ may need to refresh it for the additive fields.
   in the existing separate unlinted count. Do not return other plugins'
   violations or enable fallback when a project config exists.
   Uncovered files prompt an actionable text note; they do not imply clean code.
+- **Processor results.** A physical file can aggregate diagnostics from
+  several ESLint processor blocks. When a fatal parse diagnostic and an
+  ordinary rule diagnostic coexist, preserve the llm-core findings and totals,
+  and mark the existing parse entry with `partial: true`. A partial file
+  counts once as unlinted (not fully linted), and neither as covered nor as
+  uncovered. Return JSON and an actionable note even when it is the only
+  target or the findings are capped out. A fatal diagnostic without another
+  block's observable rule diagnostic remains an unlinted parse error: the
+  aggregate cannot distinguish a silently successful block from no success.
 - **Per-file instructions (#450).** Preserve `rules[ruleId].instruction` as the
   default associated with the first violation for compatibility. For a returned
   violation whose effective instruction differs, set `instructionId` pointing

@@ -197,12 +197,13 @@ interface FlatLintMessage {
 }
 
 /**
- * A targeted file ESLint returned no rule results for. Reported separately so
+ * A targeted file ESLint could not fully lint. Reported separately so
  * an empty violations list is never mistaken for "this file is clean".
  */
 interface UnlintedFile {
   filePath: string;
   reason: "parse-error" | "ignored";
+  partial?: true;
   message: string;
   line?: number;
   column?: number;
@@ -311,24 +312,28 @@ const outputSchema = {
     .int()
     .nonnegative()
     .describe(
-      "Linted files with llm-core rules enabled or an llm-core finding",
+      "Fully linted files with llm-core rules enabled or an llm-core finding",
     ),
   uncoveredFileCount: z
     .number()
     .int()
     .nonnegative()
     .describe(
-      "Linted files with no enabled llm-core rules; not a clean result",
+      "Fully linted files with no enabled llm-core rules; not a clean result",
     ),
   omittedViolationCount: z
     .number()
     .int()
     .describe("Violations found but left out of `violations` by the cap"),
-  unlintedFileCount: z.number().int(),
+  unlintedFileCount: z.number().int().describe("Files not fully linted"),
   unlintedFiles: z.array(
     z.object({
       filePath: z.string(),
       reason: z.enum(["parse-error", "ignored"]),
+      partial: z
+        .literal(true)
+        .optional()
+        .describe("Another processor block produced a rule diagnostic"),
       message: z.string(),
       line: z.number().int().optional(),
       column: z.number().int().optional(),
@@ -505,19 +510,23 @@ async function toLintReport(
     const unlintedFile = getUnlintedFile(result, filePath);
     if (unlintedFile) {
       report.unlintedFiles.push(unlintedFile);
-      continue;
+      if (!unlintedFile.partial) continue;
     }
 
-    const fileRules =
-      (await eslint.calculateConfigForFile(result.filePath))?.rules ?? {};
     const hasLlmCoreFinding = result.messages.some((message) =>
       message.ruleId?.startsWith(LLM_CORE_PREFIX),
     );
-    // A finding is also evidence of coverage, even when enabled inline.
-    if (hasLlmCoreFinding || hasEnabledLlmCoreRule(fileRules)) {
-      report.coveredFileCount += 1;
-    } else {
-      report.uncoveredFileCount += 1;
+    const fileRules =
+      !unlintedFile || hasLlmCoreFinding
+        ? ((await eslint.calculateConfigForFile(result.filePath))?.rules ?? {})
+        : {};
+    if (!unlintedFile) {
+      // A finding is also evidence of coverage, even when enabled inline.
+      if (hasLlmCoreFinding || hasEnabledLlmCoreRule(fileRules)) {
+        report.coveredFileCount += 1;
+      } else {
+        report.uncoveredFileCount += 1;
+      }
     }
 
     const instructionsForFile = new Map<string, string | undefined>();
@@ -586,16 +595,22 @@ async function toLintReport(
 
 const IGNORED_FILE_MESSAGE = /^File ignored/;
 
-/** Preserve files that produced no rule results, separately from coverage. */
+/** Track files that were wholly or partially unlinted, separately from coverage. */
 function getUnlintedFile(
   result: FlatLintResult,
   filePath: string,
 ): UnlintedFile | undefined {
   const fatal = result.messages.find((message) => message.fatal === true);
   if (fatal) {
+    // Processors can aggregate a parse error from one block with rule
+    // diagnostics from another. A silent block leaves no observable evidence.
+    const partial = result.messages.some(
+      (message) => message.fatal !== true && message.ruleId !== null,
+    );
     return {
       filePath,
       reason: "parse-error",
+      ...(partial ? { partial: true as const } : {}),
       message: fatal.message,
       line: fatal.line,
       column: fatal.column,
@@ -611,7 +626,10 @@ function getUnlintedFile(
 
 function describeUnlintedFile(file: UnlintedFile): string {
   if (file.reason === "parse-error") {
-    return `- ${file.filePath}:${file.line ?? 0}:${file.column ?? 0} — parse error: ${file.message}`;
+    const description = file.partial
+      ? "partially linted (parse error)"
+      : "parse error";
+    return `- ${file.filePath}:${file.line ?? 0}:${file.column ?? 0} — ${description}: ${file.message}`;
   }
 
   return `- ${file.filePath} — not linted: ${file.message}`;
@@ -624,8 +642,11 @@ function describeUnlintedFiles(
   const heading = nothingLinted
     ? "No file was linted, so there is no llm-core result for this path. " +
       "This does not mean the code is clean."
-    : `${unlintedFiles.length} file(s) were not linted and are not covered by ` +
-      "the violations above. This does not mean they are clean.";
+    : unlintedFiles.some((file) => file.partial)
+      ? "Some files were not fully linted. Diagnostics from successfully linted blocks " +
+        "are included when available. Fix parse errors and recheck; skipped blocks are not known to be clean."
+      : `${unlintedFiles.length} file(s) were not linted and are not covered by ` +
+        "the violations above. This does not mean they are clean.";
 
   return [heading, "", ...unlintedFiles.map(describeUnlintedFile)].join("\n");
 }
@@ -657,7 +678,9 @@ async function toToolResult(
     unlintedFiles,
   };
   const nothingLinted =
-    unlintedFiles.length > 0 && unlintedFiles.length === results.length;
+    unlintedFiles.length > 0 &&
+    unlintedFiles.length === results.length &&
+    unlintedFiles.every((file) => !file.partial);
 
   if (nothingLinted) {
     return {

@@ -44,7 +44,9 @@ Register the server with an MCP-capable client using `npx`:
 
 `lint_file` first uses the project ESLint configuration it discovers from the
 target path. Project configuration always takes precedence, and project-config
-findings are labeled with `source: "project-config"`.
+findings are labeled with `source: "project-config"`. Launch the stdio server
+from the project root (set the working directory in your client if needed),
+then use paths relative to that root.
 
 ## Tools
 
@@ -88,6 +90,8 @@ Result (`structuredContent`, also sent as compact JSON in the first text block):
     "llm-core/no-empty-catch#1": "Why: …\n\nHow to fix: …"
   },
   "omittedViolationCount": 0,
+  "coveredFileCount": 1,
+  "uncoveredFileCount": 0,
   "unlintedFileCount": 0,
   "unlintedFiles": []
 }
@@ -97,7 +101,12 @@ Text that repeats is sent once. Each violation carries its file, location and
 the first paragraph of the rule message. The rest of the message, the why and
 how-to-fix text, is in `guidance` under the violation's `guidanceId`; violations
 with identical text share an entry, and violations whose text differs get their
-own. `rules` holds each rule's violation count and one-line instruction.
+own. `rules` holds each rule's total count and its first one-line instruction.
+When a file’s options produce a different instruction, its violation has an
+`instructionId`. Prefer `instructions[violation.instructionId]` when present;
+otherwise use `rules[violation.ruleId].instruction`. Identical overrides share
+one entry, and the optional table only contains entries referenced by returned
+violations.
 
 One call returns at most 100 violations, in ESLint's order. `violationCount` is
 the total found and `omittedViolationCount` is how many were left out;
@@ -106,6 +115,26 @@ second text block says so. Fix what is shown and lint again, or narrow the path
 to reach the rest.
 
 The tool declares this shape as its output schema and is annotated read-only.
+Clients that validate against a saved copy of the old schema should refresh it
+from `tools/list` before reading the new fields.
+
+Use `coveredFileCount` and `uncoveredFileCount` before interpreting a zero count.
+Coverage means a linted file had llm-core rules enabled in its effective flat
+config or produced a llm-core diagnostic. Uncovered files were linted by ESLint
+but had no llm-core coverage; a zero llm-core violation count does not make
+those files clean. Neither count includes files reported as unlinted. Other
+ESLint rules' diagnostics are not returned.
+
+For exact advisory edits, pass `{ "path": "src/index.ts", "includeSuggestions": true }`.
+When ESLint supplies suggestions, a violation may contain `suggestions` with
+`desc` and `fix: { range, text }`. Ranges are zero-based UTF-16 offsets; the end
+is exclusive. Ranges use ESLint’s source text, which excludes a leading BOM.
+The tool never applies any edit. Review a suggestion and apply it
+only if the file still matches the linted version, then call `lint_file` again on
+the edited file. There are at most three suggestions per violation and twenty
+per response. An edit with a description or replacement longer than 512 UTF-16
+code units is omitted, never truncated; `omittedSuggestionCount` records omitted
+suggestions for that violation. Suggestions are off by default.
 
 Directory targets are capped to prevent broad accidental scans. When a directory
 is over the cap, or no ESLint config is found and fallback is off, the tool
@@ -124,17 +153,28 @@ and are not listed; lint such a file directly to see why it is skipped.
 
 ### `get_active_instructions`
 
-Returns generated lint guidance for the active ESLint config. Call it when an
-agent needs project-specific rule guidance without keeping every rule in the
-prompt for the full session.
+Use a project-relative file path when you need the rules and options that
+actually apply to a file:
 
-Input:
+```json
+{
+  "path": "src/index.ts"
+}
+```
+
+The file must exist within the project root. Ignored or unmatched files do
+not have file-specific guidance. This lookup uses the project's config, not
+the fallback lint preset or inline rule comments.
+
+Omit `path` for an approximate overview based on representative files at the
+project root. Directory-specific overrides may not be represented:
 
 ```json
 {}
 ```
 
-Optional explicit config:
+For the overview only, you can optionally select a config file. Do not pass
+`configPath` together with `path`.
 
 ```json
 {

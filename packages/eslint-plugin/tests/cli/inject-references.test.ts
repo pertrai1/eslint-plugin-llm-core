@@ -1,3 +1,5 @@
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -117,19 +119,41 @@ Existing content
     expect(second).toBe(first);
   });
 
-  it("replaceOrAppendBlock appends when only orphaned end marker is present", () => {
-    const content = `# Title
+  it.each([
+    ["orphaned end", `${injectionBlockEnd}\nSome content\n`],
+    [
+      "duplicate starts",
+      `${injectionBlockStart}\nKeep this\n${injectionBlockStart}\nOld block\n${injectionBlockEnd}\n`,
+    ],
+    [
+      "duplicate ends",
+      `${injectionBlockStart}\nOld block\n${injectionBlockEnd}\nKeep this\n${injectionBlockEnd}\n`,
+    ],
+    ["reversed", `${injectionBlockEnd}\nKeep this\n${injectionBlockStart}\n`],
+    [
+      "inline",
+      `Mention ${injectionBlockStart} here.\nKeep this\n${injectionBlockEnd}\n`,
+    ],
+  ])(
+    "rejects %s markers instead of replacing or appending",
+    (_name, content) => {
+      const block = buildInjectionBlock(".agents/linting-rules.md");
 
-${injectionBlockEnd}
+      expect(() => replaceOrAppendBlock(content, block)).toThrow(
+        "ambiguous reference markers",
+      );
+    },
+  );
 
-Some content
-`;
+  it("preserves surrounding CRLF text when replacing standalone markers", () => {
+    const prefix = "# Before\r\n";
+    const suffix = "\r\nKeep this.\r\n";
+    const content = `${prefix}${injectionBlockStart}\r\nOld block\r\n${injectionBlockEnd}${suffix}`;
     const block = buildInjectionBlock(".agents/linting-rules.md");
-    const result = replaceOrAppendBlock(content, block);
 
-    expect(result).toContain(injectionBlockStart);
-    expect(result).toContain("# Title");
-    expect(result).toContain("Some content");
+    expect(replaceOrAppendBlock(content, block)).toBe(
+      `${prefix}${block}${suffix}`,
+    );
   });
 
   it("findInstructionFiles returns empty array when no instruction files exist", () => {
@@ -194,6 +218,53 @@ describe("injectReferences integration", () => {
       "utf-8",
     );
     expect(copilot).toContain("(../.agents/linting-rules.md)");
+  });
+
+  it("preserves a damaged instruction file across CLI reruns and updates healthy targets", () => {
+    const fixture = fs.mkdtempSync(
+      path.join(os.tmpdir(), "llm-core-marker-cli-"),
+    );
+    try {
+      const agents = path.join(fixture, "AGENTS.md");
+      const claude = path.join(fixture, "CLAUDE.md");
+      const config = path.join(fixture, "eslint.config.mjs");
+      const original = Buffer.from(
+        `# Agents\r\n${injectionBlockStart}\r\nKeep hand-written directions.\r\n`,
+      );
+      fs.writeFileSync(agents, original);
+      fs.writeFileSync(claude, "# Claude\n");
+      fs.writeFileSync(config, "export default [{}];\n");
+      const cli = fileURLToPath(
+        new URL("../../src/cli/generate-instructions.ts", import.meta.url),
+      );
+      const runCli = () =>
+        spawnSync(
+          process.execPath,
+          ["--import", import.meta.resolve("tsx"), cli, "--config", config],
+          { cwd: fixture, encoding: "utf-8", timeout: 10_000 },
+        );
+
+      const first = runCli();
+      const claudeAfterFirst = fs.readFileSync(claude);
+      const second = runCli();
+
+      expect(fs.readFileSync(agents)).toEqual(original);
+      expect(first.status).toBe(0);
+      expect(second.status).toBe(0);
+      expect(first.stderr).toContain("AGENTS.md: ambiguous reference markers");
+      expect(second.stderr).toContain("AGENTS.md: ambiguous reference markers");
+      expect(first.stdout).toContain("Injected reference into CLAUDE.md");
+      expect(second.stdout).not.toContain("Injected reference into CLAUDE.md");
+      expect(fs.readFileSync(claude)).toEqual(claudeAfterFirst);
+      expect(
+        fs.readFileSync(
+          path.join(fixture, ".agents", "linting-rules.md"),
+          "utf-8",
+        ),
+      ).toContain("# Coding Guidelines");
+    } finally {
+      fs.rmSync(fixture, { recursive: true, force: true });
+    }
   });
 
   it("skips missing files without error", () => {

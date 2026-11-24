@@ -1,5 +1,13 @@
 # eslint-plugin-llm-core-mcp
 
+## 0.32.0
+
+### Minor Changes
+
+- d03bfd5: Improve file-aware lint guidance: distinguish uncovered files, preserve
+  per-file rule instructions, add exact file-scoped instruction lookup, and
+  expose bounded advisory ESLint suggestions on request.
+
 ## 0.31.0
 
 ### Minor Changes

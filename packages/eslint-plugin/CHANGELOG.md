@@ -1,5 +1,13 @@
 # eslint-plugin-llm-core
 
+## 0.37.8
+
+### Patch Changes
+
+- 5cfba30: Preserve hand-written agent instructions when reference markers are ambiguous.
+  The instruction generator warns and skips the affected file, while continuing
+  to generate guidance and update other instruction files.
+
 ## 0.37.7
 
 ### Patch Changes

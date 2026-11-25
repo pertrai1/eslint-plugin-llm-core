@@ -290,7 +290,7 @@ Unlike static instruction files, generated instructions are:
 npx llm-core-instructions
 ```
 
-This reads your `eslint.config.*`, resolves active `llm-core` rules, and generates `.agents/linting-rules.md` with behavioral guidelines for AI coding tools. It also appends a reference to the generated file into any existing agent instruction files (`AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`) so agent tools discover it automatically. Re-running replaces the reference in-place — no duplicates.
+This reads your `eslint.config.*`, resolves active `llm-core` rules, and generates `.agents/linting-rules.md` with behavioral guidelines for AI coding tools. It also appends a reference to the generated file into any existing agent instruction files (`AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`) so agent tools discover it automatically. Re-running replaces the reference in-place — no duplicates. If the reference markers are incomplete, repeated, reversed, or not on their own lines, the CLI warns and leaves that instruction file unchanged. It still generates the guidance file and updates other intact targets. Repair the marker pair, or use `--no-inject` to regenerate guidance without changing instruction files.
 
 **Flags:**
 

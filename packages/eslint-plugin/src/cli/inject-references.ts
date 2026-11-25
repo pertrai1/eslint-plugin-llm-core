@@ -31,21 +31,45 @@ export function buildInjectionBlock(relativePath: string): string {
   return `${injectionBlockStart}\nSee [\`.agents/linting-rules.md\`](${relativePath}) for coding guidelines derived from your ESLint config.\nRegenerate with: \`npx llm-core-instructions\`\n${injectionBlockEnd}`;
 }
 
+function isMarkerLine(content: string, index: number, marker: string): boolean {
+  const end = index + marker.length;
+
+  return (
+    (index === 0 || content[index - 1] === "\n") &&
+    (end === content.length ||
+      content.startsWith("\n", end) ||
+      content.startsWith("\r\n", end))
+  );
+}
+
 /**
- * Replaces an existing injection block in `content`, or appends if none exists.
- * Preserves all surrounding content unchanged.
+ * Replaces an unambiguous injection block or appends if no markers exist.
+ * Ambiguous markers must not turn surrounding text into generated content.
  */
 export function replaceOrAppendBlock(content: string, block: string): string {
   const startIdx = content.indexOf(injectionBlockStart);
   const endIdx = content.indexOf(injectionBlockEnd);
 
-  if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-    const cutEnd = endIdx + injectionBlockEnd.length;
-    return content.slice(0, startIdx) + block + content.slice(cutEnd);
+  if (startIdx === -1 && endIdx === -1) {
+    const trimmed = content.endsWith("\n") ? content : content + "\n";
+    return trimmed + block + "\n";
   }
 
-  const trimmed = content.endsWith("\n") ? content : content + "\n";
-  return trimmed + block + "\n";
+  if (
+    startIdx === -1 ||
+    endIdx <= startIdx ||
+    content.includes(injectionBlockStart, startIdx + 1) ||
+    content.includes(injectionBlockEnd, endIdx + 1) ||
+    !isMarkerLine(content, startIdx, injectionBlockStart) ||
+    !isMarkerLine(content, endIdx, injectionBlockEnd)
+  ) {
+    throw new Error(
+      "ambiguous reference markers; file left unchanged. Repair the marker pair or use --no-inject.",
+    );
+  }
+
+  const cutEnd = endIdx + injectionBlockEnd.length;
+  return content.slice(0, startIdx) + block + content.slice(cutEnd);
 }
 
 /**
@@ -53,7 +77,7 @@ export function replaceOrAppendBlock(content: string, block: string): string {
  * builds blocks with correct relative paths, and writes changes.
  * Returns the list of modified file paths.
  *
- * If a file is not writable, logs a warning to stderr and continues.
+ * If a file cannot be safely updated, logs a warning to stderr and continues.
  */
 export function injectReferences(cwd: string): string[] {
   const files = findInstructionFiles(cwd);

@@ -60,7 +60,7 @@
 - [ ] `.agents/directives/error-memory.md`
 - [ ] `.agents/directives/verification.md`
 - [ ] `.agents/directives/session-decisions.md`
-- [ ] If `SESSION_DECISIONS.md` was loaded **and** this PR set a durable repo/process or cross-cutting decision whose reasoning is not obvious from the diff, a `docs/decisions/YYYY-MM-DD-<topic>.md` entry is included in this PR
+- [ ] If `session-decisions.md` was loaded **and** this PR set a durable repo/process or cross-cutting decision whose reasoning is not obvious from the diff, a `docs/decisions/YYYY-MM-DD-<topic>.md` entry is included in this PR
 
 **Instruction files NOT loaded (explain if unexpected):**
 

@@ -20,7 +20,7 @@ otherwise live only in an agent's or contributor's memory.
 ## How to find relevant logs
 
 The canonical retrieval workflow and frontmatter schema live in
-[`.agents/directives/SESSION_DECISIONS.md`](../../.agents/directives/SESSION_DECISIONS.md).
+[`.agents/directives/session-decisions.md`](../../.agents/directives/session-decisions.md).
 Use that directive as the source of truth so the lookup rules do not drift.
 
 In short: scan frontmatter first, keep only active entries, then open only the
@@ -35,4 +35,4 @@ with the frontmatter to find relevant records, then read the body for reasoning.
 ## How to write one
 
 See [TEMPLATE.md](./TEMPLATE.md). Agents must also follow
-[`.agents/directives/SESSION_DECISIONS.md`](../../.agents/directives/SESSION_DECISIONS.md).
+[`.agents/directives/session-decisions.md`](../../.agents/directives/session-decisions.md).

@@ -4,7 +4,7 @@
 
 ## Verification
 
-<!-- Required for all code changes. See .agents/directives/VERIFICATION.md for protocol. -->
+<!-- Required for all code changes. See .agents/directives/verification.md for protocol. -->
 
 <!-- For new rules and bug fixes: include Detection, Tests, Contract, and Docs proof. -->
 
@@ -54,13 +54,13 @@
 - [ ] `.github/instructions/rule-docs.md`
 - [ ] `.github/instructions/plugin-config.md`
 - [ ] `AGENTS.md`
-- [ ] `.agents/directives/TYPE_DRIVEN_DEVELOPMENT.md`
-- [ ] `.agents/directives/TEST_DRIVEN_DEVELOPMENT.md`
-- [ ] `.agents/directives/CODEBASE_NAVIGATION.md`
-- [ ] `.agents/directives/ERROR_MEMORY.md`
-- [ ] `.agents/directives/VERIFICATION.md`
-- [ ] `.agents/directives/SESSION_DECISIONS.md`
-- [ ] If `SESSION_DECISIONS.md` was loaded **and** this PR set a durable repo/process or cross-cutting decision whose reasoning is not obvious from the diff, a `docs/decisions/YYYY-MM-DD-<topic>.md` entry is included in this PR
+- [ ] `.agents/directives/type-driven-development.md`
+- [ ] `.agents/directives/test-driven-development.md`
+- [ ] `.agents/directives/codebase-navigation.md`
+- [ ] `.agents/directives/error-memory.md`
+- [ ] `.agents/directives/verification.md`
+- [ ] `.agents/directives/session-decisions.md`
+- [ ] If `session-decisions.md` was loaded **and** this PR set a durable repo/process or cross-cutting decision whose reasoning is not obvious from the diff, a `docs/decisions/YYYY-MM-DD-<topic>.md` entry is included in this PR
 
 **Instruction files NOT loaded (explain if unexpected):**
 
